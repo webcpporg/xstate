@@ -1,0 +1,4 @@
+1: CHECKOUT, idle -> validating, [track], "validating"
+2: CHECKOUT, validating -> charging, [xstate.raise], "charging"
+3: CHARGED, charging -> confirmed, [sendReceipt], "confirmed", settled
+result: "confirmed", [track, xstate.raise, sendReceipt], 3 microsteps

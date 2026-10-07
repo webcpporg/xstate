@@ -1,0 +1,3 @@
+owner: "walking", active
+owner: "home", done
+dog: "fetched", done, output {"brought":"a stick"}

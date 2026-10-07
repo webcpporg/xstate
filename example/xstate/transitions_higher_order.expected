@@ -1,0 +1,6 @@
+save owner -> {"document":"dirty","network":"offline"}
+connect -> {"document":"dirty","network":"online"}
+save guest -> {"document":"dirty","network":"online"}
+save admin -> {"document":"saved","network":"online"}
+edit guest -> {"document":"saved","network":"online"}
+edit owner -> {"document":"dirty","network":"online"}

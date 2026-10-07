@@ -1,0 +1,5 @@
+start {"mode":"light","theme":"default"}
+set.dark.custom -> {"mode":"dark","theme":"custom"}
+set.light -> {"mode":"light","theme":"default"}
+set.dark.custom -> {"mode":"dark","theme":"custom"}
+mode.light -> {"mode":"light","theme":"custom"}

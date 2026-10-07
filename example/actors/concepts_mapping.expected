@@ -1,0 +1,5 @@
+microstep: "stretching" []
+microstep: "awake" [bark]
+settled: "awake"
+custom action: bark
+actor: "awake"

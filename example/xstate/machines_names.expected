@@ -1,0 +1,2 @@
+xstate.raise {"event":{"type":"xstate.after.shortDelay.access.checking"},"id":"xstate.after.shortDelay.access.checking","delay":250}
+"allowed" xstate.cancel trackAccess

@@ -1,0 +1,10 @@
+{
+    "boundaries": [
+        {
+            "headers": ["include/webcpp/xstate.hpp", "include/webcpp/xstate/*.hpp"],
+            "except": ["include/webcpp/xstate/actors.hpp"],
+            "must-not-include": ["webcpp/xactor", "webcpp/xstate/actors"],
+            "why": "the machine core runs without xactor and the actor layer"
+        }
+    ]
+}

@@ -1,0 +1,3 @@
+first request: 2 microsteps, done false, at "charging"
+second request: 1 microstep, done true, at "confirmed"
+the copy: done true, at "confirmed", 3 microsteps

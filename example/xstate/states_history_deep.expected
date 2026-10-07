@@ -1,0 +1,4 @@
+shallow remembers ["player.powered.radio"]
+deep remembers ["player.powered.radio.playing"]
+resume: {"powered":{"radio":"stopped"}}
+resumeDeep: {"powered":{"radio":"playing"}}

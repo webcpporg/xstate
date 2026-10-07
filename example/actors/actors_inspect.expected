@@ -1,0 +1,4 @@
+started
+settled xstate.init "inactive"
+emitted activated
+settled toggle "active"

@@ -1,0 +1,3 @@
+"prompt" ["visible"] visible: true
+{"thanks":"celebrating"} ["visible","confetti"] visible: true
+"closed" ["hidden"] visible: false

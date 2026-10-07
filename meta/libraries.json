@@ -1,0 +1,16 @@
+{
+    "key": "xstate",
+    "name": "xstate",
+    "authors": ["R"],
+    "description": "A header-only port of XState's state machines and actors: machines read from XState's JSON config, stepped by XState's pure functions or run as actors on xactor.",
+    "category": ["State"],
+    "maintainers": ["R <github.overboard312@passmail.net>"],
+    "cxxstd": "20",
+    "port-of": {
+        "name": "XState",
+        "language": "TypeScript",
+        "version": "5.33.2",
+        "url": "https://github.com/statelyai/xstate",
+        "licence": "MIT"
+    }
+}

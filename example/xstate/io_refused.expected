@@ -1,0 +1,5 @@
+an input for no invoke: invalid_config
+an input the config fixes too: invalid_config
+an output for a state not final: invalid_config
+an output the config fixes too: invalid_config
+outputs for a final state and the root: created

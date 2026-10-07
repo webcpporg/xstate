@@ -1,0 +1,6 @@
+xstate.log {"value":"incremented"}
+xstate.log {"value":1,"label":"count"}
+xstate.log {"value":{"context":{"count":1},"event":{"type":"increment"}}}
+"incremented"
+count: 1
+{"context":{"count":1},"event":{"type":"increment"}}

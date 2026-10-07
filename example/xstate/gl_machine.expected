@@ -1,0 +1,7 @@
+initial: "cart" {"items":0} active
+checkout #1: "checking" {"items":0} active []
+checkout #2: "cart" {"items":0} active [] settled
+add #1: "cart" {"items":1} active [] settled
+checkout #1: "checking" {"items":1} active []
+checkout #2: "paying" {"items":1} active [charge, xstate.raise]
+checkout #3: "closed" {"items":1} done [] settled

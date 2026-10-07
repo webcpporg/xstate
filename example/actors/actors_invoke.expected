@@ -1,0 +1,4 @@
+"waiting" ["worker"]
+done {"type":"xstate.done.actor.worker","output":{"result":42},"actorId":"worker"}
+"finished" []
+worker: done

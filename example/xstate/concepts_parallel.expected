@@ -1,0 +1,3 @@
+initial: {"activity":"walking","tail":"notWagging"}
+sees a squirrel -> {"activity":"running","tail":"wagging"}
+slow down -> {"activity":"walking","tail":"wagging"}

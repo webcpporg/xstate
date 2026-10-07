@@ -1,0 +1,13 @@
+initial macrostep:
+  xstate.raise {"event":{"type":"xstate.after.5000.game.waitingForButtonPush"},"id":"xstate.after.5000.game.waitingForButtonPush","delay":5000}
+PUSH_BUTTON:
+  xstate.cancel {"sendId":"xstate.after.5000.game.waitingForButtonPush"}
+  logSuccess
+at 0: "waitingForButtonPush"
+at 4999: "waitingForButtonPush"
+logThatYouGotTimedOut
+at 5000: "timedOut"
+at 0: "waitingForButtonPush"
+logSuccess
+at 1000: "success"
+at 6000: "success"

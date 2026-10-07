@@ -1,0 +1,7 @@
+a transition that declares cond: invalid_config
+an event of the type * from outside: error, invalid_event
+a forwardTo to no actor: error, unknown_target
+the event mouse.x: "idle"
+the event mouse.x: "idle"
+the event mou*se.x: "starred"
+the event mouse.*.*: "deep"

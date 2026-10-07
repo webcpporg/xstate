@@ -1,0 +1,7 @@
+start: settled "idle"
+GO: out_of_fuel "idle"
+PING: out_of_fuel "idle"
+resume: settled "f"
+start: out_of_fuel none
+resume: out_of_fuel none
+stop: stopped

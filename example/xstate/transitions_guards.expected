@@ -1,0 +1,6 @@
+rating 5 -> "thanks"
+rating 1 -> "form"
+rating 3 -> "neutral"
+feedback "" -> "form"
+feedback "Too slow." -> "submitting"
+no feedback -> "form" error implementation_failed

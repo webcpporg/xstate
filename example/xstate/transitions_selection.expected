@@ -1,0 +1,7 @@
+start {"editing":"text"}
+menu.open -> {"editing":"menu"}
+escape -> {"editing":"text"}
+escape -> "closed"
+start {"editing":"text"}
+save -> {"editing":"saving"}
+escape -> {"editing":"saving"}

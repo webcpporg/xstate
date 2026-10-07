@@ -1,0 +1,6 @@
+start {"parentState":"someChildState"} [enterParent, enterSome]
+event.thatReenters -> {"parentState":"otherChildState"} [exitSome, exitParent, enterParent, enterOther]
+event.targetless -> {"parentState":"otherChildState"} [notify]
+event.self -> {"parentState":"someChildState"} [exitOther, enterSome]
+event.normal -> {"parentState":"someChildState"} [exitSome, enterSome]
+event.selfReenters -> {"parentState":"someChildState"} [exitSome, exitParent, enterParent, enterSome]

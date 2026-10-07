@@ -1,0 +1,6 @@
+{"type":"feedback.update","feedback":"This is great!","rating":5}
+{"type": "feedback.update", "rating": 5} -> feedback.update {"rating":5}
+{"type": "*"} -> * {}
+{"rating": 5} -> invalid_event
+{"type": 5} -> invalid_event
+"feedback.update" -> invalid_event

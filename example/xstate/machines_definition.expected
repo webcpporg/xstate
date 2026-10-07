@@ -1,0 +1,7 @@
+/id "toggle"
+/order -1
+/initial/target ["#toggle.inactive"]
+/states/inactive/type "atomic"
+/states/inactive/order 1
+/states/inactive/on/toggle/0/target ["#toggle.active"]
+/states/inactive/on/toggle/0/source "#toggle.inactive"

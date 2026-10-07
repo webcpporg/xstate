@@ -1,0 +1,4 @@
+request fetchUser getUser {"userId":"42"}
+"failure" {"userId":"42","user":null,"error":"Network error"}
+request fetchUser getUser {"userId":"42"}
+"success" {"userId":"42","user":{"name":"David","location":"Florida"},"error":"Network error"}

@@ -1,0 +1,2 @@
+"loading" xstate.raise {"event":{"type":"started","attempt":1}}
+"running"
