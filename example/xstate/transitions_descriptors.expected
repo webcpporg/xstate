@@ -1,0 +1,8 @@
+feedback.good -> "thanks"
+feedback.bad -> "apology"
+feedback.bad.rude -> "apology"
+feedback.meh -> "form"
+feedback -> "form"
+feedbacks -> "other"
+mouse.click -> "other"
+* -> invalid_event

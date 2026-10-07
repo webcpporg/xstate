@@ -1,0 +1,8 @@
+value: {"onAWalk":"walking"}
+context: {"dog":"Rex"}
+status: active
+tags: ["outside"]
+matches onAWalk: true
+has tag outside: true
+can arrive home: true
+can leave home: false

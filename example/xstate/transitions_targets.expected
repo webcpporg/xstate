@@ -1,0 +1,6 @@
+start "a"
+next -> {"b":"one"}
+next -> {"c":"child"}
+next -> {"c":"other"}
+reset -> "a"
+deep -> {"b":"two"}

@@ -1,0 +1,4 @@
+"SUBMIT" form.editing -> form.submitted
+"TYPE" form.editing -> (targetless)
+"" form.editing -> form.submitted
+"RESET" form -> form.editing

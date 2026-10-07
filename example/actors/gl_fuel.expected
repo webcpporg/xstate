@@ -1,0 +1,3 @@
+start: settled, "idle"
+send go: out_of_fuel, "idle"
+resume: settled, "three"

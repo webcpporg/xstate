@@ -1,0 +1,5 @@
+context null: {}, after ADD {"x":1}
+context false: false, after ADD error, implementation_failed
+context 5: 5, after ADD error, implementation_failed
+context "ab": "ab", after ADD error, implementation_failed
+a context function that returns "ab": error, implementation_failed

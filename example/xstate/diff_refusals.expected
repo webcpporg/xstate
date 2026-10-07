@@ -1,0 +1,6 @@
+an initial that names no child: refused, unknown_target
+a guard with no implementation: refused, unknown_guard
+a delay with no implementation: refused, unknown_delay
+a default entry that leads back: refused, invalid_config
+an exit that is null: refused, invalid_config
+an invoke of an unknown actor: refused, unknown_actor

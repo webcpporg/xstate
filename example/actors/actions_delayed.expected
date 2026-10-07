@@ -1,0 +1,4 @@
+remind: xstate.raise {"event":{"type":"nudge"},"id":"nudge","delay":1000}
+dismiss: xstate.cancel {"sendId":"nudge"}
+at 1000: "waiting"
+at 2000: "nudged"

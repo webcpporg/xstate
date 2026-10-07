@@ -1,0 +1,3 @@
+{"type":"xstate.init","input":{"user":"ana"}}, none, [], "checking"
+{"type":"xstate.init","input":{"user":"ana"}}, checking -> signedIn, [welcome], "signedIn", settled
+context: {"user":"ana"}

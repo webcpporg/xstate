@@ -1,0 +1,2 @@
+transition() returns: error, "idle", implementation_failed, 0 actions
+an actor's snapshot: error, "idle", implementation_failed

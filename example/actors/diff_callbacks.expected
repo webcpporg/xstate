@@ -1,0 +1,6 @@
+heard "a"
+heard "b"
+  the listener's send: invalid_argument, webcpp.xactor
+after the host's send: "b"
+heard "c"
+after the host's second send: "c"

@@ -1,0 +1,11 @@
+value: {"form":"invalid"}
+context: {"feedback":""}
+status: active
+nodes: ["feedback","feedback.form","feedback.form.invalid"]
+tags: ["visible"]
+value: "thanks"
+context: {"feedback":""}
+status: done
+nodes: ["feedback.thanks","feedback"]
+tags: []
+output: {"sent":true}

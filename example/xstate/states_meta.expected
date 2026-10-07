@@ -1,0 +1,3 @@
+{"feedback":{"title":"Feedback"},"feedback.prompt":{"content":"How was your experience?"}}
+{"feedback":{"title":"Feedback"},"feedback.thanks":{"content":"Thank you for your feedback!"}}
+Waits for the user to rate the experience.

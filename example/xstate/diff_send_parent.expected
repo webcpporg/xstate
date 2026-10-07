@@ -1,0 +1,1 @@
+xstate.sendTo {"targetId":"#_parent","event":{"type":"DONE"}}

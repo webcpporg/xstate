@@ -1,0 +1,4 @@
+{"on":{"track":"paused","volume":"normal"}}
+ player player.on player.on.track player.on.track.paused player.on.volume player.on.volume.normal
+{"on":{"track":"playing","volume":"normal"}}
+ player player.on player.on.track player.on.volume player.on.volume.normal player.on.track.playing

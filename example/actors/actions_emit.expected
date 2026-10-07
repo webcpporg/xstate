@@ -1,0 +1,4 @@
+action: track
+static: {"type":"someStaticEvent","data":42}
+any: someStaticEvent
+any: someDynamicEvent

@@ -1,0 +1,2 @@
+before start: no snapshot, worker unknown
+after start: "running", worker registered

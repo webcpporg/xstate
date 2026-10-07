@@ -1,0 +1,3 @@
+start(): out_of_fuel
+resume(): out_of_fuel
+stop(): stopped

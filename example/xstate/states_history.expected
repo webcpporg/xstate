@@ -1,0 +1,6 @@
+"cart"
+checkout: {"payment":"card"}
+switch: {"payment":"paypal"}
+next: "address"
+remembered: ["checkout.payment.paypal"]
+back: {"payment":"paypal"}

@@ -1,0 +1,4 @@
+value: "awake"
+the caller executes stretch
+the caller executes yawn
+the caller executes bark {"times":2}

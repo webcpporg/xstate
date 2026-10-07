@@ -1,0 +1,5 @@
+speed up -> {"onAWalk":"running"}
+smells something -> "sniffing"
+carry on -> {"onAWalk":"running"}
+smells something -> "sniffing"
+start over -> {"onAWalk":"walking"}

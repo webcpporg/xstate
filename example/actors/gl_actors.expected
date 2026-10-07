@@ -1,0 +1,5 @@
+app: "loading" {"user":null} children [fetch]
+request: fetch fetchUser {"userId":42}
+fetcher is the request's actor: true
+app: "ready" {"user":{"name":"Ana"}} children []
+fetcher is registered: false

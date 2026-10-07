@@ -1,0 +1,7 @@
+0 player player compound
+1 stopped player.stopped atomic
+2 playing active compound
+3 normal player.playing.normal atomic
+4 fast player.playing.fast atomic
+5 done player.done final
+player.playing.fast player.playing.fast

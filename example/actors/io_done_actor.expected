@@ -1,0 +1,2 @@
+{"type":"xstate.done.actor.quote","output":{"total":12},"actorId":"quote"}
+"quoted" {"quote":{"total":12}}

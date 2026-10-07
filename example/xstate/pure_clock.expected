@@ -1,0 +1,6 @@
+at 500:
+at 1000:
+  xstate.after.1000.light.green -> "yellow"
+at 1200:
+  STOP -> "red"
+at 2000:

@@ -1,0 +1,13 @@
+app: xstate.init -> "working" {"pongs":0}
+app: go -> "working" {"pongs":0}
+app: pong -> "working" {"pongs":1}
+app: go -> "working" {"pongs":1}
+app: pong -> "working" {"pongs":2}
+app: xstate.after.1000.app.working -> "finished" {"pongs":2}
+app: status done
+worker: xstate.init -> {} {"pings":0}
+worker: ping -> {} {"pings":1}
+worker: ping -> {} {"pings":2}
+worker: status stopped
+fuel 1: the same, after 14 resumes
+every budget from 1 to 40: the same

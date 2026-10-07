@@ -1,0 +1,4 @@
+sendEmail {"subject":"Processing started"}
+xstate.raise {"event":{"type":"STARTED"}}
+value: "started"
+context: {"users":1}

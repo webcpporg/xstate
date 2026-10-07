@@ -1,0 +1,4 @@
+initial value: "pending"
+initial actions: []
+next value: "started"
+actions: [doSomething]

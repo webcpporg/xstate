@@ -1,0 +1,3 @@
+leave home -> "onAWalk", active
+arrive home -> "walkComplete", done
+output: {"walked":true}

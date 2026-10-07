@@ -1,0 +1,5 @@
+at 0: "attempting" {"attempts":1}
+at 1000: "attempting" {"attempts":2}
+at 2999: "attempting" {"attempts":2}
+at 3000: "attempting" {"attempts":3}
+at 6000: "failed" {"attempts":3}

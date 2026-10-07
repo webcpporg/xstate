@@ -1,0 +1,3 @@
+{"count":1,"limit":2} logged [0,1]
+{"count":2,"limit":2} logged [1,2]
+{"count":2,"limit":2} logged []

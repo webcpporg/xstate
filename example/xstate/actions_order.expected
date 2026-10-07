@@ -1,0 +1,2 @@
+initial: rootEntry enterQuestion enterAsking
+feedback.good: exitAsking exitQuestion track showConfetti exitThanks rootExit

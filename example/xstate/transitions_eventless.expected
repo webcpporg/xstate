@@ -1,0 +1,3 @@
+temp.update: "lukewarm" []
+boil: "heating" [] "boiling" [turnOffLight]
+temp.update: "boiling" [] "heating" []
