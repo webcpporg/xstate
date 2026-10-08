@@ -6,8 +6,9 @@
 
 /**
  What a refusal for fuel means to an actor of the layer: xactor refuses a
- send, a timer or a unit it cannot pay with resource_limit and changes
- nothing, and the actor parks to do it again on resume
+ send, a timer or a unit it cannot pay with
+ `webcpp::xactor::errc::resource_limit` and changes nothing, and the actor
+ parks to do it again on resume
  (doc: #xstate-invariant-a3).
 
  @see "Fuel, parking and resume", in the guide.

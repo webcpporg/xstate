@@ -39,7 +39,7 @@ namespace webcpp::xstate {
  There is no `invalid_argument`: the code with which the actor layer refuses
  a call, an address that names no actor, a stop of a child, a request no
  longer pending or a call made from a callback, is xactor's
- `errc::invalid_argument`, of the category "webcpp.xactor".
+ `webcpp::xactor::errc::invalid_argument`, of the category "webcpp.xactor".
 
  @see "Errors as values", in the guide.
  @see "What creation refuses", in the guide.
