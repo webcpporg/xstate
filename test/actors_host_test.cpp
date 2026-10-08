@@ -159,8 +159,8 @@ void an_unhandled_rejection_fails_the_parent_with_the_error() {
     BOOST_TEST_EQ(system.snapshot_of(root)->error_value.value(), parsed(R"("offline")"));
 }
 
-// The review focus of the plan: a request answered after its invoking state
-// was left changes nothing.
+// A request whose invoking state was left is dropped, and an answer that comes
+// after it is refused and changes nothing.
 void a_request_whose_actor_was_stopped_is_dropped_and_a_late_answer_changes_nothing() {
     xstate::actor_system system(plenty);
     const xstate::actor_ref root = started(system, machine_of(fetching, with_host()));
