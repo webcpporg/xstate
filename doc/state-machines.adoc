@@ -1,0 +1,58 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#state-machines]
+== State machines
+
+A machine in xstate is the logic of one process: the states it can be in,
+the events it reacts to, where each event takes it and what it does on the
+way. It is built from two things:
+
+* a config, the JSON object XState's `createMachine` takes, read when the
+  program runs, from a file, a request or a string in the code;
+* implementations, the {cpp} code of the actions, guards, delays and actors
+  the config names, registered under those names.
+
+`create_machine(config, implementations)` checks the two together and
+builds a `machine`, an immutable value: it never changes, and its copies
+share its data. A machine does not hold where it is either. That is a
+snapshot, a plain value its caller keeps, so one machine serves any number
+of snapshots and runs at once.
+
+A machine runs in one of two ways. Its caller can step it with the pure
+functions, XState's `initialTransition`, `transition` and their relatives,
+each of which computes the next snapshot from a snapshot and an event and
+returns the actions for the caller to execute; under them, the macrostep
+cursor runs one microstep per call, so that the caller bounds the work of
+each event. The last section of this chapter, <<pure>>, covers both. Or an
+actor runs it: the actor keeps the snapshot, executes the actions, runs
+children and exchanges events with other actors, which is the subject of
+the next chapter, <<xstate-on-xactor>>. This chapter's examples use the pure
+functions, which show what a machine does one event at a time and need
+nothing else.
+
+The sections go from the ideas to the details. <<concepts>> explains the
+parts of a statechart in plain words, with one small example each.
+<<machines>> shows how a machine is created, what its config holds and how
+its implementations are registered. <<states>>, <<context>>,
+<<transitions>>, <<actions>> and <<input-output>> then take each part of a
+config in depth, and <<pure>> the functions that run it.
+
+include::state-machines/concepts.adoc[leveloffset=+1]
+
+include::state-machines/machines.adoc[leveloffset=+1]
+
+include::state-machines/states.adoc[leveloffset=+1]
+
+include::state-machines/context.adoc[leveloffset=+1]
+
+include::state-machines/transitions.adoc[leveloffset=+1]
+
+include::state-machines/actions.adoc[leveloffset=+1]
+
+include::state-machines/input-output.adoc[leveloffset=+1]
+
+include::state-machines/pure.adoc[leveloffset=+1]

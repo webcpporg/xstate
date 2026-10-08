@@ -1,0 +1,19 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#introduction]
+== Introduction
+
+This chapter says what xstate is and why it exists, how its two layers share
+the work, how the port is proven against XState, and what a program needs to
+use it. A quick start then builds a first program, and the last section says
+how the rest of the page is laid out.
+
+include::introduction/overview.adoc[leveloffset=+1]
+
+include::introduction/quick-start.adoc[leveloffset=+1]
+
+include::introduction/reading.adoc[leveloffset=+1]

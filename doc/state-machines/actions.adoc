@@ -1,0 +1,649 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#actions]
+== Actions
+
+An action is an effect a machine causes as it moves from state to state:
+it updates the context, sends an event, writes a log line, or asks your
+program to do something. Actions are fire-and-forget: the machine does not
+wait for one to finish. A machine runs actions in three places: on a
+transition, listed in its `actions`; when it enters a state, listed in the
+state's `entry`; and when it leaves a state, listed in the state's `exit`.
+
+In XState an action is a function, and `setup({ actions })` gives a name to
+the functions a config refers to. A JSON config cannot hold a function, so in
+xstate every action a config writes is a name, with optional params, and the
+`implementations` given to `create_machine` decide what each name is:
+
+* A name the implementations hold is a *built-in action*: one of XState's
+  action creators, `assign`, `raise`, `sendTo`, `log`, `emit` and the
+  others, registered as a value that says what it does. The library resolves
+  it.
+* Any other name is a *custom action*: an effect of your program. The machine
+  core returns it to its caller, in order, as XState's `transition()` returns
+  its actions; the actor layer hands it to the callback your program gives
+  `on_action`.
+
+The split keeps the machine core pure. Resolving a microstep computes the
+next snapshot and the list of effects, and performs no effect outside the
+snapshot: your program performs the custom ones, and the actor layer, or your
+program when it calls the core itself, the built-in ones that reach other
+actors, timers and listeners.
+
+[#actions-where]
+=== Entry, exit and transition actions
+
+Entry actions run on every transition that enters their state, exit actions
+on every transition that leaves it, and a transition's actions on that
+transition. Each of `entry`, `exit` and a transition's `actions` holds one
+action or a list of them. `create_machine` refuses a null one with
+`invalid_config`; XState reads it as a list that holds null, and fails when
+it runs it. A transition with no `target` runs its actions and nothing else:
+it leaves and enters no state, even with `reenter: true`. A transition whose
+target is its source or one of the source's descendants does not leave the
+source either, and the source's exit and entry actions run only when it
+sets `reenter: true` (<<transitions-reenter>>).
+
+The machine below lists a custom action at each place: `exitAction` when
+it leaves `question`, `track` on the transition, `showConfetti` when it
+enters `thanks`. None has an implementation, so each one is returned:
+
+[source]
+----
+include::{examples}/xstate/actions_where.cpp[tag=where,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/actions_where.expected[]
+----
+
+The machine left `question`, took the transition, and entered `thanks`:
+the exit action first, then the transition's, then the entry action.
+
+A machine that only reacts to events, with no states, is written with
+transitions that have actions and no `target` (<<actions-assign>> is one;
+<<transitions-reenter>> has the rules).
+
+[#actions-nested]
+==== Nested states and the root
+
+A transition may leave and enter several states at once: a state and its
+ancestors, up to the root, which is a state too. The machine below nests
+`asking` in `question`, gives the root entry and exit actions, and ends in a
+final state:
+
+[source]
+----
+include::{examples}/xstate/actions_order.cpp[tag=order,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/actions_order.expected[]
+----
+
+The order is XState's, and it is fixed within a microstep. It follows the
+_document order_ of the states: a parent before its children, and siblings
+in the order XState reads the keys of `states`. That is the order
+JavaScript enumerates an object's keys in: a key that is an array index,
+such as `"0"` or `"2"`, first, by number, then the rest as written. A
+microstep runs:
+
+. the exit actions of the states it leaves, in reverse document order, so a
+  child before its parent; each state's exit actions are followed by an
+  `xstate.stopChild` for each child it invokes;
+. the actions of the transitions it takes, each transition's in the order
+  listed. When parallel regions take several, the transitions an event
+  selects come in the order of the regions in the state value, whose keys
+  are in the order JavaScript enumerates them, and eventless ones in the
+  order of the active atomic states in `nodes` (<<states-value>>);
+. the entry actions of the states it enters, in document order, so a parent
+  before its children; each state's entry actions are followed by the spawns
+  of the children it invokes, then, when it is entered by default and its
+  `initial` is an object with `actions`, those actions. A compound state is
+  entered by default when no target of the transition is inside it, and it
+  then enters its `initial` child.
+
+Document order is not depth. When a parallel state is left and entered
+again, every state of its second region is left before any of its first,
+and every state of its first region is entered before any of its second.
+
+The root's entry actions run in the machine's first microstep, before those
+of the states it enters. When a transition reaches a final state of the
+root, the machine is done, and in that same microstep the exit actions of
+every state still active run, in reverse document order, the root's last:
+that is why `exitThanks` and `rootExit` follow `showConfetti`. Stately's
+documentation says a top-level final state cannot have exit actions; XState
+5.33.2 runs them when the machine completes, and xstate does the same.
+
+[#actions-objects]
+=== Action objects and params
+
+An action in a config is a string, its name, or an object with a `type`, its
+name, and optional `params`, a JSON value for that use of it. Actions with the
+same type share one implementation; their params tell one use from another.
+Here the transition lists two actions with params: `track`, which has no
+implementation, and `addRating`, an assign that adds its param `by` to the
+rating:
+
+[source]
+----
+include::{examples}/xstate/actions_params.cpp[tag=params,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/actions_params.expected[]
+----
+
+`track` has no implementation: it is a custom action, returned with the params
+the config gave it. `addRating` is a built-in, an `assign_action`
+(<<actions-built-in>>, <<actions-assign>>), so it changed the context and was
+not returned; its implementation read its params from `args.params`.
+`showConfetti`, written as a string, has no params, and its `params` is null.
+
+Every action implementation, and every guard, delay and value maker,
+receives an `action_args`, which XState hands an action as
+`+({ context, event }, params)+`:
+
+[cols="1,3"]
+|===
+| `context` | The context as it is when the action runs: an `assign` earlier in the same microstep has already changed it.
+| `event` | The microstep's event.
+| `params` | The params the config gave the action or the guard, null when it gives none.
+|===
+
+XState also takes `params` as a function of the context and the event,
+computed when the action runs. JSON holds no function, so xstate's params are
+the fixed value the config writes. An implementation that needs the context
+or the event reads them from its `action_args`. A caller executing a custom
+action finds the event in the microstep that returned it, and the context as
+that whole microstep left it, after any assign listed after the action
+(<<context-guards-actions>>). A value that must be computed at the action's
+turn is computed by a registered implementation (<<pure-actions>>).
+
+[#actions-built-in]
+=== Built-in and custom actions
+
+Each built-in action is one alternative of `action_implementation`,
+registered under the name the config uses, with XState's arguments as its
+members. The machine core resolves it as XState resolves the action creator
+and returns it as XState's `transition()` returns it: an action of the same
+type `+xstate.*+`, whose params are XState's less what is not JSON or has no
+value. An actor reference is left out, and a `targetId` or an `id` names the
+actor instead; an `id`, a `delay` or a `label` with no value is left out.
+
+There are two exceptions, both sends whose receiver depends on where the
+machine runs. XState's pure functions run the machine as an inert actor,
+which has no parent and a fresh system of its own; xstate's core returns
+the send for its caller to resolve:
+
+* On a send or a forward to the parent, a `sendParent` or a target
+  `+#_parent+`, XState's `transition()` throws; xstate returns an
+  `xstate.sendTo` to `+#_parent+` (<<differences-send-parent>>).
+* On a send or a forward to a systemId, which XState names with
+  `+({ system }) => system.get('notifier')+`, the inert actor's system knows
+  only the children the call itself spawns. For any other systemId, even one
+  a child of the snapshot holds, a `forwardTo` throws in XState's
+  development build (<<differences-development>>), and a `sendTo` goes to
+  the inert actor itself, with no `targetId`. xstate returns an
+  `xstate.sendTo` whose `targetId` is `+#system:notifier+`
+  (<<differences-targets>>).
+
+Each built-in, what the core returns for it, and what the actor layer then
+does:
+
+[cols="2,2,3,3",options="header"]
+|===
+| XState | Registered as | Returned to the caller | Run by the actor layer
+
+| `+assign(...)+` | `assign_action` | never: the context changes | -
+| `raise(event)` | `raise_action` | `+xstate.raise {event}+`, the event already queued | nothing more
+| `raise(event, { id, delay })` | `raise_action` with a `delay` | `+xstate.raise {event, id, delay}+` | arms a timer
+| `cancel(id)` | `cancel_action` | `+xstate.cancel {sendId}+` | cancels the timer
+| `sendTo(target, event, { id, delay })` | `send_to_action` | `+xstate.sendTo {targetId, event, id, delay}+` | delivers the event once the macrostep has settled, or arms a timer
+| `sendParent(event, { id, delay })` | `send_parent_action` | `xstate.sendTo` to `#_parent` | as a sendTo
+| `forwardTo(target, { id, delay })` | `forward_to_action` | `xstate.sendTo` of the microstep's event | as a sendTo
+| `log(value, label)` | `log_action` | `+xstate.log {value, label}+` | hands it to `on_log`
+| `emit(event)` | `emit_action` | `+xstate.emit {event}+` | hands the event to the actor's listeners once the macrostep has settled
+| `spawnChild(src, { id, systemId, input })` | `spawn_child_action` | `+xstate.spawnChild {id, src, input, systemId}+` | creates the child (<<actors-spawn>>)
+| `stopChild(id)` | `stop_child_action` | `+xstate.stopChild {id}+` | stops the child (<<actors-stop-child>>)
+| a function of your program | nothing | `+{type, params}+` as the config names it | hands it to `on_action`
+|===
+
+The name decides, not the type a config writes. A config may name an action
+`xstate.raise`; if the implementations hold no such name, it is a custom
+action, returned with that type, as XState returns it. `action::builtin`
+tells the two apart. In an entry or an exit, an action named `xstate.raise`
+or `xstate.cancel` does not survive the machine's definition:
+`create_machine_from_definition` cannot tell it from the raise and cancel an
+`after` adds, and drops it (<<machines-definition>>).
+
+XState's documentation warns that its built-in action creators are not
+imperative: calling `+assign(...)+` inside a custom action does nothing. In
+xstate a custom action runs in your program, outside the machine: it cannot
+change the context or send an event, and constructing an
+`+xstate::assign_action{...}+` there does nothing. Only a built-in registered
+under a name the config uses acts on the machine.
+
+Every implementation returns a `result`. An error is the implementation's
+failure, where XState's would throw: the macrostep settles at once with the
+snapshot it began from, its `status` `error` and its `error` the code the
+implementation returned (<<pure-cursor-failure>>).
+
+xstate has no inline action function and no `params` function, because
+JSON holds no function (<<differences-names>>). It has no `enqueueActions`
+yet (<<overview-not-ported>> lists what xstate does not have yet). It has no
+`machine.provide`: `create_machine` plays that role, and the same config
+created with other implementations is another machine
+(<<machines-immutable>>).
+
+[#actions-custom]
+=== Custom actions
+
+A custom action is how a machine asks your program to do something: send an
+email, write to a database, show confetti. The machine names it and your
+program implements it. In XState the implementation is a function of
+`setup({ actions })`; in xstate it is code of yours that runs the action the
+machine returns, here a function `execute` that reads the type and the
+params:
+
+[source]
+----
+include::{examples}/actors/actions_custom.cpp[tag=execute,indent=0]
+include::{examples}/actors/actions_custom.cpp[tag=machine,indent=0]
+----
+
+With the pure functions, `transition` returns the actions and the caller runs
+them, in order. Each carries its name and its params, where XState's returned
+actions carry the function to run as `exec`:
+
+[source]
+----
+include::{examples}/actors/actions_custom.cpp[tag=pure,indent=0]
+----
+
+An actor runs its custom actions while its macrostep is resolved, as XState's
+actor runs them: the actor layer hands each to the callback given to
+`on_action`, here one that calls `execute`:
+
+[source]
+----
+include::{examples}/actors/actions_custom.cpp[tag=actor,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/actions_custom.expected[]
+----
+
+`execute` did nothing for `exitAction`: it ignores a type it does not know,
+as XState's actor does nothing for an action that has no implementation.
+
+* The core returns a macrostep's actions in order: `transition` and
+  `initial_transition` return all of them, and the cursor returns each
+  microstep's in its `microstep::actions`, which `macrostep_result::actions`
+  gathers. Run each action once: either each microstep's as it comes, or the
+  result's at the end (<<pure-cursor-actions>> has the details).
+* The actor layer hands each custom action to `on_action` as its microstep is
+  resolved, with the actor that returned it. That is before the macrostep's
+  sends and emitted events, which wait until it has settled
+  (<<actions-emit>> shows the order). An actor's initial custom actions
+  reach `on_action` when the actor starts, as XState runs them on `start()`.
+* When a macrostep fails, the custom actions it resolved before the failure
+  have already reached `on_action`, as XState's actor has run them. The
+  initial macrostep is the exception: an actor whose initial macrostep fails
+  hands over none of its custom actions, as XState's `start()` runs none for
+  an actor born failed.
+* `on_action` holds one callback for the whole system, and a second call
+  replaces the first. The callback runs inside the actor's turn, while the
+  system runs: it may call the members that read the system, but a call from
+  it to one that changes the system, a `send` or a `resolve` among them,
+  returns xactor's
+  link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`invalid_argument`]
+  and changes nothing. XState accepts a
+  send made from an action's function: one to the actor running the action
+  is handled once the event in progress is done, and one to another actor
+  that is idle is handled at once, before the function returns
+  (<<differences-callbacks>>, <<actors-watching>>).
+* An actor's custom action reaches `on_action` with its type and the params
+  the config wrote, nothing more: no context and no event, which XState
+  hands an action's function in its first argument, `info`. What must be
+  computed from the context or the event at the action's turn is computed
+  by a registered built-in, an `emit_action` whose `event_maker` builds the
+  event the host's listener reads, or a `log_action` (<<actions-emit>>,
+  <<actions-log>>).
+
+[#actions-assign]
+=== Assign
+
+`assign` updates the context, and it is the only action that does: the
+context is never written in place. Its implementation is an `assigner`, a
+function of `action_args` that returns the members to change as an object.
+Here `addValue` adds the event's `value` to the count, and an actor's
+listener prints each context the actor settles in:
+
+[source]
+----
+include::{examples}/actors/actions_assign.cpp[tag=assign,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/actions_assign.expected[]
+----
+
+* The library merges the object an assigner returns into the context as
+  `Object.assign` does: the members it returns are replaced or added, and the
+  others kept, as `unit` is. XState's two forms, an object of property
+  assigners and a function returning part of the context, are both this one.
+* The assigner receives the context as a `const` reference and cannot
+  mutate it, which XState's documentation can only ask of you.
+* An assign is never returned to the caller: its effect is the new context.
+  The actions after it in the same microstep see the context it left
+  (<<actions-log>> shows it).
+* An assign needs a context that is an object. A config with no context, or
+  a null one, starts with `{}`; any other value that is not an object
+  (`false`, `true`, a number, a string, a list) is kept as written, and an
+  assign on it fails the macrostep with `implementation_failed`. XState
+  starts `false`, `0` and `""` as `{}` too; an assign drops `true` or a
+  nonzero number and spreads a string or a list into numbered members
+  (<<differences-object-context>>). An assigner that returns an error fails
+  the macrostep with that error's code; the assigner of `addValue` returns
+  `implementation_failed` when the event has no integer `value`.
+* This machine has no states: its root takes the event `increment` with a
+  transition that has actions and no target, and the action `addValue`
+  handles it.
+
+<<context>> covers the context itself: its initial value, input and how a
+snapshot holds it.
+
+[#actions-raise]
+=== Raise
+
+A raise sends an event to the machine itself. The event goes to the
+macrostep's internal queue, first in, first out. The machine takes it once
+no eventless transition is enabled, before the macrostep settles, so before
+any event from outside, which waits for the next macrostep
+(<<transitions-eventless>>). In the loader below, entering `loading` raises
+`started`, which carries the attempt the context holds:
+
+[source]
+----
+include::{examples}/xstate/actions_raise.cpp[tag=raise,indent=0]
+----
+
+It prints, one line per microstep:
+
+[listing]
+----
+include::{examples}/xstate/actions_raise.expected[]
+----
+
+`load` took two microsteps in one macrostep. The first entered `loading`,
+whose entry raised `started`; the second took `started` to `running`. The
+event a raise makes may depend on the context and the event: its
+`event_maker` receives `action_args`, as XState's event function does.
+
+A raise without a delay is returned too, as `xstate.raise` with its event, as
+XState returns it. It asks nothing of the caller: the macrostep has already
+queued the event.
+
+[#actions-delayed]
+==== Delayed raise, ids and cancel
+
+With a `delay`, a raise is not queued: the event waits until the delay has
+passed, then starts a macrostep of its own. The delay is a number of
+milliseconds, or the name of a delay of `implementations.delays`, a function
+of `action_args` computed when the action resolves; a name the
+implementations do not hold is no delay, as in XState, and the event is
+raised at once. An `id` names the waiting event, and a `cancel_action` of
+the same id cancels it. Here `scheduleNudge` raises `nudge` after 1000
+milliseconds, under the id `nudge`, and `cancelNudge` cancels it:
+
+[source]
+----
+include::{examples}/actors/actions_delayed.cpp[tag=machine,indent=0]
+----
+
+The machine core keeps no time. It returns the delayed raise and the cancel,
+with their params:
+
+[source]
+----
+include::{examples}/actors/actions_delayed.cpp[tag=returned,indent=0]
+----
+
+An actor keeps the timers, and the host brings the time:
+
+[source]
+----
+include::{examples}/actors/actions_delayed.cpp[tag=timers,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/actions_delayed.expected[]
+----
+
+The first `nudge` was cancelled before its time came; the second fired at
+2000 and took the machine to `nudged`.
+
+* `clock_tick(now)` takes the time to move to, in milliseconds, here 1000
+  and then 2000, where XState's `SimulatedClock.increment` takes the step to
+  add. It fires the timers due by then one at a time, in the order of their
+  deadlines, and runs the system after each.
+* With the pure functions, a `simulated_clock` is the caller's clock: its
+  `apply` schedules each built-in delayed `xstate.raise` a step returns and
+  applies each built-in `xstate.cancel`, and ignores a custom action whatever
+  its type, `action::builtin` telling them apart (<<actions-built-in>>). Its
+  `pop_due` gives back the due events one at a time, each to be sent as a
+  macrostep of its own (<<pure-clock>>).
+* A second timer armed under an id takes the id over: a cancel then finds
+  the second, and the first still fires, as in XState.
+* A cancel finds a delayed `send_to_action` of the same actor by its id too
+  (<<actions-send>>).
+* A state's `after` is built of these two actions: entering the state
+  raises `xstate.after.<delay>.<state id>` with that delay, and leaving it
+  cancels it (<<transitions-delayed>>). The raises follow the order in
+  which XState reads the keys of `after`, the same as for `states`
+  (<<actions-nested>>): an `after` that writes `"1000"` before `"500"`
+  raises the 500 one first.
+* Time is whole milliseconds; XState's `SimulatedClock` also takes fractions
+  (<<differences-time>>).
+
+[#actions-send]
+=== Sending to other actors
+
+`send_to_action` sends an event to another actor, as XState's `sendTo`.
+`send_parent_action` sends one to the actor's parent, as `sendParent`, and
+`forward_to_action` sends on the event being handled, as `forwardTo`. The
+child below counts the `inc` it receives and tells its parent each count:
+
+[source]
+----
+include::{examples}/actors/actions_send_to.cpp[tag=child,indent=0]
+----
+
+`integer_at` reads an integer member of an object, or nothing. The parent
+invokes the child, sends it `inc` on each `click` and forwards it `set`:
+
+[source]
+----
+include::{examples}/actors/actions_send_to.cpp[tag=parent,indent=0]
+----
+
+An actor of the parent takes three events, and the program prints both
+contexts after each:
+
+[source]
+----
+include::{examples}/actors/actions_send_to.cpp[tag=run,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/actions_send_to.expected[]
+----
+
+Each `click` made the parent send `inc`; the child counted and sent `counted`
+back, and the parent kept the count. `set` reached the child whole, its
+`count` with it.
+
+A target is a string, read as XState reads one:
+
+[cols="1,3"]
+|===
+| `counter` | The child of that id, an invoke's or a spawned child's.
+| `#_counter` | The same child, once it is in the snapshot's children.
+| `#_parent` | The actor's parent: `send_parent_action` sends there.
+| `#_internal` | The actor itself, which receives the event as one from outside, unlike a raised event.
+| `#system:notifier` | The actor registered under the systemId `notifier`, or the actor itself when none is. XState names it with a function, `+({ system }) => system.get('notifier')+`, and sends to the actor itself when that returns nothing. A forwardTo fails the actor with `unknown_target` there instead, as XState's development build throws.
+|===
+
+* The machine core checks a target when the action resolves. A child must be
+  in the snapshot's children, or, named by its bare id from an entry or
+  initial action, be an invoke of the state being entered, whose child is
+  spawned after the entry actions; otherwise the microstep fails with
+  `unknown_target`. The parent, the actor itself and a systemId are its
+  caller's to find; XState's pure functions find no parent there, and no
+  child of the snapshot under its systemId (<<actions-built-in>>). A
+  forwardTo with an empty target fails with `unknown_target`.
+* The core returns `xstate.sendTo` with `+{targetId, event, id, delay}+`.
+  XState's params also hold the receiving actor, which is not JSON; here the
+  caller finds it from `targetId`. The actor layer delivers the event once
+  the sender's macrostep has settled, so the receiver sees the sender's new
+  snapshot, as XState defers it for that reason.
+* With a `delay`, the sender arms a timer, as for a delayed raise, and a
+  `cancel_action` of the same `id` cancels it.
+* A root actor has no parent: a send to `#_parent` fails it with
+  `unknown_target`, as XState's root actor fails with the error its
+  resolution throws. The pure functions return the send all the same, as
+  `xstate.sendTo` to `#_parent`, for their caller to deliver; XState's pure
+  functions throw on it, because they run the machine as an inert actor that
+  has no parent (<<differences-send-parent>>).
+* An actor reference is not data. Where XState puts `self` in an event or an
+  input for the receiver to answer, xstate names the actor: by `#_parent`, by
+  its id, or by a systemId (<<actors-sending>>).
+* Between actors, XState delivers an event to an idle actor at once, nested
+  in the sender's call stack, and queues it for a busy one. xactor queues
+  every delivery: each actor has a mailbox, first in, first out, and the
+  actors that have work wait in one queue, first in, first out, each turn
+  handing one message to its actor. An actor receives what one sender sends
+  it in the order sent, but the order between senders may differ from
+  XState's (<<differences-interleaving>>).
+
+[#actions-log]
+=== Log
+
+`log_action` writes a log line: XState's `log(value, label)`. Its `value` is
+a `value_maker`, a function of `action_args` that returns the value, or none
+for JavaScript's `undefined`; without one, the value is `+{context, event}+`,
+as in XState. Its `label` is an optional string. The counter below logs a
+fixed message, its count under a label, and the default value:
+
+[source]
+----
+include::{examples}/actors/actions_log.cpp[tag=machine,indent=0]
+----
+
+The core returns each log as an action; an actor hands it to the callback
+given to `on_log`:
+
+[source]
+----
+include::{examples}/actors/actions_log.cpp[tag=run,indent=0]
+----
+
+It prints the three actions `transition` returns, then the three lines the
+actor logs:
+
+[listing]
+----
+include::{examples}/actors/actions_log.expected[]
+----
+
+* The core returns `xstate.log` with `+{value, label}+`, each left out when it
+  has none. The actor layer hands each log to the callback given to
+  `on_log`, with the actor, the value, a null pointer for `undefined`, and
+  the label, empty when there is none: XState's `logger` option, which
+  receives `(label, value)` or `(value)`.
+* A fixed message is a `value_maker` that returns it, as `logMessage` does
+  for XState's `log('incremented')`.
+* `logCount` read the context after `add`: an action sees the context the
+  assigns before it left.
+* The actor layer hands logs over as it hands custom actions, while the
+  macrostep is resolved and under the same rules (<<actions-custom>>).
+  `on_log` holds one callback for the whole system, which runs inside the
+  actor's turn as the callback of `on_action` does.
+
+[#actions-emit]
+=== Emitting events
+
+An actor emits an event for the code outside that listens to it, as an
+event emitter does: a machine reports what happened without knowing who
+listens. `emit_action` makes the event with an `event_maker`, so it may
+depend on the context:
+
+[source]
+----
+include::{examples}/actors/actions_emit.cpp[tag=machine,indent=0]
+----
+
+The listeners are the host's: `on_emitted(actor, listener)` is XState's
+`+actor.on('*', listener)+`:
+
+[source]
+----
+include::{examples}/actors/actions_emit.cpp[tag=listen,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/actions_emit.expected[]
+----
+
+* `on_emitted` hears every event the actor emits. XState also takes the
+  type to listen to, `+actor.on('someStaticEvent', ...)+`; in xstate a
+  listener compares `type`, as the first one does. XState calls the
+  listeners of the event's type before those of `+*+`, whatever the order
+  they were added in, and xstate calls all of them in the order added: add
+  the listeners that stand for typed ones first, as here, to keep XState's
+  order (<<differences-listeners>>).
+* An actor may have several listeners, and an inspector hears each emitted
+  event too (<<actors-inspection>>). xstate has no unsubscribe. `on_emitted`
+  returns xactor's
+  link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`invalid_argument`]
+  for an address that names no actor. A
+  listener runs inside the actor's turn, as the callback of `on_action` does:
+  a call from it that changes the system, `on_emitted` among them, returns
+  `invalid_argument` too and changes nothing (<<differences-callbacks>>).
+* The core returns `xstate.emit` with `+{event}+`. The actor layer hands the
+  event to the listeners once the macrostep has settled, as XState defers
+  it: after `track`, a custom action listed after both emits.
+* An emitted event of the type `+*+` reaches a listener once; XState hands
+  it twice to a listener on `+*+` (<<differences-emit>>).
+* XState's promise, callback, observable and transition actors emit through
+  an `emit` function they receive. In xstate only a machine emits, with
+  `emit_action`; a host actor has no way to.

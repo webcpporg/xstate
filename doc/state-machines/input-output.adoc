@@ -1,0 +1,541 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#input-output]
+== Input and output
+
+_Input_ is the data an actor is given when it is created. _Output_ is the data
+an actor produces when it is done: the result of its work. Between the two sit
+the _done events_, which tell a state or a parent actor that what it waited on
+has finished, and carry the output to it.
+
+Input exists so that one machine can start from different data: a feedback form
+for one user or another, a conversion of one amount or another. Without it, each
+starting value needs a machine of its own, built by a factory function. Output
+exists so that whoever waits on an actor receives its result without reading the
+actor's context.
+
+In xstate, as in XState, input and output are values, here JSON values. A value
+that depends on nothing stays in the config, where XState's JSON puts it. A
+value XState computes with a function (a context from the input, an invoke's
+input from the context, an output from the context) needs a function JSON cannot
+hold, so the caller registers it in `implementations`, as it registers actions
+and guards (<<machines-implementations,Implementations>>).
+
+An invoke's computed input and a state's computed output are registered under
+the id of the invoke or the state, and not under a name the config refers to, as
+an action is. In XState's JSON an invoke's `input` and a state's `output` are
+the values themselves: a string there is the input, not the name of a function.
+Keyed by id, the function leaves the config as XState reads it.
+
+[#input-output-machine-input]
+=== A machine's input
+
+An actor is created with its input. XState's `createActor(machine, { input })`
+is `actor_system::create_actor(machine, options)`, whose `actor_options::input`
+is a `boost::json::value`, null when none is given. A machine usually reads its
+input once, to compute its initial context: XState's
+`+context: ({ input }) => ...+` is `implementations.context`, a `context_maker`
+that receives the input and returns the initial context, or an error.
+
+[source]
+----
+include::{examples}/actors/io_machine_input.cpp[tag=context,indent=0]
+----
+
+[source]
+----
+include::{examples}/actors/io_machine_input.cpp[tag=machine,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/io_machine_input.expected[]
+----
+
+`feedback_context` checks the input before it reads it, and returns an error
+when the input lacks a member it needs, where XState's function would read
+`undefined`. When `implementations.context` is set, the context it returns
+replaces the config's `context`; it must be an object. Its other rules, and a
+machine started without the input it needs, are in
+<<context-input,Initial context from the input>>. XState also hands the context
+function `spawn` and `self`; xstate hands it the input only, so a context cannot
+spawn a child (<<differences-context,The context function>>).
+
+The actor copies the input when it is created and reads it once, to begin its
+initial macrostep: it keeps no link to the value the caller passed. To hand a
+running actor new data, send it an event
+(<<transitions,Events and transitions>>).
+
+[#input-output-initial-functions]
+==== Input without an actor
+
+The machine core takes an input too. Every function that starts a machine takes
+it as its last argument, null when it is left out: `initial_transition`,
+`get_initial_snapshot` and `get_initial_microsteps`, which are XState's
+`initialTransition`, `getInitialSnapshot` and `getInitialMicrosteps`, and
+`begin_initial`, the cursor of the initial macrostep, which the other three run
+to its end (<<pure-cursor-begin,The initial macrostep>>). <<pure-input,Input>>
+runs them on a machine whose context needs the input.
+
+[source]
+----
+include::{examples}/xstate/io_initial_input.cpp[tag=pure,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/io_initial_input.expected[]
+----
+
+The machine is the feedback machine above, run here without an actor. Its
+initial macrostep takes one microstep, the one that enters `prompt`, and
+`get_initial_microsteps` lists it with the context computed from the input, as
+XState's `getInitialMicrosteps` does.
+
+[#input-output-init-event]
+==== The `xstate.init` event
+
+A machine's initial macrostep runs for the event `xstate.init`. When the machine
+has an input, the event carries it as its member `input`, so every action that
+runs for `xstate.init` can read it from the event: the entry actions and initial
+actions of the states the machine starts in, as this entry action does, and the
+eventless transitions taken before any raised event, with the entry actions of
+the states they enter. An action that runs for an event raised during the
+initial macrostep, a done event among them, receives that event, which has no
+`input`.
+
+Where XState writes the entry action as a function of the event,
+`+({ event }) => ...+`, here it is a named `log_action` whose value is the
+event, read from its `action_args`; the actor system hands each value logged
+to its `on_log` listener (<<actions-log,Log>>).
+
+[source]
+----
+include::{examples}/actors/io_init_event.cpp[tag=init,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/io_init_event.expected[]
+----
+
+XState's `xstate.init` always has the member `input`, `undefined` when there is
+no input, which `JSON.stringify` leaves out. xstate's has it only for an input
+that is not null, since JSON has no <<differences-undefined,`undefined`>>:
+given the input `null`, XState writes `"input": null` and xstate writes no
+`input`. For the same reason a machine started without an input hands its
+context function `null`, where XState hands it `undefined`.
+
+[#input-output-invoke-input]
+=== Input to an invoked actor
+
+A state that invokes an actor can give it an input. A fixed input is a value in
+the invoke's config, `"input"`, which the child receives as it is when the state
+is entered. A host actor, xstate's stand-in for XState's `fromPromise`, runs no
+code: the host reads its input from its pending request, `host_request::input`
+(<<actors-host,Host actors>>). A machine child receives it as a machine created
+with an input does, in its `implementations.context` and its `xstate.init` event
+(<<actors-invoke,Invoking actors>>).
+
+[source]
+----
+include::{examples}/actors/io_invoke_input.cpp[tag=invoke,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/io_invoke_input.expected[]
+----
+
+The host reads the input from the pending request and does the work itself,
+where XState's `fromPromise` receives the input as an argument of its function;
+the host then answers the request with `actor_system::resolve`
+(<<input-output-actor-done>>).
+
+[#input-output-computed-input]
+==== An input computed from the context and the event
+
+XState also computes an invoke's input with a function,
+`+input: ({ context, event }) => ...+`; in xstate it is a `value_maker`
+registered in `implementations.inputs` under the invoke's id. It receives the
+`action_args` every implementation receives, the context, the event that entered
+the state and null `params`, and returns the input, none for `undefined`
+(<<input-output-undefined>>), or an error.
+
+[source]
+----
+include::{examples}/actors/io_invoke_input_computed.cpp[tag=invoke,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/io_invoke_input_computed.expected[]
+----
+
+The input is computed when its state is entered, after the state's entry actions
+and before its initial actions, as XState's `enterStates` resolves them. So the
+input reads the user id the entry `assign` has just stored. The event is the one
+that entered the state, `user.selected`, which an input function could read
+directly as well.
+
+The function is found by the invoke's id, so give the invoke an `id`. Without
+one, its id is `<index>.<state id>`, the invoke's position among the state's
+invokes and the state's id, as XState's `createInvokeId` makes it, and the
+function must be registered under that: here `0.feedback.loading`. Creating the
+machine refuses a computed input that names no invoke, and one for an invoke
+whose config fixes an input too (<<input-output-rules>>).
+
+[#input-output-spawn-input]
+=== Input to a spawned actor
+
+A child spawned by an action receives its input from the action. XState's
+`spawnChild(src, { id, input })` is a `spawn_child_action` registered under a
+name, whose `input` is a `value_maker` computed when the action resolves, from
+the context and the event of its microstep. Without one, the child has no input;
+a fixed input is a function that returns it.
+
+Stately's page spawns inside `assign`, to keep the child's reference in the
+context. xstate has no `spawn` inside `assign`, and an actor reference is not
+data: the parent names its child by its id (<<actors-spawn,Spawning actors>>).
+
+[source]
+----
+include::{examples}/actors/io_spawn_input.cpp[tag=spawn,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/io_spawn_input.expected[]
+----
+
+The machine core returns the spawn as an `xstate.spawnChild` action whose
+`params` hold the child's `id` and `src`, and its `input` and `systemId` when it
+has them; the actor layer creates the child from them. An invoke returns the
+same action when its state is entered.
+
+[#input-output-output]
+=== Output
+
+A machine's output is the value it is done with. It is the output of its root,
+computed when the machine is done, when a top-level final state is entered or
+each region of a parallel root is in a final state
+(<<states-done,When the machine is done>>), and from then on it is the
+snapshot's `output`, a `std::optional<boost::json::value>` that holds nothing
+while the machine is active. The root's output is fixed in the config, the
+root's `"output"`, or computed: XState's `+output: ({ context }) => ...+` at the
+root of the config is a `value_maker` registered in `implementations.outputs`
+under the root's id.
+
+[source]
+----
+include::{examples}/actors/io_machine_output.cpp[tag=output,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/io_machine_output.expected[]
+----
+
+`subscribe` hands its listener each snapshot the actor settles in while it is
+active, and the one it is done in, as XState's `subscribe` does; only the done
+one holds the output.
+
+The root's id is the config's `"id"`, `(machine)` when the config has none, as
+in XState; a machine whose output is computed is clearer with an id of its own.
+
+[#input-output-final-state-output]
+==== A final state's output
+
+A final state can have an output too. When it is entered, its parent state is
+done (<<states-final-parent,A parent state is done>>), and the parent's done
+event, `xstate.done.state.<parent id>`, carries the final state's output as its
+member `output`; the parent's `onDone` reads it from the event
+(<<input-output-done-events>>). It is fixed in the final state's config, or
+computed by a `value_maker` registered in `implementations.outputs` under the
+final state's id, from the context and the event that entered the final state.
+
+[source]
+----
+include::{examples}/xstate/io_final_output.cpp[tag=final,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/io_final_output.expected[]
+----
+
+`ready` has no `id` of its own, so its id is the root's id and its path, joined
+by dots, `coffee.preparation.ready` (<<machines-nodes,State nodes and ids>>).
+Its output reads `grams` from `ground`, the event that entered it, and
+`keepDose` reads the output from the done event's payload.
+
+[#input-output-machine-output-event]
+==== The machine's output and its final state
+
+When the root has an output, it is computed as the machine completes, from the
+context and the done event that completed it, as XState's internal
+`getMachineOutput` (`stateUtils.ts`) computes it. For a compound root, that is
+the done event of the top-level final state that completed the machine, which
+carries that final state's own output. So the root's output can pass on the
+output of the final state that completed the machine, as
+`+({ event }) => event.output+`; here it returns the whole event, to show it.
+When the root has no output, the machine has none, whatever its final state's
+output.
+
+[source]
+----
+include::{examples}/xstate/io_machine_output_event.cpp[tag=run,indent=0]
+----
+
+[source]
+----
+include::{examples}/xstate/io_machine_output_event.cpp[tag=machines,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/io_machine_output_event.expected[]
+----
+
+The event names the final state, `checkout.receipt`, not its parent: it exists
+for the root's output only, and no transition takes it. A machine whose root is
+a parallel state completes when each of its regions is done, and the event is
+then the root's own, `xstate.done.state.<root id>`, without an output.
+
+[#input-output-undefined]
+==== When a value is undefined
+
+JavaScript has `undefined`, and JSON has not. A `value_maker` returns
+`std::optional<boost::json::value>`: none stands for `undefined`, and the member
+that would hold it is left out, as JavaScript's `JSON.stringify` leaves it out.
+The snapshot then has no output, a done event no `output`, a child no input
+(`host_request::input` holds nothing, and the `xstate.spawnChild` params have no
+`input`), a log no value.
+
+A JSON `null` is a value like any other, and is kept: a `null` output, a done
+event's `null` output, a host actor's `null` input. The exception is a machine's
+input: for a machine, a null input and no input are the same, and its
+`xstate.init` has no `input` (<<input-output-init-event>>,
+<<differences-undefined,`undefined`>>).
+
+[source]
+----
+include::{examples}/xstate/io_undefined_output.cpp[tag=output,indent=0]
+include::{examples}/xstate/io_undefined_output.cpp[tag=undefined,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/io_undefined_output.expected[]
+----
+
+The order machine's initial state is final, so the machine is done as soon as it
+starts. A host actor resolved with `std::nullopt` is a promise resolved with
+`undefined` in the same way: its done event has no `output`.
+
+[#input-output-done-events]
+=== Done events
+
+When something a machine waits on finishes, the machine hears it as an event,
+and `onDone` is the transition that takes it. A done event lets a parent move on
+when what it started has finished, without knowing the steps that finished it:
+the coffee machine's `preparation` moves to `brewing` once its steps reach
+`ready`, and the order below moves on once the child that prices it is done.
+There are two kinds:
+
+[cols="2,3,3",options="header"]
+|===
+| Event | Raised or sent when | Members besides `type`
+
+| `xstate.done.state.<id>`
+| the state `<id>` is done: a final child of a compound state is entered, or
+each region of a parallel state is in a final state
+| `output`, the final child's output, when it has one; none for a parallel
+state
+
+| `xstate.done.actor.<id>`
+| the child actor whose id is `<id>`, invoked or spawned, is done
+| `output`, the child's output, when it has one; `actorId`, the child's id
+|===
+
+A state's `onDone` is its transition on `xstate.done.state.<state id>`. An
+invoke's `onDone` is a transition of the invoking state on
+`xstate.done.actor.<invoke id>`, and its `onError` one on
+`xstate.error.actor.<invoke id>`, the event a child that fails sends with its
+`error` and its `actorId` (<<actors-done-error,Done and error events>>). One
+state can have both kinds of `onDone`: its own, for its final child, and its
+invoke's, for its child actor. A spawned child has no invoke to hold an
+`onDone`; its parent takes the child's done event with a transition like any
+other, `+"on": {"xstate.done.actor.<id>": ...}+`.
+
+[#input-output-state-done]
+==== State done events
+
+A state done event is raised by the machine itself, into the macrostep's
+internal queue, and runs in the same macrostep as the microstep that entered the
+final state; nobody sends it. The macrostep cursor shows it, since each
+microstep reports the event it ran for. This runs `ground` on the coffee machine
+above, from `grinding`:
+
+[source]
+----
+include::{examples}/xstate/io_done_state_microsteps.cpp[tag=microsteps,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/io_done_state_microsteps.expected[]
+----
+
+The first microstep enters `ready`, which raises
+`xstate.done.state.coffee.preparation` with its output; the second takes the
+`onDone` of `preparation` to `brewing`. XState's `getMicrosteps` returns each
+microstep's snapshot and actions, but not its event, which XState shows only to
+an inspector, in its `@xstate.microstep` events.
+
+A parallel state is done when each of its regions is in a final state
+(<<states-final-parallel,A parallel state is done>>). A region that is a
+compound state raises its own done event when its final child is entered, with
+that child's output, and the parallel state's done event follows, without an
+output.
+
+[#input-output-actor-done]
+==== Actor done events
+
+A child actor is done when its machine is done
+(<<states-done,When the machine is done>>), for a machine child, or when the
+host answers its request with `actor_system::resolve(request, output)`, for a
+host actor: the output it passes is the actor's output, none for XState's
+`undefined` (<<actors-host,Host actors>>). Its parent then receives
+`xstate.done.actor.<id>`, with the child's output and its id. Here a child
+machine computes a quote from its input, and its parent takes the quote in the
+invoke's `onDone`:
+
+[source]
+----
+include::{examples}/actors/io_done_actor.cpp[tags=child;parent,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/io_done_actor.expected[]
+----
+
+The invoke's input reaches the child's `implementations.context`, and the output
+the child's root computes reaches the parent's `onDone` as `event.output`. The
+quote machine's initial state is final, so the child is done in its initial
+macrostep; it reports to its parent once the parent's own initial macrostep has
+settled and the parent has started it, and the parent takes `onDone` in a
+macrostep of its own, as in XState.
+
+[#input-output-rules]
+=== Rules
+
+Creating a machine checks what `implementations.inputs` and
+`implementations.outputs` name, and refuses, with `invalid_config`, what could
+never be called or would contradict the config: an input that names no invoke,
+an input for an invoke whose config fixes one too, an output that names neither
+a final state nor the root, and an output for a state whose config fixes one too
+(<<machines-refusals,What creation refuses>>). XState has nothing of the kind to
+check, since its functions sit in the config where they apply. An empty
+`std::function`, in `implementations.inputs`, `implementations.outputs`,
+`implementations.context` or the `input` of a `spawn_child_action`, is refused
+with `invalid_config` too, because calling it would abort in a build without
+exceptions.
+
+[source]
+----
+include::{examples}/xstate/io_refused.cpp[tag=refused,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/io_refused.expected[]
+----
+
+`created` returns the error's message, or `created`. A final state and the root
+may each have an output, fixed or computed, as the last line shows.
+
+Once the machine runs, a computed input or output that returns an error fails
+the microstep that called it, as any implementation does: the macrostep settles
+with the snapshot it began from, its status `error` and its `error` the
+function's (<<pure-cursor-failure,When an implementation fails>>). One that
+returns none leaves its member out (<<input-output-undefined>>).
+
+[#input-output-cheatsheet]
+=== Input and output cheatsheet
+
+[cols="1,1,1",options="header"]
+|===
+| XState | xstate, fixed | xstate, computed
+
+| `createActor(machine, { input })`
+| `+create_actor(machine, {.input = ...})+`
+|
+
+| `initialTransition(machine, input)`
+| `initial_transition(machine, input)`, `begin_initial(machine, input)`
+|
+
+| `+context: ({ input }) => ...+`
+| the config's `"context"`, which does not read the input
+| `implementations.context`
+
+| `event.input` in the initial macrostep
+| `args.event.payload.if_contains("input")`
+|
+
+| `invoke: { input }`
+| the invoke's `"input"`
+| `implementations.inputs`, under the invoke's id
+
+| `spawnChild(src, { id, input })`
+|
+| `spawn_child_action::input`
+
+| a final state's `output`
+| the final state's `"output"`
+| `implementations.outputs`, under the state's id
+
+| the machine's `output`
+| the root's `"output"`
+| `implementations.outputs`, under the root's id
+
+| `snapshot.output`
+| `snapshot::output`, none for `undefined`
+|
+
+| `event.output` in `onDone`
+| `args.event.payload.if_contains("output")`
+|
+|===

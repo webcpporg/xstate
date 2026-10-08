@@ -1,0 +1,896 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#pure]
+== Pure transitions and the macrostep cursor
+
+A pure transition function computes where a machine goes, and what it asks
+its caller to do, from a snapshot and an event. It starts no actor, executes
+no action and keeps nothing between calls: the same machine, snapshot and
+event always give the same result.
+
+These functions are for a caller that keeps the snapshot itself: a server
+that stores each user's snapshot between two requests, a test that checks
+where an event leads, a tool that shows what a machine can do next. Each
+needs the next step computed, not run, and holds the snapshot where it
+likes. XState offers them beside its actors, as `initialTransition`,
+`transition` and their relatives. Each call of one of XState's that computes
+a step still constructs actors it never starts. One is an actor of the
+machine itself, whose construction resolves the machine's initial macrostep
+whatever snapshot the call starts from: it runs the context function, the
+guards and every function a built-in action is written with, though no
+custom action, and constructs every child that macrostep invokes or spawns.
+The others are one for each child the step invokes or spawns, which the call
+puts in the snapshot's `children`.
+
+In xstate they are not an addition: they are the machine core. A machine is
+an immutable value and a snapshot a plain value the caller keeps; nothing in
+`<webcpp/xstate.hpp>` creates or runs an actor, executes a custom
+action, reads a clock or keeps state the caller does not hold: the snapshot,
+the cursor and the clock are values the caller owns. A call computes the
+step it is asked for and nothing else. A snapshot's `children` are data, the
+id and the source of each child, and a step that invokes or spawns one
+returns an `xstate.spawnChild` action for its caller. The actor layer of
+<<actors,Actors>> is built on them.
+
+Every function that computes a step, `transition` and its relatives, is one
+primitive run to its end: the macrostep cursor, which xstate adds to XState.
+The cursor runs a macrostep one microstep per call, so its caller decides
+how much work an event may cost and sees each microstep on the way. The
+other functions ask about a snapshot and run no step. This section shows the
+functions first, then the cursor under them, then the clock that delayed
+events need.
+
+[cols="2,2,3",options="header"]
+|===
+| xstate | XState | Returns
+
+| `initial_transition(m, input)` | `initialTransition(m, input)` | the initial snapshot and its actions
+| `transition(m, s, e)` | `transition(m, s, e)` | the snapshot an event leads to and its actions
+| `get_initial_snapshot(m, input)` | `getInitialSnapshot(m, input)` | the initial snapshot
+| `get_next_snapshot(m, s, e)` | `getNextSnapshot(m, s, e)` | the snapshot an event leads to
+| `get_initial_microsteps(m, input)` | `getInitialMicrosteps(m, input)` | each microstep of the initial macrostep
+| `get_microsteps(m, s, e)` | `getMicrosteps(m, s, e)` | each microstep of an event's macrostep
+| `can(m, s, e)` | `s.can(e)` | whether the event selects a transition with a target or actions, as a `result`
+| `get_next_transitions(m, s)` | `getNextTransitions(s)` | every transition the snapshot could take
+| `resolve_state(m, value, context)` | `m.resolveState({ value, context })` | the snapshot of a state value, as a `result`
+| none | `getStateNodes(node, value)` | the nodes a state value names (<<pure-state-nodes>>)
+| `begin_initial(m, input)`, `begin(m, s, e)` | none | a cursor over one macrostep
+|===
+
+`input` is optional and null when left out. Where XState's function takes a
+snapshot alone, xstate's takes the machine too: a snapshot is plain data and
+does not point to its machine (<<states-snapshot>>). The queries of
+XState's snapshot are taught with states: `snapshot::matches`, and
+`matches_state` for two state values, XState's `snapshot.matches` and
+`matchesState` (<<states-matches>>); `snapshot::has_tag`, XState's
+`snapshot.hasTag` (<<states-tags>>); and `get_meta(machine, snapshot)`,
+XState's `snapshot.getMeta()` (<<states-meta>>).
+
+[#pure-transition]
+=== Computing the next state
+
+The caller keeps the snapshot, and each event runs one macrostep from it.
+`initial_transition(machine)` returns the snapshot a machine starts in and
+the actions its initial macrostep returned. `transition(machine, snapshot,
+event)` returns the snapshot the event leads to and the actions of its
+macrostep: the caller keeps the snapshot for the next event and executes
+the actions. Both return a `std::pair`, which structured bindings take apart
+as JavaScript takes apart the `[snapshot, actions]` tuple of XState's
+functions. `types_of` lists the types of the actions returned:
+
+[source]
+----
+include::{examples}/xstate/pure_transition.cpp[tag=types,indent=0]
+include::{examples}/xstate/pure_transition.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_transition.expected[]
+----
+
+`doSomething` has no implementation, so it is a custom action: the functions
+return it and execute nothing (<<pure-actions>>). Stately's page says the
+initial actions hold `doSomething` too, but `pending` has no entry action,
+and XState 5.33.2 returns none, as xstate does.
+
+Neither the machine nor `initial_state` changes: each call returns a new
+snapshot. A snapshot can be kept, copied or stored, and `transition` called
+from it again gives the same result every time.
+
+The event is an `xstate::event`, a `type` and a JSON `payload`, built in
+{cpp} or read with `event_from_json` from the flat JSON form XState's
+`actor.send` takes, and the implementations read it as `args.event`
+(<<transitions-events>>). The caller sends only the events that
+come from outside. Those the machine raises itself, a raised event or a done
+event, run inside the same macrostep (<<pure-actions>>,
+<<input-output-state-done>>), and a delayed event comes back from the
+caller's clock, to be sent as any other (<<pure-clock>>).
+
+These functions run the macrostep to its end, however many microsteps it
+takes: a machine whose eventless transitions never settle never returns from
+them, as it never returns from XState's. A caller that must bound the work
+of an event drives the cursor instead (<<pure-cursor>>).
+
+[#pure-input]
+==== Input
+
+A machine whose initial context depends on an input takes the input as the
+last argument of `initial_transition`, `get_initial_snapshot`,
+`get_initial_microsteps` and `begin_initial`. XState writes that context as
+a function of the input in the config, `+context: ({ input }) => ...+`. A
+function cannot be JSON, so xstate takes it as `implementations.context`, a
+`context_maker` that receives the input and returns the context
+(<<input-output-initial-functions,Input without an actor>> has the rest).
+`name_of` spells a status as XState does:
+
+[source]
+----
+include::{examples}/xstate/pure_input.cpp[tag=status,indent=0]
+include::{examples}/xstate/pure_input.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_input.expected[]
+----
+
+Without an input, the context function receives null and returns an error,
+and `initial_transition` returns the snapshot the machine was about to start
+from, with status `error` and an empty context. XState reaches the same
+snapshot another way: its function reads a member of `undefined` and
+throws, and `initialTransition` catches the error into the snapshot it
+returns.
+
+One case differs: xstate refuses a context function that returns anything
+but an object, with `implementation_failed` and the same snapshot, where
+XState merges whatever its function returns into `{}` with `Object.assign`,
+so a number or null starts the machine with an empty context
+(<<differences-object-context,A context that is not an object>>).
+
+[#pure-snapshots]
+==== The snapshot alone
+
+`get_initial_snapshot` and `get_next_snapshot` return the snapshot without
+the actions. XState marks its `getInitialSnapshot` and `getNextSnapshot`
+deprecated in favour of `initialTransition` and `transition`; xstate keeps
+both, as the short form for a caller that has no use for the actions:
+
+[source]
+----
+include::{examples}/xstate/pure_next_snapshot.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_next_snapshot.expected[]
+----
+
+An event no transition takes, `UNKNOWN` here, is not an error: its
+macrostep settles at once and the snapshot is unchanged. <<pure-can,`can`>>
+says beforehand whether an event would do anything.
+
+[#pure-actions]
+=== Actions
+
+An action is something the machine asks to happen: send an email, change
+the context, raise an event. The pure functions resolve each action and
+return it, in the order XState returns it; they execute none. What comes
+back depends on what the action's name stands for:
+
+* A name the implementations do not hold is a custom action. It comes back
+  as the config names it: its `type`, and its `params` from the config, null
+  when the config gives none, and `builtin` false, even when the config gives
+  it the type of a built-in action, such as `xstate.raise`. Executing it is
+  the caller's work (<<differences-custom,Custom actions>>).
+* An `assign` merges its update into the context. It never comes back.
+* Every other built-in action comes back with its params resolved and
+  `builtin` set: a raise as `xstate.raise`, a log as `xstate.log`, a cancel
+  as `xstate.cancel`, and so on. What concerns the machine itself is done
+  already: a raise without a delay has been processed inside the macrostep.
+
+Here the transition on `processUser` names a custom action, an `assign` and a
+raise:
+
+[source]
+----
+include::{examples}/xstate/pure_actions.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_actions.expected[]
+----
+
+`transition` ran the whole macrostep: `processUser` took `idle` to
+`processing`, `announce` raised `STARTED`, and `STARTED` took `processing` to
+`started`. The raise comes back so the caller sees it, not so the caller
+sends `STARTED` again. `countUser` changed the context and is not in the
+list.
+
+What the caller does with the built-in actions it receives:
+
+* An `xstate.raise` with a `delay` in its params, and an `xstate.cancel`, are
+  for the caller's clock (<<pure-clock>>).
+* `xstate.spawnChild`, `xstate.stopChild`, `xstate.sendTo` and `xstate.emit`
+  are for whatever runs the machine's children and its listeners. The actor
+  layer does that (<<actors,Actors>>).
+* An `xstate.log` holds the value to log.
+
+On Stately's page, a custom action's params are a function of the context
+and the event: `sendEmail` reads `event.email`. A function cannot be JSON,
+so xstate's params are what the config fixes, and what comes from the event
+is read where the event is: each microstep reports its event beside its
+actions (<<pure-microsteps>>). <<actions,Actions>> covers every built-in
+action, and <<differences-names,Functions become names>> the reason for
+named implementations.
+
+[#pure-microsteps]
+=== Microsteps
+
+One event can move a machine more than once. The transitions the event
+selects run first. Then XState's loop runs one microstep at a time: the
+eventless (`always`) transitions that are enabled, or, when none is, the next
+event the machine raised, until no eventless transition is enabled and no
+raised event is queued. Each of those steps is a microstep; together they
+are a macrostep (<<concepts,Core concepts>>). `transition` returns where
+the macrostep ends; `get_microsteps` and `get_initial_microsteps` return
+every microstep on the way.
+
+[#pure-get-microsteps]
+==== The microsteps of an event
+
+`get_microsteps(machine, snapshot, event)` returns each microstep of the
+macrostep an event runs, as XState's `getMicrosteps` does. Here `TRIGGER`
+moves the machine, raises an event, and leads to an eventless transition:
+
+[source]
+----
+include::{examples}/xstate/pure_microsteps.cpp[tag=types,indent=0]
+include::{examples}/xstate/pure_microsteps.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_microsteps.expected[]
+----
+
+`TRIGGER` takes `first` to `second` and raises `RAISED`, which takes `second`
+to `third`, whose eventless transition takes it to `fourth`: three
+microsteps, one macrostep. XState's `+raise(...)+` is a call written in the
+config; xstate names it, `raiseRaised`, and registers a `raise_action` under
+that name.
+
+XState's microstep is a pair, `[snapshot, actions]`. xstate's `microstep` has
+four members:
+
+`event`:: the event it ran for: the external one, a raised one, or, for an
+eventless transition, the event of the microstep before it.
+`transitions`:: the transitions it took, as pointers into the machine, valid
+while any copy of the machine lives: an empty list when the event selected
+none, and `std::nullopt` for the initial microstep, which reports none, for a
+microstep that failed while it ran, and for a `next()` on a cursor that is
+done.
+`actions`:: the actions it returned, in order.
+`snapshot`:: the snapshot it left.
+
+[#pure-get-initial-microsteps]
+==== The microsteps of the initial state
+
+`get_initial_microsteps(machine)` returns each microstep of the initial
+macrostep, as XState's `getInitialMicrosteps` does. Here the initial state
+has an entry action and an eventless transition:
+
+[source]
+----
+include::{examples}/xstate/pure_initial_microsteps.cpp[tag=types,indent=0]
+include::{examples}/xstate/pure_initial_microsteps.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_initial_microsteps.expected[]
+----
+
+The first microstep enters the initial state and returns its entry action.
+The second is the eventless transition of `a`: its action, then the entry
+of `b`. Stately's page writes these actions as inline functions; here they
+are names with no implementation, which come back as custom actions, as
+they come back from XState's `getInitialMicrosteps`. A machine with an input
+takes it as the second argument: `get_initial_microsteps(machine, input)`.
+
+[#pure-queries]
+=== Asking about a snapshot
+
+[#pure-can]
+==== Whether an event would do anything
+
+`can(machine, snapshot, event)` says whether the event would do anything
+from the snapshot: whether it selects a transition that has a target or
+actions. It evaluates guards, as selecting a transition does, and executes
+nothing. It is XState's `snapshot.can(event)`:
+
+[source]
+----
+include::{examples}/xstate/pure_can.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_can.expected[]
+----
+
+`SUBMIT` is guarded by `hasText`, false while the text is empty. `TYPE` has
+an action, so it does something without a target. `IGNORE` selects a
+transition that has neither a target nor actions, which changes nothing, so
+`can` is false although a transition is selected. `UNKNOWN` selects nothing.
+
+`can` returns a `result<bool>`: a guard is an implementation and may fail,
+and the guard's error comes back in place of an answer.
+
+[#pure-next-transitions]
+==== Every transition a snapshot could take
+
+`get_next_transitions(machine, snapshot)` lists every transition the
+snapshot could take, without evaluating a guard: for each active atomic
+state, in the order of `nodes`, its own transitions and then those of each
+ancestor not listed yet; within a state, its event transitions in the order
+of the node's `transitions`, which is XState's, and then its eventless ones.
+It is XState's `getNextTransitions(snapshot)`, for a tool that shows what
+can happen next:
+
+[source]
+----
+include::{examples}/xstate/pure_next_transitions.cpp[tag=targets,indent=0]
+include::{examples}/xstate/pure_next_transitions.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_next_transitions.expected[]
+----
+
+An eventless transition has the empty descriptor `""`, and a delayed one the
+type of its delayed event, `xstate.after.<delay>.<state id>`
+(<<transitions-delayed-core,Delayed transitions>>). A targetless transition
+has no target (`std::nullopt`), which is not the same as an empty list of
+targets. Both guarded transitions are listed: whether a guard holds is the
+question `can` answers. Each element points into the machine, like a
+microstep's transitions.
+
+[#pure-state-nodes]
+==== The active state nodes
+
+A snapshot lists its active state nodes in `nodes`, as indexes into the
+machine; `machine::node(index)` reads one, with its `id`, its `key`, its
+`type` and the rest of its definition (<<machines-nodes,State nodes and
+ids>>):
+
+[source]
+----
+include::{examples}/xstate/pure_state_nodes.cpp[tag=print,indent=0]
+include::{examples}/xstate/pure_state_nodes.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_state_nodes.expected[]
+----
+
+The order is XState's, the order of its snapshot's internal `_nodes`
+(<<states-snapshot>>): a node that stays active keeps its place, an exited
+one leaves, and an entered one is appended, so after `PLAY` the node
+`playing` comes last. A microstep that leaves the machine done lists the
+nodes in reverse document order instead, as XState's does. The order
+decides which eventless transition a parallel region takes first. It also
+orders a state value's keys, all but those that are array indexes: XState's
+value is a JavaScript object, which enumerates such keys first, by number,
+and xstate writes them first too.
+
+XState also exports `getStateNodes(stateNode, stateValue)`, the nodes a
+state value names below a node, as it names them: no initial state the value
+leaves out, and a node repeated for each level of an object value. xstate
+has no counterpart. The nearest is `resolve_state` (<<pure-persisted>>): its
+snapshot's `nodes` are every node the value implies, completed with the
+initial states it leaves out, each listed once. XState's `resolveState`
+computes the same nodes, in the same order: it completes the value first,
+then takes `getAllStateNodes(getStateNodes(root, value))` of the completed
+value. Both read an object value's keys in the order JavaScript enumerates
+them, array indexes first, so they agree whatever order the value writes its
+keys in.
+
+[#pure-persisted]
+=== Persisted state
+
+A snapshot is a value, so a server can keep it between requests: persist
+it, and turn it back into a snapshot when the next event comes.
+`resolve_state(machine, value, context)` is XState's
+`machine.resolveState({ value, context })`: it completes a state value to
+every node it implies and returns that snapshot, with status `done` when the
+value is a final state and `active` otherwise. Here the traffic light shown
+above (<<pure-snapshots>>), given a context, is persisted in `yellow`,
+restored, and sent `TIMER`:
+
+[source]
+----
+include::{examples}/xstate/pure_persisted.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_persisted.expected[]
+----
+
+`resolve_state` restores the value and the context, and nothing else: the
+status comes from the value, `done` or `active`, never `error`, and a done
+machine's `output` is not restored. XState's `resolveState` also reads
+`status`, `output`, `error` and `historyValue` from what it is given, so its
+round trip of a done snapshot keeps the output and xstate's does not. A
+value that names a state the machine does not have is refused with
+`unknown_state`. What history states remember is not restored, and neither
+are the children: the snapshot starts without them.
+
+XState's `resolveState` restores what history states remember only from a
+live `historyValue`, whose members are state node objects: from what
+`JSON.stringify` made of them, a later transition to the history state
+enters a plain object in place of the node, and the snapshot is corrupt.
+XState's actor persistence, `getPersistedSnapshot` and `createActor` with a
+`snapshot`, restores it from JSON by node id; xstate has no counterpart
+(<<overview-not-ported,What is not ported>>), so a caller that needs what
+history states remember keeps the snapshot itself, in memory.
+
+[#pure-cursor]
+=== The macrostep cursor
+
+The macrostep cursor runs one macrostep a microstep at a time, under its
+caller's control. It is xstate's one primitive, and XState has no
+counterpart: XState runs a macrostep to its end inside one call, and its
+loop has no bound but the config's `options.maxIterations`, infinite unless
+the config sets it (<<transitions-eventless-loops>>). Without it, a machine
+whose eventless transitions or raised events lead back to each other never
+returns from `transition`.
+
+That is acceptable when the machine is code the program was written with,
+whose author can find such a cycle before the program ships. A program that
+runs machines it did not write cannot. xstate loads a machine from JSON when
+the program runs: a user may have written it, Stately Studio exported it, a
+request carried it. A server runs it inside a request it must answer within
+a budget, and one cycle in that machine, by mistake or by intent, would hold
+the server's thread for good. So the program pays for each microstep with
+fuel, and stops the macrostep when its budget is spent.
+
+A cursor, `macrostep`, holds one macrostep in progress. Each call of
+`next()` runs exactly one microstep and reports it, with whether that
+microstep settled the macrostep. The caller decides whether to call `next()`
+again, and so how much an event may cost: one unit of fuel per microstep is
+the natural measure. The actor layer pays it, plus one unit for each message
+an actor sends and each timer it arms (<<actors-fuel,Fuel, parking and
+resume>>). Every function above that computes a step is this cursor run to
+its end without a bound, so their results are the cursor's.
+
+[#pure-cursor-next]
+==== One microstep at a time
+
+`begin(machine, snapshot, event)` returns the cursor of the macrostep the
+event runs from the snapshot. With this machine, where `charge` is a
+`raise_action` of `CHARGED`, `CHECKOUT` takes three microsteps:
+
+[source]
+----
+include::{examples}/xstate/pure_cursor.cpp[tag=machine,indent=0]
+----
+
+Two helpers spell what a microstep returned and took. A transition names
+its source and its targets by their index in the machine, and
+`machine::node` reads each:
+
+[source]
+----
+include::{examples}/xstate/pure_cursor.cpp[tag=helpers,indent=0]
+----
+
+The cursor runs the microsteps one per call of `next()`:
+
+[source]
+----
+include::{examples}/xstate/pure_cursor.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_cursor.expected[]
+----
+
+Each `next()` returns a `progress`:
+
+`step`:: the `microstep` it ran.
+`settled`:: true on the microstep after which XState's loop would stop, no
+eventless transition being enabled and no raised event queued, or the
+machine no longer active; false on every other.
+`resolved_before_failure`:: the actions a failing microstep resolved before
+it failed (<<pure-cursor-failure>>).
+
+The second microstep is the eventless transition of `validating`. It reports
+the event of the microstep before it, `CHECKOUT`, as XState does. The third
+ran `CHARGED`, which `charging` raised on entry.
+
+Between two calls, the caller can read what the microstep did: the context
+its assigns left, the transitions it took, the actions it returned. The
+microstep that settles leaves the snapshot the macrostep settles in, so a
+caller that acts after each microstep takes its new stable state from that
+microstep's `snapshot`.
+
+Once `done()` is true, `result()` holds the `macrostep_result`: the settled
+`snapshot`, every action of every microstep in order, and the number of
+`microsteps`. Two more accessors read a cursor while it runs: `current()`,
+the snapshot the last microstep left, which is not a stable state until the
+macrostep settles, and `began_from()`, the snapshot the macrostep started
+from. A `next()` on a cursor that is done runs nothing and reports
+`settled` again. An event that selects no transition settles on the first
+`next()`, with the snapshot unchanged.
+
+[#pure-cursor-begin]
+==== The initial macrostep
+
+`begin_initial(machine, input)` returns the cursor of the initial
+macrostep: the microstep that enters the initial states, then XState's loop
+for the event `xstate.init`, which carries the input. It prints with the
+helpers `types_of` and `transitions_of` shown above (<<pure-cursor-next>>):
+
+[source]
+----
+include::{examples}/xstate/pure_begin_initial.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_begin_initial.expected[]
+----
+
+`begin_initial` computes the context from the input before the first
+microstep, with `implementations.context`. A context that cannot be
+computed fails the macrostep on its first `next()`, as in <<pure-input>>.
+The first microstep reports no transitions, as XState reports none for it.
+The second is the eventless transition of `checking`, whose guard read the
+context; it reports `xstate.init` still. With a null input, xstate's
+`xstate.init` has no `input` member, where XState's has one that is
+<<differences-undefined,`undefined`>>.
+
+[#pure-cursor-fuel]
+==== Fuel
+
+Fuel is the budget a caller gives a macrostep: the caller pays for each
+microstep before it calls `next()`, and stops when the budget is spent. A
+cursor is a value, so stopping loses nothing. The caller keeps the cursor
+and calls `next()` again later, in the same request or in a later one the
+same process serves: a cursor holds its machine and points into it, so it
+lives in memory and is not written out as a snapshot is
+(<<pure-persisted>>). It resumes exactly where it stopped, with the events
+the machine raised still queued. A copy is independent of the original and
+resumes from the same point. This function pays one unit of fuel per
+microstep:
+
+[source]
+----
+include::{examples}/xstate/pure_fuel.cpp[tag=run,indent=0]
+----
+
+Two requests of two units each run the `CHECKOUT` macrostep shown above
+(<<pure-cursor-next>>), and a copy taken between them runs too:
+
+[source]
+----
+include::{examples}/xstate/pure_fuel.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_fuel.expected[]
+----
+
+The first request runs out of fuel after two microsteps, in `charging`, with
+`CHARGED` raised and queued. The second runs the one microstep left. The
+copy settles in the same snapshot after the same three microsteps:
+`result().microsteps` counts the macrostep's microsteps, wherever they ran.
+
+While a macrostep has not settled, its `current()` snapshot is not a stable
+state; the snapshot it began from is still the machine's state for anything
+else the caller does. An initial macrostep has no such state: its
+`began_from()` is the snapshot before the machine started, whose `nodes`
+hold the root alone.
+
+One unit a microstep is this example's measure, not a rule: a caller may
+charge each microstep by what it costs, the actions it returns to execute
+among them.
+
+[#pure-cursor-cycle]
+==== Out of fuel in a cycle
+
+A macrostep never settles when its eventless transitions keep enabling each
+other, or its raised events keep raising others: no microstep is the last
+(<<transitions-eventless-loops>>). With the cursor, the caller sees it as a
+cursor still not done when its fuel is spent. Here `SPIN` enters `left`,
+whose `always` leads to `right`, whose `always` leads back to `left`, and
+the caller gives the macrostep 1000 units of fuel:
+
+[source]
+----
+include::{examples}/xstate/pure_cycle.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_cycle.expected[]
+----
+
+The cursor does not stop on its own: no microstep settles, and the caller's
+fuel is the only bound. When it is spent, `current()` is a snapshot inside
+the cycle, which is not a stable state, and `began_from()` is the stable
+state the event found. What happens then is the caller's choice: drop the
+event and keep that stable state, as here, report an error, or resume later
+with more fuel. The actor layer parks the actor until `resume()` gives it
+more (<<actors-fuel,Fuel, parking and resume>>). XState's `transition`
+never returns on `SPIN`; given an `options.maxIterations` of 1000, it throws
+`Infinite loop detected` instead, and its caller keeps the snapshot it
+passed. <<differences-fuel,Where xstate differs>> compares the two bounds.
+
+[#pure-cursor-actions]
+==== Executing actions as they come
+
+A caller that executes actions microstep by microstep reads each
+`progress.step.actions`; one that executes them once the macrostep settles
+reads `result().actions`, which gathers them in order. Each action is
+executed from one or the other, never both, or it runs twice.
+
+XState's actor does both, by kind. It runs a custom action or a log as it
+resolves it, and holds what every other built-in action does, an emit, a
+send, a delayed raise, a cancel, the start of a spawned child or the stop of
+a started one, until the macrostep ends, then runs those in order. A raise
+without a delay leaves nothing to run: the macrostep has processed its event
+already (<<pure-actions>>). A stop does part of its work at once: it
+releases the systemIds of the child's family, and it stops a child that has
+not started, so a child that a macrostep spawns and then stops never starts:
+its held start finds it stopped and does nothing.
+
+The actions of an initial macrostep wait until the actor starts, and its
+start orders them differently. It first starts the children the settled
+snapshot lists whose own snapshot is active, in the order of its
+`children`, then runs the custom actions and the logs, and then what the
+other built-in actions do, each in the order the macrostep returned them. A
+child born done or failed is not active: it starts at its
+`xstate.spawnChild`, with the other built-in actions. An active child of an
+initial macrostep thus starts before the custom actions of that macrostep
+run, where a child of any later macrostep starts after them.
+
+A caller that acts as XState's actor executes the custom actions and the
+logs from each `progress.step.actions`, and the other built-in actions from
+`result().actions` once the macrostep has settled, unless it failed
+(<<pure-cursor-failure>>). Of those it skips a raise without a delay, and
+both the `xstate.spawnChild` and the `xstate.stopChild` of a child that the
+same macrostep spawned and stopped. Of an initial macrostep it executes
+nothing until it starts the machine, and then executes them as that start
+does: it starts first the listed children whose own snapshot is active, and
+does not execute their `xstate.spawnChild` again, then executes the custom
+actions and the logs, then the other built-in actions, among them the
+`xstate.spawnChild` of a child born done or failed.
+
+One kind of action is in `result().actions` only: when a macrostep settles
+with the machine not active, done or still in the error it began from, it
+returns an `xstate.stopChild` for each child left, after every microstep's
+actions and in no microstep. A macrostep that ends in a new error returns
+none: one an implementation fails, or one whose event is an actor's error
+that no transition handles. A caller that executes microstep by microstep
+executes the stops once the macrostep has settled.
+
+One more rule concerns a send to a child that the same microstep invokes.
+An `xstate.sendTo` that names, by its bare id, an invoke of the state being
+entered may come back before that invoke's `xstate.spawnChild`, since a
+state's entry actions run before its invokes spawn their children. It
+carries `bound_at`: how many of its microstep's actions come before the
+point where XState binds it to the child, the end of that state's entry
+actions, spawns and initial actions (XState's `retryResolveSendTo`). Its
+target is the child that id names once the caller has executed that many of
+the microstep's actions. The actor layer binds it there, and fails with
+`unknown_target` when no child has that id by then
+(<<webcpp-xstate-action,`action::bound_at`>>, <<differences-gone>>).
+
+[#pure-cursor-failure]
+==== When an implementation fails
+
+An implementation returns a `result`, and when it returns an error the
+microstep fails. That `next()` settles the macrostep at once, and the
+snapshot is the one the macrostep began from, with status `error` and the
+implementation's error code in `error`. XState's pure `transition` throws
+instead; its actor keeps the snapshot from before the macrostep, with status
+`error`. xstate throws no exception, and a failure returned as a
+value lands in the snapshot the caller receives, where it cannot be missed
+(<<differences-failures,Failures are values>>). The machine below returns
+custom actions alone. A cursor loop that executes them as they come does
+with them what XState's actor does, and prints what an actor of XState
+prints for the same machine (`name_of` is the helper of
+<<pure-input,the input example>>):
+
+[source]
+----
+include::{examples}/xstate/pure_failure.cpp[tag=execute,indent=0]
+include::{examples}/xstate/pure_failure.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_failure.expected[]
+----
+
+The first microstep returned `notify` and moved to `uploading`. The second
+failed at `fail`, after `progress` had resolved and `countAttempt` had
+counted. It reports no actions, as XState's pure functions throw; its
+`resolved_before_failure` holds `progress`, which XState's actor has run by
+then. The context is the one the macrostep began from, `attempts` at 0,
+although `notify` and `progress` have run: actions executed as they come are
+not undone, so they must tolerate a macrostep that fails after them.
+`result().actions` holds `notify`, from the microstep before the failure,
+and nothing of the failing one.
+
+A guard of an eventless transition fails differently. The cursor evaluates
+it after the microstep before it, to decide whether the macrostep settles,
+so the `next()` that ran that microstep reports its transitions and its
+actions, with the snapshot the macrostep began from in error, settles, and
+leaves `resolved_before_failure` empty; `result().actions` keeps those
+actions too. Here `GO` returns a custom action, an emit and a log, and the
+guard of the eventless transition of `checking` fails. The loop prints the
+step the cursor reported, which an actor of XState does not show, and then
+what XState's actor prints for the same machine (`types_of` is the helper of
+<<pure-cursor-next,the cursor example>>, `name_of` that of
+<<pure-input,the input example>>):
+
+[source]
+----
+include::{examples}/xstate/pure_guard_failure.cpp[tag=execute,indent=0]
+include::{examples}/xstate/pure_guard_failure.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_guard_failure.expected[]
+----
+
+The step holds the emit, as `result().actions` does, and the caller drops
+it, since XState's actor never delivers `told`: a listener of `told` on that
+actor hears nothing.
+
+One rule covers every macrostep that fails. XState's actor runs a log as it
+resolves it, and holds what every other built-in action does until the
+macrostep ends, all but the part of a stop that runs at once
+(<<pure-cursor-actions>>). A macrostep that throws never gets there:
+nothing it held runs, and no child the macrostep spawned starts. A caller
+that acts as XState's actor therefore runs, of a macrostep that fails, the
+custom actions and the logs, whether it reads them from
+`progress.step.actions`, `resolved_before_failure` or `result().actions`,
+and drops every other built-in action but for that part of a stop: of a
+child it started earlier, it releases the systemIds of the child's family
+and leaves the child running. Of an initial macrostep that fails it runs
+nothing at all: XState's actor runs the initial actions only once it has
+started, and the start of an actor whose initial macrostep failed runs none.
+The actor layer does the same (<<actors-watching,Watching an actor>>).
+
+Neither that caller nor the actor layer copies XState in one respect.
+XState's actor constructs a child when it resolves the spawn, so a child
+that a failing macrostep spawned stays constructed and never starts, and the
+systemIds of its family can stay registered: a stop of that child releases
+them only outside an initial macrostep, which holds that part of a stop too.
+The caller, which drops the `xstate.spawnChild`, never creates that child;
+the actor layer creates it and then stops it, which releases those systemIds
+(<<differences-failing-children>>). The error codes are listed under
+<<webcpp-xstate-errc,`errc`>> in <<reference,Reference>>.
+
+[#pure-clock]
+=== Delayed events and the simulated clock
+
+A delayed event is one the machine asks to receive later: a state's
+`after`, or a `raise_action` with a delay. The machine never reads a clock,
+so a step stays a function of the snapshot and the event, and time is what
+the caller brings (<<transitions-delayed-core,Delayed transitions>>).
+Entering a state with `after` returns, for each of its delays, an
+`xstate.raise` whose params hold the event, its id and the delay in
+milliseconds; leaving the state returns an `xstate.cancel` of each id. A
+delayed `raise_action` comes back the same way and is not queued. Keeping
+the time is the caller's work, and `simulated_clock` does it: XState's
+`SimulatedClock` with the scheduler of its actor system, as a value the
+caller owns.
+
+Here a light leaves `green` after 1000 milliseconds and `yellow` after 500,
+unless `STOP` takes it to `red` first. The caller hands every action a step
+returns to the clock, moves the time, and delivers each event the clock
+hands back as a macrostep of its own:
+
+[source]
+----
+include::{examples}/xstate/pure_clock.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/pure_clock.expected[]
+----
+
+Entering `green` returned the raise of `xstate.after.1000.light.green`,
+which the clock released at 1000. Entering `yellow` then returned the raise
+of `xstate.after.500.light.yellow`, due at 1500; `STOP` left `yellow` at
+1200, its exit returned the cancel, and nothing fired at 2000.
+
+XState's pure functions leave the same work to their caller, which keeps its
+timers on a `SimulatedClock`: `setTimeout` holds a function that delivers the
+event, and moving the time calls it. A `simulated_clock` holds the event
+itself and hands it back, so the caller delivers it and applies what that
+delivery returns before it takes the next (<<differences-core-clock>>).
+
+`simulated_clock` has these members:
+
+`apply(action)`:: schedules a built-in `xstate.raise` that has a delay, and
+cancels on a built-in `xstate.cancel`. A delayed built-in `xstate.sendTo`
+with an id is not the machine's to receive: the clock holds only that id, as
+XState's scheduler keys every delayed event by its id, and `pop_due()` never
+returns it. A custom action changes nothing, whatever its type (`builtin`
+tells the two kinds apart, <<pure-actions>>), and neither does any other
+action.
+`schedule(event, delay, id)`:: holds an event for `delay` milliseconds,
+under an id or none. A later schedule under the same id takes the id over:
+the earlier event still fires, but no cancel reaches it any more, as in
+XState's scheduler.
+`cancel(id)`:: forgets the event that holds `id`, the latest scheduled under
+it. Once an event scheduled under `id` has fired, `cancel(id)` cancels
+nothing, as XState's scheduler forgets the id when its timer fires.
+`set(time)`, `increment(milliseconds)`, `now()`:: move and read the time.
+`set` refuses to move it back, with `invalid_config`, where XState's `set`
+throws. Neither `set` nor `increment` releases an event, where XState's run
+the timeouts that are due: `pop_due()` releases them.
+`pop_due()`:: takes out the earliest event that is due, by deadline and then
+by the order it was scheduled in, or `std::nullopt` when none is.
+
+The caller delivers each due event as a macrostep of its own and applies
+what that macrostep returns before the next `pop_due()`, so a delivered
+event can cancel a later one, or schedule one that is due already. Time is
+whole milliseconds, a `std::uint64_t`, where XState's clock takes fractions
+(<<differences-time,Time in whole milliseconds>>), and equal deadlines come
+out in the order they were scheduled, which is what XState's sort does under
+V8 (<<differences-deadlines,Equal deadlines>>). The actor layer keeps the
+timers of its actors itself, released by `actor_system::clock_tick(now)`
+(<<actors-time,Delayed events and time>>).

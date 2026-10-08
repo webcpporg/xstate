@@ -1,0 +1,1276 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[appendix]
+[#differences]
+== Where xstate differs from XState
+
+xstate ports XState's algorithm instead of defining semantics of its own, and
+XState itself judges the port: every case ported from XState's tests runs on
+XState and on xstate, and xstate's result must equal XState's, microstep by
+microstep and actor by actor (<<testing-xstate>>). Where the two differ, the
+difference is deliberate. This appendix gives every one, with its reason; the
+rule xstate keeps in its place is among
+<<guarantees,xstate's guarantees>>, or, for a rule of xactor that the
+actor layer keeps, among
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-guarantees[xactor's].
+The differences are
+grouped by their reason:
+
+* <<differences-json,What JSON imposes>>: a machine is JSON, which holds no
+  function, no `undefined` and no reference to an actor.
+* <<differences-xactor,What the actor model on xactor imposes>>: deliveries
+  are queued instead of nested in the sender's call, actors pay for their work
+  with fuel, time is what the host brings, the actors of one `actor_system`
+  live in one system, and a host's callback runs inside an actor's turn.
+* <<differences-leaks,Where XState leaks JavaScript or has a defect>>: an
+  accident of the language or of an implementation, which xstate does not
+  reproduce.
+* <<differences-api,Where imitating XState would make the API worse>>:
+  failures as values, a config checked when it is loaded, a clock that hands
+  its caller the due events, and one kind of listener of emitted events.
+* <<differences-development,The checks of XState's development build>>,
+  which xstate always makes.
+
+Each entry says what XState does, what xstate does, and why. Most show the
+difference with a {cpp} program and its twin, the same program written for
+XState (<<testing-twins>>): the {cpp} program, or the section that shows it,
+then what the twin printed on XState 5.33.2's development build, the build
+XState's own tests run, then what the {cpp} program printed. Both ran, and
+the outputs are theirs: the oracle lane, `b2 libs/xstate/test/oracle//oracle`,
+runs every twin again and fails when one no longer prints what is shown
+here. The twin of each program written for this appendix, a `diff_<name>`,
+is shown too, under the {cpp} program, so that both sides of the difference
+can be read.
+
+What xstate does not have yet is not a divergence and is not listed here:
+<<overview-not-ported>> lists most of it, and <<transitions-events>> one
+more part. Where XState awaits `waitFor` or `toPromise`, a host of the actor
+layer reads `status_of` and `snapshot_of` once its call returns, since every
+host call runs the system before it returns. Two of these gaps let a config
+load and then run otherwise than in XState, so they are named here as well.
+An invoke's `onSnapshot` is read as transitions on `xstate.snapshot.<id>`,
+but no child sends its parent that event (XState's `syncSnapshot`, in the
+overview's list), so no child's snapshot takes them (<<actors-invoke>>). And
+an event `xstate.init` or `xstate.stop` sent from outside selects transitions
+as any other event does, where XState's macrostep takes no transition for the
+first and stops the machine for the second (<<transitions-events>>).
+
+[#differences-json]
+=== What JSON imposes
+
+An xstate machine is the JSON of XState's `createMachine` config, read when
+the program runs (<<machines-config>>). That is what lets a program define a
+machine at run time, or load one that Stately Studio exported, and it makes a
+machine data: `to_json` writes its definition as XState's `machine.toJSON()`
+does, and `create_machine_from_definition` loads it back, given the
+implementations and the context, which a definition does not hold;
+<<machines-definition>> says what else it leaves out, and so when the machine
+loaded back takes the original's steps. JSON has no function, no `undefined`
+and no reference to an object, so every place where XState's config holds one
+of them takes another form in xstate. Appendix A gives the {cpp} spelling of
+each (<<from-xstate-to-cpp>>); the entries below give what changes beyond the
+spelling.
+
+[#differences-names]
+==== Functions become names
+
+XState:: A config holds functions: inline actions and guards, the action
+creators (`assign`, `raise`, `sendTo` and the others), `params`, an input or
+an output computed from the context, a context computed from the input, and
+logic given as an invoke's `src`.
+xstate:: Every function is an implementation registered by name in
+`implementations`, as XState's `setup()` registers them, and the config names
+it (<<syntax-implementations>>). Most keep what XState's function does. Three
+cannot, and the config holds another form for each:
++
+[cols="1,1",options="header"]
+|===
+| XState's config holds | xstate's config holds instead
+
+| an inline action, or a function `setup()` registers as an action
+| a custom action: a name `actions` does not hold, which the core returns and
+the actor layer hands to `on_action`, where XState runs the function
+(<<differences-custom>>)
+
+| `+params: ({ event }) => ...+`
+| fixed `params`. The functions a built-in action or a guard is registered
+with read the event and the context from their `action_args`; a custom action
+carries its `params` alone (<<differences-custom>>)
+
+| `src: someMachine`, `+src: fromPromise(...)+`
+| the name of an entry of `actors` (<<differences-src>>)
+|===
+Why:: A function cannot be JSON; a name can. Joining the two by name is how
+XState's `setup()` already separates a machine's logic from its
+implementations, so the config keeps XState's shape.
+
+[#differences-guards]
+==== Higher-order guards
+
+XState:: `not`, `and` and `or` are functions that wrap other guards, and
+`stateIn` one that tests a state value. JSON cannot hold them, and
+`machine.toJSON()` writes the transition without its guard.
+xstate:: They are JSON objects. The `type` names the combinator with the
+prefix XState gives its built-in actions, `xstate.`, and the other members are
+the properties XState's functions carry, `guards` and `stateValue`:
++
+[source,json]
+----
+{"type": "xstate.not", "guards": ["isEmpty"]}
+{"type": "xstate.and", "guards": ["isAdult", {"type": "hasRole", "params": {"role": "admin"}}]}
+{"type": "xstate.or", "guards": ["a", "b"]}
+{"type": "xstate.stateIn", "stateValue": "#light.green"}
+----
++
+`to_json` writes them where XState writes nothing, so a machine loaded back
+from its definition keeps them.
+Why:: JSON holds no function. The four forms are xstate's own, since XState
+has no JSON for them.
+
+Here `SUBMIT` is guarded by `xstate.not` of `isEmpty`. The program sends it
+without a name and with one, then reads the guard the definition writes:
+
+[source]
+----
+include::{examples}/xstate/diff_guards.cpp[tag=example,indent=0]
+----
+
+.The twin, on XState
+[source,javascript]
+----
+include::{twins}/xstate/diff_guards.mjs[lines=7..]
+----
+
+.XState prints
+[listing]
+----
+include::{twins}/xstate/diff_guards.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/xstate/diff_guards.expected[]
+----
+
+[#differences-context]
+==== The context function
+
+XState:: `+context: ({ input, spawn, self }) => ...+` receives the input, a
+`spawn` function and the actor itself, and a context may hold an actor it
+spawned.
+xstate:: `implementations.context` receives the input only
+(<<context-input>>). A context is JSON and holds no actor; a child is spawned
+by an `invoke` or a `spawn_child_action`.
+Why:: A reference to an actor is not data (<<differences-targets>>), and the
+machine core runs no actor: it includes nothing of xactor, holds a machine's
+actors and children as data, and resolves a spawn into an `xstate.spawnChild`
+action for its caller to run, which the actor layer does (<<actors-spawn>>).
+
+[#differences-src]
+==== An invoke's `src`
+
+XState:: `src` is the name of an actor `setup()` registered, or the logic
+itself: a machine, or `+fromPromise(...)+`.
+xstate:: `src` is a string that names an entry of `implementations.actors`.
+Any other `src` refuses the machine with `invalid_config`, and a name with no
+entry with `unknown_actor` (<<differences-refused>>). A `host_actor` stands
+for `fromPromise`: the host answers it (<<actors-host>>).
+Why:: Logic cannot be JSON.
+
+[#differences-targets]
+==== Targets that name actors
+
+XState:: `sendTo` takes an actor reference, a string (a child's id,
+`+#_parent+`, `+#_internal+`, `+#_<id>+`) or a function that returns one; a
+send to a systemId is written `+sendTo(({ system }) => system.get('notifier'), ...)+`.
+An event or an input may carry an actor reference, as a parent passes `self`
+to a child that must answer it.
+xstate:: A target is a string: a child's id or `+#_<id>+`, `+#_parent+`,
+`+#_internal+`, or `+#system:<systemId>+`, the actor registered under that
+systemId, which the actor layer resolves when the action resolves. When no
+actor holds the systemId, a `sendTo` goes to the actor itself, as XState's
+does when the function returns `undefined`, and a `forwardTo` fails
+(<<differences-development>>). Events and inputs carry no actor: a child
+answers its parent through `+#_parent+`, and any other actor is named by its
+id or its systemId.
+Why:: JSON holds neither a reference nor a function.
+
+[#differences-custom]
+==== Custom actions
+
+XState:: An actor runs each action's implementation, a function, when the
+action executes. The function receives the context, the event, the actor and
+its system, and the action's params, which may themselves be computed from
+the context and the event.
+xstate:: An action that `implementations.actions` does not hold is a custom
+action (<<actions-custom>>). The machine core returns it as `{type, params}`,
+as XState's pure `transition()` returns the actions to execute, and the actor
+layer hands each one, in order, to the callback `on_action` registers, with
+the actor that returned it, and nothing else; a log reaches `on_log` the same
+way (<<actors-watching>>). Where XState's function receives the context and
+the event, the callback receives neither. What a custom action needs from
+them must be in its fixed `params`, or reach the host through an
+`emit_action`, whose `event_maker` reads both.
+Why:: A function cannot be JSON, and what a machine does to the world belongs
+to the program that runs it.
+
+[#differences-undefined]
+==== `undefined`
+
+XState:: JavaScript tells `undefined` from `null`. The event `xstate.init`
+always has a member `input`, `undefined` when the actor was given none, and an
+implementation that returns `undefined` leaves a log without a value, a child
+without an input or a snapshot without an output.
+xstate:: JSON has `null` only. A `value_maker`, the implementation that
+computes a log's value, an input or an output, returns a
+`result<std::optional<boost::json::value>>`, and none, the empty optional,
+stands for `undefined`: the member is left out, as XState leaves it out
+(<<input-output-undefined>>). `xstate.init` carries `input` only when the
+input is not null, so a null input and no input are the same.
+Why:: The JSON xstate reads and writes cannot hold `undefined`, and a member
+left out is how XState itself writes one.
+
+[#differences-null-meta]
+==== A state's null `meta`, and a `description` that is not a string
+
+XState:: A state's `meta` that is null is kept: `getMeta()` lists it, and
+`machine.toJSON()` writes it. A state's `description` is kept whatever its
+type, and written too, although XState's own type declarations make it a
+string.
+xstate:: A null `meta` is no meta: `get_meta` does not list it, and `to_json`
+leaves it out. A `description` that is not a string is left out of the
+machine, and so of its definition (<<machines-refusals>>). A transition's
+`meta` and `description` are kept as XState keeps them.
+Why:: A `null` is how JSON writes no value, so it stands for no meta, as it
+stands for no context (<<differences-object-context>>). A state's
+description is text, as XState's declarations make it, and
+`state_node::description` holds it as a string; a transition's is kept as
+the JSON the config gives.
+
+[#differences-xactor]
+=== What the actor model on xactor imposes
+
+xstate's actor layer runs machines as XState's actors on xactor, webcpp's
+actor system (
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-model[xactor's model]):
+one scheduler, which
+holds a first-in first-out mailbox for each actor and a first-in first-out
+queue of the actors that have work, and hands one message to its actor per
+turn; fuel paid for every microstep, every message an actor sends and every
+timer it arms; timers owned by actors; and time the host brings. That makes a
+run deterministic, bounds every call the host makes, and reuses xactor's
+scheduler, fuel and timers instead of building a second actor system beside
+it (<<actors-design>>). Within one actor, everything happens in XState's
+order. Between actors, and around the host's calls, the entries below differ.
+
+Entries of the other groups concern the actor layer too. Of JSON's: custom
+actions handed to `on_action` (<<differences-custom>>), a host actor in place
+of a promise (<<differences-src>>) and targets named by strings
+(<<differences-targets>>). Of XState's defects: a root that sends to its
+parent (<<differences-send-parent>>), an emitted event of the type `+*+`
+(<<differences-emit>>), the children of a failing macrostep
+(<<differences-failing-children>>), the timers of an ended actor
+(<<differences-timers>>), a timer that falls due during `clock_tick`
+(<<differences-tick>>), the host's `stop` of a family with a failed member
+(<<differences-stop>>) and a `sendTo` whose child is gone
+(<<differences-gone>>). Of the API's: a failed actor's error and the error
+event it sends its parent (<<differences-failures>>), and the listeners of
+emitted events (<<differences-listeners>>).
+
+[#differences-interleaving]
+==== Interleaving across actors
+
+XState:: An event sent to an idle actor is delivered at once, nested in the
+sender's call stack. `start()` starts an actor's children first, each running
+its initial actions, and then runs the actor's own.
+xstate:: xactor queues every delivery, the message in its actor's mailbox and
+the actor in the queue of actors with work, and a turn hands one message to
+its actor, so a delivery never runs inside its sender's call. Each actor
+receives what one sender sends it in the order sent, and handles it in
+XState's order; but when an actor hears from two senders and one send is
+caused by the other's, the order between the two may differ, and so may the
+order of callbacks across actors. So an actor's start hands over its own
+initial custom actions before its initial children handle theirs. In the same
+way, a parent handles the last sends of a child that is done once the child
+has released its systemId, where XState, delivering them nested, has not
+released it yet; and a child born done or failed, started by its parent, finds
+the systemIds as the parent's macrostep left them, where in XState a sibling
+may have ended, or an actor a nested send reached may have claimed one, before
+that start.
+Why:: Queues instead of a call stack make a run deterministic and
+replayable, keep one actor's work from nesting inside another's, and let
+fuel bound each turn. The tests compare each actor's own sequence, never the
+order across actors (<<testing-oracle>>).
+
+Here an app whose entry is the custom action `appStarted` invokes a kid whose
+entry is `kidStarted`, and the host prints each custom action it is handed:
+
+[source]
+----
+include::{examples}/actors/diff_interleaving.cpp[tag=example,indent=0]
+----
+
+.The twin, on XState
+[source,javascript]
+----
+include::{twins}/actors/diff_interleaving.mjs[lines=7..]
+----
+
+.XState prints
+[listing]
+----
+include::{twins}/actors/diff_interleaving.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/actors/diff_interleaving.expected[]
+----
+
+[#differences-fuel]
+==== Fuel
+
+XState:: Nothing bounds a call unless the config asks for it: `createActor`,
+`start()` and `send()` return once every macrostep they run has settled, so
+one that reaches an actor whose eventless transitions never settle never
+returns. For a root whose initial macrostep never settles, that call is
+`createActor`, which runs the macrostep (<<differences-construction>>). The
+bound XState has is the config's `options.maxIterations`: once that many
+microsteps have followed the event's own with the machine still active, the
+macrostep throws an error whose message begins `Infinite loop detected`, even
+when it would settle there.
+`transition` lets the error out, and an actor catches it into its snapshot,
+whose status is then `'error'`.
+xstate:: Every microstep costs one unit of the execution's fuel, as does every
+message an actor sends and every timer it arms. When an execution runs out,
+the actor parks and the call returns `out_of_fuel`; `resume()` gives every
+parked actor a new execution. While an actor is parked, the host's `start`,
+`send`, `clock_tick`, `resolve` and `reject` are held, in order, and applied
+by a later `resume()`, so no event starts before the macrostep in progress has
+settled. `stop` is never held: it is how the host ends an actor that would
+never settle. xstate does not read `options`.
+Why:: The program that runs a machine decides how much work an event may cost,
+from outside, one microstep at a time, so a machine loaded at run time cannot
+hang it (<<actors-fuel>>). A bound written in the config is its author's, and
+ends the macrostep as a failure; fuel is the host's, and a parked actor
+resumes where it stopped. The core's pure functions, `get_next_snapshot`
+among them, run without a bound, as XState's do when the config sets none; a
+caller that must bound the work drives the `macrostep` cursor itself, one
+microstep per `next()` (<<pure-cursor-fuel,the cursor's fuel>>).
+
+Here a root's initial macrostep never settles: `ping` and `pong` lead to each
+other. Each execution has 100 units of fuel. The twin gives its config an
+`options.maxIterations` of 1000, without which its `createActor` never
+returns; with it, `createActor` throws inside and leaves the actor in error
+before `start()`:
+
+[source]
+----
+include::{examples}/actors/diff_fuel.cpp[tag=example,indent=0]
+----
+
+.The twin, on XState
+[source,javascript]
+----
+include::{twins}/actors/diff_fuel.mjs[lines=7..]
+----
+
+.XState prints
+[listing]
+----
+include::{twins}/actors/diff_fuel.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/actors/diff_fuel.expected[]
+----
+
+The start and the resume each run as many microsteps as their execution pays
+for, and the actor parks again; the host's `stop` ends it. XState's actor
+failed in `createActor`, and stays in error after `stop()`.
+
+The core shows the same two bounds. In
+<<pure-cursor-cycle,the cursor's example of a cycle>>, the caller gives `SPIN`
+1000 units of fuel, one per `next()` of the cursor, where the twin gives the
+config an `options.maxIterations` of 1000:
+
+.XState prints
+[listing]
+----
+include::{twins}/xstate/pure_cycle.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/xstate/pure_cycle.expected[]
+----
+
+And in <<transitions-eventless-loops,the example of an eventless cycle>>, the
+caller pays for five microsteps, printing each, where the twin gives the
+config an `options.maxIterations` of 5:
+
+.XState prints
+[listing]
+----
+include::{twins}/xstate/transitions_eventless_cycle.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/xstate/transitions_eventless_cycle.expected[]
+----
+
+XState's `transition` throws and returns no snapshot of the cycle; its caller
+keeps the snapshot it passed. xstate's caller holds the cursor, a value: the
+snapshot inside the cycle, the stable one it began from, and the choice to
+drop the event, report it, or resume with more fuel.
+
+[#differences-construction]
+==== The root is constructed on `start`
+
+XState:: `createActor` constructs the root at once: its initial macrostep
+runs, `getSnapshot()` returns its snapshot, and its system holds the systemIds
+of its initial children, all before `start()`.
+xstate:: `create_actor` creates the actor and runs nothing. Its construction
+runs on `start`, so until then `snapshot_of` returns `nullptr` and `get` finds
+none of its children's systemIds; its initial children also take their
+session numbers then (<<differences-system>>).
+Why:: Construction runs a macrostep, which costs fuel, and fuel is paid inside
+an execution, which only a host call that delivers something opens (`start`,
+`send`, `clock_tick`, `resolve`, `reject`, `resume`). `create_actor` delivers
+nothing.
+
+Here the root invokes a worker registered under the systemId `worker`, and
+`describe` prints the root's state value and whether `worker` is registered,
+before the start and after it:
+
+[source]
+----
+include::{examples}/actors/diff_construction.cpp[tag=describe]
+----
+
+[source]
+----
+include::{examples}/actors/diff_construction.cpp[tag=example,indent=0]
+----
+
+.The twin, on XState
+[source,javascript]
+----
+include::{twins}/actors/diff_construction.mjs[lines=7..]
+----
+
+.XState prints
+[listing]
+----
+include::{twins}/actors/diff_construction.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/actors/diff_construction.expected[]
+----
+
+[#differences-system]
+==== One system per `actor_system`
+
+XState:: `createActor` makes a system of its own for every root: its
+systemIds, `system.get` and the sends to a systemId. An actor's session id,
+its id when it is given none, is `x:<n>`, where `n` counts every actor the
+process created, across all its systems.
+xstate:: The roots of one `actor_system` share one system. A systemId names
+one actor across all of them: a child of one root is refused a systemId that
+another root's family holds, and `create_actor` refuses one too, with
+`system_id_taken`. A root's session id counts the actors its own
+`actor_system` created before it, a spawn whose claim of a systemId was
+refused included, so the two agree when a process runs one `actor_system` with
+one root. With fuel, a root created while another is parked takes its
+number before that root's children are all created. A program that wants
+XState's arrangement gives each root an `actor_system` of its own
+(<<actors-system>>).
+Why:: An `actor_system` owns one xactor scheduler, with its registry of
+systemIds and its counter of actors. Nothing of it is global: xstate keeps no
+global or static mutable state.
+
+[#differences-time]
+==== Time in whole milliseconds
+
+XState:: `SimulatedClock` and the delays take fractions of a millisecond. An
+`after` key that JavaScript reads as a number is that many milliseconds,
+`"1.5"`, `"-1"` and `"1e3"` among them, and any other key names a delay,
+`"2fast"` among them.
+xstate:: xactor's clock, which `clock_tick` moves, and the core's
+`simulated_clock` count whole milliseconds, and a delay is a `std::uint64_t`.
+An `after` key is a number of milliseconds only when it is digits alone. Any
+other key that starts with a digit, a sign or a dot, such as `"1.5"`, `"-1"`,
+`"1e3"` or `"2fast"`, refuses the machine with `invalid_config`, even when a
+delay of that name is registered, and the remaining keys name delays.
+Why:: xactor's timers count whole milliseconds
+(link:{webcpp-libs}/xactor/{webcpp-page}#xactor-timers[xactor's timers]),
+which keeps every deadline an
+exact integer; a fraction has no timer to hold it, and a negative delay has no
+meaning. A key is read as a number only when it is digits alone, as every
+such key is a whole number of milliseconds.
+
+[#differences-earlier-tick]
+==== A tick earlier than the last
+
+XState:: `SimulatedClock.set` throws for a time before the current one, and
+the time stays where it was.
+xstate:: `clock_tick` accepts it: the time moves back, the timers due by then
+are released, and a timer armed afterwards counts from the earlier time, so it
+can fall due at a time the clock has already passed once. The core's
+`simulated_clock` refuses the same move (<<differences-core-clock>>). A host
+that wants XState's behaviour passes a time that never decreases.
+Why:: The actor layer's time is xactor's, the time the host brings: xactor
+reads no clock, and its rule is that a tick earlier than the last moves `now`
+back (xactor's
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-invariant-18[guarantee 18]
+and
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-invariant-34[guarantee 34]).
+The actor layer, whose timers are xactor's, keeps that rule as it is. The
+core's `simulated_clock` is a port of
+XState's `SimulatedClock`, and keeps its refusal.
+
+Here the time goes to 1000 and back to 10, and then an actor enters a state
+that leaves after 100 ms:
+
+[source]
+----
+include::{examples}/actors/diff_earlier_tick.cpp[tag=example,indent=0]
+----
+
+.The twin, on XState
+[source,javascript]
+----
+include::{twins}/actors/diff_earlier_tick.mjs[lines=7..]
+----
+
+.XState prints
+[listing]
+----
+include::{twins}/actors/diff_earlier_tick.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/actors/diff_earlier_tick.expected[]
+----
+
+XState's timer counts from 1000 and fires at 1100; xstate's counts from 10,
+so the tick to 1050 releases it.
+
+[#differences-callbacks]
+==== A callback that calls the system back
+
+XState:: A subscriber, an `+actor.on+` listener or an inspector may call the
+system: a send from one of them is accepted, and the actor handles the event
+once the update in progress is done.
+xstate:: The host's callbacks, a `subscribe` or `on_emitted` listener,
+`on_action`, `on_log` and the inspector, run inside an actor's turn, while the
+system runs. A call from one of them to a member of `actor_system` that
+changes the system, `create_actor`, `start`, `send`, `clock_tick`, `resolve`,
+`reject`, `resume`, `run_until_idle`, `stop`, or a registration (`subscribe`,
+`on_emitted`, `on_action`, `on_log`, `inspect`), returns xactor's
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`errc::invalid_argument`],
+of the category `webcpp.xactor`, and changes nothing.
+The const members, which read the system, `snapshot_of`, `status_of`, `get`
+and the others, are free. A host that must act on what it heard records it in
+the callback and acts once the call that ran the system has returned
+(<<actors-watching>>).
+Why:: Every host call that delivers runs the system and returns the outcome
+of that run, settled or parked. A call made inside the run cannot know that
+outcome, and running the system again from inside a turn would nest one run
+in another, where xactor runs one turn at a time, each to its end.
+
+Here a listener prints each snapshot it hears, and sends `NEXT` when it hears
+`"b"`; `print_value` prints the state value after each of the host's own
+sends:
+
+[source]
+----
+include::{examples}/actors/diff_callbacks.cpp[tag=print]
+----
+
+[source]
+----
+include::{examples}/actors/diff_callbacks.cpp[tag=example,indent=0]
+----
+
+.The twin, on XState
+[source,javascript]
+----
+include::{twins}/actors/diff_callbacks.mjs[lines=7..]
+----
+
+.XState prints
+[listing]
+----
+include::{twins}/actors/diff_callbacks.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/actors/diff_callbacks.expected[]
+----
+
+[#differences-leaks]
+=== Where XState leaks JavaScript or has a defect
+
+Some of what XState does is an accident: of JavaScript, of V8, or of an
+implementation that XState's own tests do not reach. xstate does not reproduce
+the accident: it does what the accident gets in the way of, or states as a rule
+what XState gets by chance.
+
+[#differences-send-parent]
+==== `sendParent` without a parent
+
+XState:: The pure functions run a machine as an inert actor, which has no
+parent, so `transition()` throws on a `sendParent`, which a running child
+resolves to its parent.
+xstate:: The machine core returns it as XState returns it for an actor that
+has a parent: `xstate.sendTo` to `+#_parent+`. Delivering it is the caller's
+work. In the actor layer, a root that sends to its parent fails with
+`unknown_target`, as a root actor of XState fails.
+Why:: Whether a machine has a parent depends on where it runs, not on the
+machine, and the pure functions describe the machine.
+
+Here `FINISH` takes a `sendParent` of `DONE`, and the program prints each
+action `transition` returns:
+
+[source]
+----
+include::{examples}/xstate/diff_send_parent.cpp[tag=example,indent=0]
+----
+
+.The twin, on XState
+[source,javascript]
+----
+include::{twins}/xstate/diff_send_parent.mjs[lines=7..]
+----
+
+.XState prints
+[listing]
+----
+include::{twins}/xstate/diff_send_parent.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/xstate/diff_send_parent.expected[]
+----
+
+[#differences-emit]
+==== An emitted event of the type `+*+`
+
+XState:: `emit` hands an event to the listeners of its type and to the
+listeners of `+*+`. For an event whose type is `+*+`, the two lookups find
+the same listeners, and each hears the event twice.
+xstate:: `on_emitted` hears every event an actor emits, as XState's
+`+actor.on('*')+` does, and an event of the type `+*+` reaches each listener
+once.
+Why:: A listener hears an event once; hearing it twice is a defect of the
+lookup.
+
+Here `PING` emits an event of the type `+*+` to one listener:
+
+[source]
+----
+include::{examples}/actors/diff_emit.cpp[tag=example,indent=0]
+----
+
+.The twin, on XState
+[source,javascript]
+----
+include::{twins}/actors/diff_emit.mjs[lines=7..]
+----
+
+.XState prints
+[listing]
+----
+include::{twins}/actors/diff_emit.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/actors/diff_emit.expected[]
+----
+
+[#differences-spawn-id]
+==== A spawned child without an id
+
+XState:: `spawnChild(src)` without an id keys the child `"undefined"`,
+JavaScript's spelling of the missing value, and a `stopChild` of it then
+leaves that key in the snapshot's children.
+xstate:: The id of a `spawn_child_action` is fixed or computed by an
+`id_maker`, and one left out is the empty string: the child is keyed under
+`""`, and a `stop_child_action` of `""` removes it from the snapshot's
+children.
+Why:: A {cpp} string has no undefined: an `id` left out holds the empty
+string, a key a stop can name.
+
+In both, every child spawned without an id has the same key, as does a child
+given that key as its id (`""` here, `"undefined"` in XState). A second such
+spawn takes the key from the first child, which keeps running, but its parent
+can no longer name it, to send it an event or to stop it. Give each spawned
+child an id of its own, or a `system_id` to find it by.
+
+Here two children are spawned without an id, each with a `system_id`, and the
+key names the second:
+
+[source]
+----
+include::{examples}/actors/diff_spawn_id.cpp[tag=example,indent=0]
+----
+
+.The twin, on XState
+[source,javascript]
+----
+include::{twins}/actors/diff_spawn_id.mjs[lines=7..]
+----
+
+.XState prints
+[listing]
+----
+include::{twins}/actors/diff_spawn_id.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/actors/diff_spawn_id.expected[]
+----
+
+[#differences-deadlines]
+==== Equal deadlines
+
+XState:: `SimulatedClock` sorts its timers with a comparator that never
+returns 0, so the order of two timers with the same deadline is whatever V8's
+sort makes of it: the order they were scheduled in.
+xstate:: The order is a rule: by deadline, then by the order the timers were
+scheduled in, in the core's `simulated_clock` and in the actor layer's
+`clock_tick`.
+Why:: The result is XState's; xstate states it instead of leaving it to a
+sort.
+
+[#differences-failing-children]
+==== The children of a failing macrostep
+
+XState:: When a macrostep fails after it spawned children, because an
+implementation throws or a later action claims a systemId another actor holds,
+the children it spawned stay constructed and are never started, their
+systemIds still registered.
+xstate:: The actor fails, and the children the macrostep created and did not
+start are stopped, which releases their systemIds. When the actor falls back to
+the snapshot the macrostep began from, the started children it had asked to
+stop are its own again, as that snapshot lists them.
+Why:: A child that is never started and never stopped would hold its systemId
+for good, and no later actor could claim the name.
+
+[#differences-timers]
+==== Timers of an ended actor
+
+XState:: When an actor stops, is done or fails, its `cancelAll` cancels the
+timers its `_scheduledEvents` lists: one per id, the latest armed under it,
+until a timer of that id fires and removes the entry. So of two timers armed
+under one id, the earlier still fires, or the later once the earlier has
+fired, and its event is delivered when its target still runs.
+xstate:: xactor drops every timer of an actor that ends.
+Why:: An actor that has ended sends nothing.
+
+[#differences-tick]
+==== A timer that falls due during `clock_tick`
+
+XState:: `SimulatedClock` fires a timer armed during a tick, for a deadline the
+tick has already reached, only while its flush has timers left to visit.
+xstate:: `clock_tick(now)` releases the timers due by `now` one at a time, in
+the order of their deadlines, and a timer armed meanwhile and due by `now` is
+released in the same call.
+Why:: Whether a due timer fires cannot depend on how many timers the flush had
+left to visit.
+
+[#differences-stop]
+==== The host's `stop` of a family with a failed member
+
+XState:: `actor.stop()` stops the root actor, its system and, in the words of
+XState's documentation, the actors in that system. It reaches a child only
+through a running parent, though, so the children of a failed actor keep
+running.
+xstate:: `system.stop(root)` stops the whole family at once, the children of a
+failed member included. A parent's `stopChild` of a failed child keeps that
+child's children running, as XState does.
+Why:: The host's `stop` is how a program ends a family of actors; one that
+leaves some of them running does not end it.
+
+[#differences-gone]
+==== A `sendTo` whose child is gone
+
+XState:: A `sendTo` that names an invoke of the state being entered is bound to
+its child once the state's entry, spawns and initial actions are resolved
+(`retryResolveSendTo`). When no child has that id at that point, XState relays
+the event to `undefined`, which throws a `TypeError`.
+xstate:: The actor fails with `unknown_target` when the send is delivered.
+Why:: A send to an actor that is not there is an error of the machine, and
+xstate reports it as one, with the code it reports for every other target that
+names no actor.
+
+[#differences-object-context]
+==== A context that is not an object
+
+XState:: A context is a JavaScript object. A falsy `context` in the config,
+`null`, `0`, `false` or `""`, starts the machine with `{}`, and any other is
+kept. An `assign` merges with `Object.assign`, which spreads a string or an
+array into numbered members, so `"ab"` becomes `{"0": "a", "1": "b"}`, and
+leaves out a number or `true`; whatever a context function returns is merged
+into an empty object the same way.
+xstate:: A config whose `context` is `null`, or that has none, starts the
+machine with `{}`, as XState's falsy context does. Any other value that is not
+an object, `false`, a number, a string or a list, is kept as written, and an
+`assign` on it fails with `implementation_failed`, where XState starts the
+machine with `{}` for a falsy one and merges the update into any other with
+`Object.assign` (<<context-initial>>). A context function,
+`implementations.context`, returns a `result<boost::json::value>`: a value
+that is not an object fails the initial macrostep with
+`implementation_failed`, and a failure it returns fails it with its own code
+(<<context-input>>).
+Why:: Truthiness and the spreading of a string are properties of JavaScript.
+A JSON machine whose context is not an object has a fault, and xstate reports
+it where it shows instead of turning the value into another. A `null` is how
+JSON writes no value, so it stands for no context.
+
+Here four configs, whose contexts are `null`, `false`, `5` and `"ab"`, each
+take an `ADD` that assigns `x`, and a context function returns `"ab"`;
+`describe` prints a context, or the error of a snapshot that failed:
+
+[source]
+----
+include::{examples}/xstate/diff_object_context.cpp[tag=helpers]
+----
+
+[source]
+----
+include::{examples}/xstate/diff_object_context.cpp[tag=example,indent=0]
+----
+
+.The twin, on XState
+[source,javascript]
+----
+include::{twins}/xstate/diff_object_context.mjs[lines=7..]
+----
+
+.XState prints
+[listing]
+----
+include::{twins}/xstate/diff_object_context.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/xstate/diff_object_context.expected[]
+----
+
+[#differences-api]
+=== Where imitating XState would make the API worse
+
+XState reports a failure by throwing, accepts a config whose faults it finds
+only when an event reaches them, has its clock call the functions that fall
+due, and calls the listeners of an emitted event by a lookup of its type.
+Imitating the first two would let a program learn of a failure later than it
+can, or not at all; the clock would run the machine from inside the clock's
+call, and the lookup would order the listeners by something other than the
+program. These entries say what xstate does instead.
+
+[#differences-failures]
+==== Failures are values
+
+XState:: An implementation that fails throws. `transition()` and
+`getNextSnapshot()` let the error out; `getInitialSnapshot()` and an actor
+catch it into the snapshot, whose `status` is `'error'`, with the value and
+the context from before the event. A child that fails sends its parent
+`xstate.error.actor.<id>`, whose `error` is the value the implementation
+threw.
+xstate:: An implementation returns a `result`. A failure,
+`implementation_failed` or any other `error_code` the implementation returns,
+settles the macrostep with the snapshot it began from, its `status` `error`
+and its `error` that code, from the pure functions as from an actor, and the
+failing microstep returns no action. A cursor that drives microsteps one at a
+time also gets the actions the failing microstep resolved before it failed
+(<<pure-cursor-failure>>). A machine child that fails sends its parent
+`xstate.error.actor.<id>`, whose `error` is the child's `error_value` when an
+error event no transition handled failed it, so a grandchild's error climbs
+unchanged, as in XState, and otherwise the name of its error code, such as
+`"implementation_failed"` (<<actors-done-error>>). The failed child's
+snapshot keeps that code in `error`, and the error it reported in
+`error_value`, where XState's keeps the value alone.
+Why:: xstate throws no exception, and builds where exceptions are off; a
+failure that comes back as a
+value is one the caller cannot miss: it is in the snapshot it receives, and
+that snapshot is the one an actor of XState keeps. An implementation fails
+with an `error_code`, which carries no value of its own, and an event's
+members are JSON: the code's name is the JSON that says which failure it was.
+
+Here an assign fails on `GO`, first under the pure `transition`, then in an
+actor:
+
+[source]
+----
+include::{examples}/actors/diff_failures.cpp[tag=example,indent=0]
+----
+
+.The twin, on XState
+[source,javascript]
+----
+include::{twins}/actors/diff_failures.mjs[lines=7..]
+----
+
+.XState prints
+[listing]
+----
+include::{twins}/actors/diff_failures.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/actors/diff_failures.expected[]
+----
+
+Three programs of the chapters meet the same difference. In
+<<transitions-guards,the example of guards>>, `submit` without `feedback`
+reaches a guard that reads it. XState's guard throws a `TypeError`, which
+`transition` lets out behind `Unable to evaluate guard`; xstate's returns
+`implementation_failed`, and the macrostep settles in the snapshot it began
+from, `form`, in error:
+
+.XState prints
+[listing]
+----
+include::{twins}/xstate/transitions_guards.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/xstate/transitions_guards.expected[]
+----
+
+In <<pure-cursor-failure,the example of a failing guard>>, the guard of an
+eventless transition fails after the microstep of `GO`. The {cpp} program
+drives the macrostep with the cursor,
+which reports that microstep, its actions and that it settled; XState has no
+cursor, and its twin's actor prints only what it ran and how the macrostep
+ended, which the {cpp} program prints too:
+
+.XState prints
+[listing]
+----
+include::{twins}/xstate/pure_guard_failure.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/xstate/pure_guard_failure.expected[]
+----
+
+In <<actors-done-error,the example of error events>>, a payment fails under a
+checkout that has no `onError`, and the shop above it takes the checkout's
+error. The error event is the same, and so is the error the checkout
+reported; xstate's snapshot of the checkout also holds the code it failed
+with, which XState's does not have:
+
+.XState prints
+[listing]
+----
+include::{twins}/actors/actors_errors.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/actors/actors_errors.expected[]
+----
+
+[#differences-refused]
+==== A config is refused when it is created
+
+XState:: `createMachine` accepts configs it fails on later, or runs wrongly:
+an `initial` that names no child throws when the machine starts; a guard with
+no implementation throws when an event first evaluates it; a named `after`
+delay with no implementation counts as no delay, and the state is left at
+once; a state whose default entry leads back to it overflows the stack when it
+is entered; an `entry`, `exit` or `actions` that is null, which `toArray`
+reads as a list that holds null, throws a `TypeError` when that list runs,
+and a history's `target` that is null, read the same way, when the default
+is needed; an invoke of an actor `setup()` does not hold warns, in the
+development build, and fails when something reads the child.
+xstate:: `create_machine` refuses each of these with an error and no machine,
+as it refuses every config XState refuses at creation (<<machines-refusals>>
+lists them all). It also refuses members that `createMachine` accepts, such
+as a history target that is not a string or a list of strings, the root's
+too, and a `tags` that is null or holds anything but strings. One config that
+XState accepts, xstate accepts too: a history state at the root, whose default
+target has no parent to be resolved against, so a microstep that needs it
+fails with `unknown_target` where XState throws (<<states-history>>).
+Why:: A machine is loaded from data when the program runs. The moment it is
+loaded is the moment its author can be told what is wrong with it, not when an
+event reaches the broken part, long after and perhaps in production.
+
+Here `report` gives `create_machine` a config of each of these kinds but the
+null history target. The twin creates each with `createMachine`, then runs
+what reaches its fault and prints the first line of what that throws, or what
+it returns:
+
+[source]
+----
+include::{examples}/xstate/diff_refusals.cpp[tag=report]
+----
+
+[source]
+----
+include::{examples}/xstate/diff_refusals.cpp[tag=configs,indent=0]
+----
+
+.The twin, on XState
+[source,javascript]
+----
+include::{twins}/xstate/diff_refusals.mjs[lines=7..]
+----
+
+.XState prints
+[listing]
+----
+include::{twins}/xstate/diff_refusals.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/xstate/diff_refusals.expected[]
+----
+
+The last config also makes XState's development build warn, on the standard
+error, that the actor type `worker` was not found.
+
+Two programs of the chapters meet the same difference. In
+<<machines-refusals,the example of a refused config>>, `submit` is guarded by
+`isValid`, which no implementation holds: XState creates the machine and
+throws when `submit` first evaluates the guard, and xstate refuses the
+machine:
+
+.XState prints
+[listing]
+----
+include::{twins}/xstate/machines_refused.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/xstate/machines_refused.expected[]
+----
+
+In <<states-initial,the example of initial states>>, a parent state has no
+`initial`, and a machine's `initial` names no child. XState and xstate refuse
+the first when the machine is created. XState creates the second and throws
+when the machine starts; xstate refuses it, with `unknown_target`:
+
+.XState prints
+[listing]
+----
+include::{twins}/xstate/states_initial_refused.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/xstate/states_initial_refused.expected[]
+----
+
+[#differences-core-clock]
+==== The core's clock hands over the due events
+
+XState:: `SimulatedClock` holds functions: `setTimeout` keeps one with its
+delay, and `set` and `increment` move the time and call each function that
+falls due, in the order of the deadlines. `set` throws for a time before the
+current one.
+xstate:: The core's `simulated_clock` holds events. `apply` schedules each
+built-in delayed `xstate.raise` a step returns and applies each built-in
+`xstate.cancel`, a custom action being the caller's whatever its type or its
+params, and `schedule` holds any event. `set` and `increment` only move the
+time, and `pop_due()` takes out the earliest event that is due, which the
+caller delivers as a macrostep of its own. `set` refuses a time before the
+current one with `invalid_config`, and the time stays where it was
+(<<pure-clock>>).
+Why:: The machine core computes what a step does and leaves every effect to
+its caller, which delivers each event. A clock that called a function would
+run the machine from inside the clock's call; one that hands over each due
+event lets the caller apply what its delivery returns before it takes the
+next, so a delivered event can cancel a later one, as it can in XState. A
+refusal is a value, as every failure is (<<differences-failures>>).
+
+[#differences-listeners]
+==== Listeners of emitted events
+
+XState:: `+actor.on(type, handler)+` adds a listener of one type, or of every
+type with `+*+`. An emitted event reaches the listeners of its type first and
+then those of `+*+`, each group in the order it was added.
+xstate:: `on_emitted` adds a listener that hears every event the actor emits,
+as XState's `+actor.on('*')+`, and an actor's listeners hear in the order they
+were added. A listener that stands for one of a type tests the type itself;
+adding those first keeps XState's order.
+Why:: One kind of listener, heard in the order the program added it, is the
+whole rule. A type is one test in the listener, and the order follows from the
+program instead of from a lookup.
+
+Here the listener of every type is added first, then a listener of `PING`,
+and `GO` emits `PING`:
+
+[source]
+----
+include::{examples}/actors/diff_listeners.cpp[tag=example,indent=0]
+----
+
+.The twin, on XState
+[source,javascript]
+----
+include::{twins}/actors/diff_listeners.mjs[lines=7..]
+----
+
+.XState prints
+[listing]
+----
+include::{twins}/actors/diff_listeners.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/actors/diff_listeners.expected[]
+----
+
+[#differences-development]
+=== The checks of XState's development build
+
+XState:: Of XState's two builds, the development build, which XState's own
+tests run and `+node --conditions=development+` selects, makes checks that the
+production build leaves out, and throws where one fails. It also warns, on
+the standard error, about an event descriptor whose `+*+` is not its last
+token.
+xstate:: xstate makes the checks a JSON machine can meet, in every build,
+and writes no warning:
++
+* An event of the type `+*+` that a macrostep takes from outside fails the
+  macrostep with `invalid_event`, the snapshot it began from in error. An
+  event of that type that the machine raises itself takes the wildcard
+  transitions, as in XState.
+* A transition that declares a `cond`, the name XState v4 gave `guard`,
+  refuses the machine with `invalid_config` when the `cond` is truthy, as
+  JavaScript reads it.
+* A `forwardTo` whose target resolves to no actor fails with
+  `unknown_target`: one with an empty target, when it resolves, and, in an
+  actor, one to `+#system:<systemId>+` when no actor holds the systemId.
+Why:: Each check stops an error that the production build lets through to do
+something worse. The production build ignores the `cond`, so the transition is
+taken unguarded; it runs an event of the type `+*+`, a type XState keeps for
+the wildcard descriptor; and it forwards an event whose target is `undefined`
+to the sender itself, which forwards it again, without end. xstate's tests
+compare it with the development build (<<testing-oracle>>), and xstate
+behaves as that build does. A warning changes nothing that a machine does,
+and xstate writes to no stream: what it has to tell its caller comes back as
+a value.
+
+The program makes the three checks, one config each:
+
+[source]
+----
+include::{examples}/actors/diff_development.cpp[tag=cond,indent=0]
+----
+
+[source]
+----
+include::{examples}/actors/diff_development.cpp[tag=wildcard,indent=0]
+----
+
+[source]
+----
+include::{examples}/actors/diff_development.cpp[tag=forward,indent=0]
+----
+
+Then it sends four events to a state whose two descriptors each hold a `+*+`
+before their last token, `+mouse.*.*+` and `+mou*se.*+`. The twin prints each
+warning XState's development build writes, under the event that made it:
+
+[source]
+----
+include::{examples}/actors/diff_development.cpp[tag=descriptors,indent=0]
+----
+
+.The twin, on XState
+[source,javascript]
+----
+include::{twins}/actors/diff_development.mjs[lines=7..]
+----
+
+.XState prints
+[listing]
+----
+include::{twins}/actors/diff_development.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/actors/diff_development.expected[]
+----
+
+The first three lines of XState's are the messages its checks throw. Its
+production build makes none of them: it creates the machine that declares
+`cond`, runs the event of the type `+*+` and ends its macrostep `active`, and
+never returns from the `send()` that forwards to no actor.
+
+The warnings come from the matching of a descriptor that ends in `+.*+` and
+holds another `+*+`. XState warns that a wildcard may only be the last token
+of a descriptor, and, when a token that is `+*+` alone comes before the last
+and the event's tokens before it equal the descriptor's, as the `mouse` of
+`mouse.x` equals that of `+mouse.*.*+`, also that infix wildcards are not
+allowed. A state warns about each such descriptor of its own but the one equal
+to the event's type, the first time it looks up the transitions of a type. It
+keeps what it found for each type, so the same type sent again writes nothing
+unless the search reaches a state that has not looked that type up yet, such
+as a parent the first send did not reach. Every descriptor matches as in the
+production build, and as in xstate (<<transitions-descriptors>>):
+`+mouse.*.*+` only the event of that exact type, and `+mou*se.*+`, a partial
+descriptor whose first token is `+mou*se+`, `+mou*se.x+`.
+
+<<transitions-descriptors,The example of event descriptors>> ends with an event
+of the type `+*+` from outside, which XState's development build throws on and
+xstate fails with `invalid_event`:
+
+.XState prints
+[listing]
+----
+include::{twins}/xstate/transitions_descriptors.expected[]
+----
+
+.xstate prints
+[listing]
+----
+include::{examples}/xstate/transitions_descriptors.expected[]
+----

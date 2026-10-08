@@ -1,0 +1,651 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[appendix]
+[#from-xstate-to-cpp]
+== From XState to {cpp}
+
+This appendix is for a reader who knows XState. It shows how each of
+XState's JavaScript spellings is written in {cpp}: a machine's config, the
+functions the config holds, an event, an actor, a promise and an error. The
+machine itself does not change: its states, its transitions and what they
+mean are XState's. What changes is how a program writes them, because {cpp}
+has no object literal, a JSON config holds no function, and xstate throws
+nothing.
+
+Each section gives XState's spelling first, in inline code, a table or a
+program, and then xstate's, from an example program of this page. A program
+of XState's shown here is the twin of the {cpp} program after it: the same
+program, which ran on XState 5.33.2 and printed what the {cpp} program
+prints (<<overview-twins>>). The last section, <<reference-xstate-names>>,
+goes from each of XState's names to xstate's.
+
+Names keep XState's words, in snake case: `createMachine` is
+`create_machine`, `getNextSnapshot` is `get_next_snapshot`, and
+`snapshot.hasTag` is `snapshot.has_tag`. The {cpp} examples write
+`namespace xstate = webcpp::xstate;`, and every value a machine holds, its
+config, its context, an event's payload, an action's params, an input and
+an output, is a `boost::json::value`.
+
+[#syntax-config]
+=== A JavaScript object becomes a JSON config
+
+XState's `createMachine` takes the config as a JavaScript object, written in
+the program. xstate's `create_machine` takes the same config as JSON, a
+`boost::json::value` the program parses from text, reads from a file or
+receives in a request. {cpp} has no object literal to write a config in, and
+as data a config can come from anywhere, Stately Studio's export included,
+and needs no compiler (<<rationale-json>>).
+
+The toggle of the quick start is an object in XState:
+
+[source,javascript]
+----
+include::{twins}/xstate/qs_toggle.mjs[tag=machine]
+----
+
+and JSON in xstate:
+
+[source]
+----
+include::{examples}/xstate/qs_toggle.cpp[tag=machine,indent=0]
+----
+
+Every member keeps its name and its meaning; JSON changes how it is
+written, and a function becomes a name:
+
+[cols="1,1",options="header"]
+|===
+| XState's object | xstate's JSON
+
+| `id: 'toggle'`, a bare key and a string in single quotes
+| `"id": "toggle"`, every key and every string in double quotes
+
+| `+after: { 2000: 'Inactive' }+`
+| `+"after": {"2000": "Inactive"}+`: a key is always a string
+
+| `+entry: assign(...)+`, `+guard: ({ context }) => ...+`
+| `"entry": "incrementCount"`, `"guard": "countBelowMax"`: a name, and the
+function registered under it (<<syntax-implementations>>)
+
+| `+{ type: 'notify', params: { level: 2 } }+`
+| `+{"type": "notify", "params": {"level": 2}}+`, its params fixed in the
+config
+
+| `not('isEmpty')`, `stateIn('#light.green')`
+| `+{"type": "xstate.not", "guards": ["isEmpty"]}+`,
+`+{"type": "xstate.stateIn", "stateValue": "#light.green"}+`
+(<<transitions-higher-order>>)
+
+| a member that is `undefined`
+| the member left out (<<differences-undefined,`undefined` in JSON>>)
+|===
+
+The rules:
+
+* `create_machine` returns a `result<machine>`: the machine, or the reason
+  the config was refused, which the program tests where a program of
+  XState's would catch what `createMachine` throws (<<syntax-exceptions>>). It refuses every
+  config XState refuses, and some XState accepts and fails on only later
+  (<<differences-refused>>).
+* The keys of `states`, `on` and `after` are read in the order JavaScript
+  enumerates an object's keys, as XState reads them: a key that is an array
+  index, such as `"500"`, first, by number, then the rest as written
+  (<<machines-config>>).
+* A machine never changes once created. XState's `machine.provide()` is the
+  same config created again with other implementations
+  (<<machines-immutable>>), and `machine.toJSON()` is `to_json(machine)`,
+  which `create_machine_from_definition` loads back
+  (<<machines-definition>>).
+* Appendix B lists every place where a JSON config takes another form than
+  XState's object, each with its reason (<<differences-json>>).
+
+[#syntax-implementations]
+=== Functions become implementations registered by name
+
+XState's config may hold functions: an action, a guard, a delay, the logic
+of an invoked actor, and the functions that compute the initial context, an
+invoked child's input and a final state's output. JSON holds none, so
+xstate's config names each one, and the program registers its {cpp} code
+under that name in an `implementations`, which `create_machine` takes with
+the config. XState already splits a machine this way when `setup()`
+registers implementations and the config refers to them by name: there,
+`+setup({ ... }).createMachine(config)+` becomes
+`create_machine(config, implementations)`, and the config stays as it is
+(<<rationale-names>>).
+
+Stately's setup example registers two `assign` actions, which the config
+names under `on`:
+
+[source,javascript]
+----
+include::{twins}/xstate/machines_setup.mjs[tag=setup]
+----
+
+xstate registers each as an `assign_action`, whose function returns the
+members to merge into the context; `add`, a function of the program,
+computes them:
+
+[source]
+----
+include::{examples}/xstate/machines_setup.cpp[tag=add,indent=0]
+include::{examples}/xstate/machines_setup.cpp[tag=setup,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/machines_setup.expected[]
+----
+
+`implementations` has a member for each kind of function. `actions`,
+`guards`, `delays` and `actors` are keyed by name, as `setup()` keys them.
+The other three stand for functions XState's config holds in place, so each
+is keyed by the place: `context`, one function, computes the initial context
+from the input; `inputs` computes a child's input, under the id of its
+invoke; and `outputs` computes a final state's output, under the id of that
+state, or the machine's under the root's id. Each member is taught in
+<<machines-implementations,the section on implementations>>. Each function
+keeps its role in XState and takes a {cpp} shape:
+
+[cols="1,1",options="header"]
+|===
+| XState | xstate
+
+| An action creator, such as
+`+assign({ count: ({ context }) => context.count + 1 })+`
+| The built-in action of the same name, such as an `assign_action`, holding
+a function that returns what XState's creator computes: here the members to
+merge, `+boost::json::object{{"count", ...}}+` (<<actions-built-in>>)
+
+| An action that is a plain function, such as
+`+() => console.log('done')+`
+| No entry: an action name `actions` does not hold is a custom action,
+returned to the program, which performs it (<<actions-custom>>)
+
+| A guard, `+({ context, event }, params) => boolean+`
+| A `predicate`: a function of an `action_args`, which returns
+`result<bool>`
+
+| A delay, `+({ context, event }) => number+`
+| A `delay_maker`, which returns `result<std::uint64_t>`, in milliseconds
+
+| `src: childMachine`, `+src: fromPromise(...)+`
+| A `+machine_actor{child_machine}+`, or a `host_actor{}`
+(<<syntax-promises>>)
+
+| `+context: ({ input }) => ({ ... })+`
+| `implementations.context`: a `context_maker`, a function of the input that
+returns `result<boost::json::value>`
+
+| An invoke's `+input: ({ context }) => ...+`, a final state's
+`+output: ({ context }) => ...+`
+| A `value_maker`, in `inputs` or `outputs`, which returns
+`result<std::optional<boost::json::value>>`, none for `undefined`
+|===
+
+The rules:
+
+* Every implementation receives an `action_args`: `args.context`,
+  `args.event` and `args.params`, XState's `+({ context, event }, params)+`.
+  It receives no actor and no system, where XState's also receives `self`
+  and `system`.
+* Every implementation returns a `result`, and fails by returning an error
+  where XState's would throw (<<syntax-exceptions>>).
+* A name is checked when the machine is created. A guard, an `after` delay
+  or an actor that the config names and `implementations` does not hold
+  refuses the machine, where XState fails when it first needs the name, or
+  never (<<differences-refused>>). An action name is not checked: one that
+  `actions` does not hold is a custom action, by design.
+* `params` are fixed in the config. Where XState computes them with a
+  function of the context and the event, xstate's implementation reads the
+  two from its `action_args` (<<differences-names>>).
+
+[#syntax-events]
+=== A flat event object becomes `event{type, payload}`
+
+An event in XState is one object: its `type`, the string that names what
+happened, and its data, the other members beside the type. xstate's `event`
+holds the two apart: `type`, a `std::string`, and `payload`, a
+`boost::json::object` holding every other member. Transitions match the
+type alone, and the payload is JSON, as every value a machine holds is
+(<<transitions-events>>).
+
+Stately's feedback machine receives an event that carries the new feedback.
+XState writes the event as one object:
+
+[source,javascript]
+----
+include::{twins}/xstate/context_assign.mjs[tag=event]
+----
+
+xstate writes its type and its payload:
+
+[source]
+----
+include::{examples}/xstate/context_assign.cpp[tag=event,indent=0]
+----
+
+An implementation reads the data from the payload. XState's assigner reads
+`event.feedback`:
+
+[source,javascript]
+----
+include::{twins}/xstate/context_assign.mjs[tag=assigner,indent=0]
+----
+
+xstate's reads the member `feedback` of `args.event.payload`, and fails when
+the event does not carry it:
+
+[source]
+----
+include::{examples}/xstate/context_assign.cpp[tag=assigner,indent=0]
+----
+
+The program prints the context before and after the event, and the number of
+actions the step returned:
+
+[listing]
+----
+include::{examples}/xstate/context_assign.expected[]
+----
+
+The rules:
+
+* An event with no data, XState's `+{ type: 'toggle' }+`, is
+  `+xstate::event{.type = "toggle", .payload = {}}+`.
+* An event that arrives as JSON in XState's flat form, from a request or a
+  file, is read by `event_from_json` and written back by `to_json`
+  (<<transitions-events>>).
+* The events xstate makes carry their data in the payload too: the
+  `output` of a done event and the `error` of an error event, each beside
+  `actorId`, and the `input` of `xstate.init`. XState's `event.output` is
+  the member `output` of `args.event.payload` (<<input-output-done-events>>).
+* An event carries no actor, since a payload is JSON
+  (<<syntax-actor-refs>>).
+
+[#syntax-actor-refs]
+=== Actor references become `actor_ref`
+
+XState's `createActor` returns an actor, an object whose methods start it,
+send it events, read and subscribe to its snapshot, and stop it. In xstate,
+actors live in an `actor_system` the program creates, and `create_actor`
+returns an `actor_ref`, a number that names one actor of that system. Each
+method of XState's actor becomes a member of the system that takes the
+reference first: `actor.send(event)` is `system.send(actor, event)`. XState
+creates a system too, implicitly, for each root actor; xstate makes it
+explicit, because the system owns what the host decides: the fuel each call
+may spend, the time, and the systemIds its actors share (<<actors-create>>).
+
+The quick start's toggle, run as an actor. XState creates it and calls its
+methods, where `toggle` is the event `+{ type: 'toggle' }+`:
+
+[source,javascript]
+----
+include::{twins}/actors/qs_actor.mjs[tag=actor]
+----
+
+xstate creates it in a system, and names it by the `actor_ref` that
+`create_actor` returned:
+
+[source]
+----
+include::{examples}/actors/qs_actor.cpp[tag=actor,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/qs_actor.expected[]
+----
+
+The table of <<reference-xstate-names,XState's names>> gives each method of
+XState's actor and the member of `actor_system` that does its work. The
+rules:
+
+* An `actor_ref` is a value, copied and compared as a number is, and keeps
+  nothing alive. An address is never reused, so a reference to an actor that
+  has ended still names it: `status_of` says how it ended, and an event sent
+  to it is dropped, as XState drops an event sent to a stopped actor. A
+  reference that names no actor of the system is refused with
+  `invalid_argument` (<<webcpp-xstate-actor_ref>>).
+* XState's `actor.getSnapshot()` returns a snapshot. `snapshot_of(actor)`
+  returns a pointer to one, `nullptr` until the actor has started
+  (<<differences-construction>>).
+* XState's `actor.send` returns nothing. `system.send`, like every call that
+  delivers something, runs the system and returns a `result<run_outcome>`:
+  `settled`, `out_of_fuel` or an error (<<quick-start-actor>>).
+* A config names an actor by a string and never holds one: a child by its
+  id, the parent as `+#_parent+`, and any actor by its systemId as
+  `+#system:<systemId>+` (<<differences-targets>>).
+* XState's `snapshot.children` holds its children's references. xstate's
+  holds their ids and srcs, and `child_of(actor, id)` returns a child's
+  reference; XState's `actor.system.get(systemId)` is `system.get(systemId)`.
+
+[#syntax-promises]
+=== Promises become host actors
+
+XState runs asynchronous work, a request to a server or a file to read, as a
+promise actor: `fromPromise` makes actor logic of a function that returns a
+promise, `setup({ actors })` registers it, and an invoke or a spawn starts
+it. When the promise resolves, the parent receives
+`xstate.done.actor.<id>` with its `output`; when it rejects,
+`xstate.error.actor.<id>` with its `error`. A {cpp} library has no promise to
+await, and with no event loop and no thread of its own it cannot wait for
+one. So the work is the host's. A `host_actor`, registered under the actor's
+name, stands for the promise: once started, it is a pending request that the
+host lists with `host_requests()`, works on at its own pace, and answers with
+`resolve(request, output)` or `reject(request, error)`, and the parent
+receives the same events (<<actors-host>>).
+
+Stately's user machine invokes a promise that fetches a user. XState
+registers the promise with `fromPromise`. This one does not fetch: it hands
+its `resolve` and `reject` to `requests`, an array of the program's, so that
+the program settles it from outside, as a host answers:
+
+[source,javascript]
+----
+include::{twins}/actors/actors_host.mjs[tag=machine]
+----
+
+xstate registers a `host_actor` under the same name. `user_id_of`,
+`assign_user` and `assign_error`, the functions the config names, are the
+program's own, shown in <<actors-host>>:
+
+[source]
+----
+include::{examples}/actors/actors_host.cpp[tag=machine,indent=0]
+----
+
+The program rejects the first request and resolves the second. With XState
+it settles the promise, and then waits a turn of the event loop, after which
+the actor has heard of it; `printRequests` and `print` are functions of the
+program:
+
+[source,javascript]
+----
+include::{twins}/actors/actors_host.mjs[tag=run]
+----
+
+With xstate the host lists the pending requests and answers one. The answer
+runs the system before the call returns, so nothing waits:
+
+[source]
+----
+include::{examples}/actors/actors_host.cpp[tag=run,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/actors_host.expected[]
+----
+
+The rules:
+
+[cols="1,1",options="header"]
+|===
+| XState | xstate
+
+| `+fetchUser: fromPromise(...)+` in `setup({ actors })`
+| `host_actor{}` in `implementations.actors`
+
+| The promise function's `input`
+| The request's `input`, which an invoke's `input` gives, or the function
+registered under the invoke's id in `implementations.inputs`
+(<<input-output-computed-input>>)
+
+| The promise resolves with a value
+| `system.resolve(request, output)`
+
+| The promise rejects with an error
+| `system.reject(request, error)`
+
+| `event.output` in `onDone`, `event.error` in `onError`
+| The members `output` and `error` of `args.event.payload`
+
+| A promise that settles after its actor has stopped is ignored
+| An answer to a request no longer pending is refused with
+`invalid_argument`, and changes nothing
+|===
+
+[#syntax-exceptions]
+=== Exceptions become `result`
+
+XState reports a failure by throwing. `createMachine` throws on a config it
+refuses, and an implementation that throws fails the actor that runs it: the
+snapshot's `status` becomes `'error'`, and its `error` is what was thrown.
+xstate throws nothing, since it builds where exceptions are off
+(<<rationale-no-exceptions>>). A call that can fail returns a `result<T>`,
+Boost.System's `result`, which holds the value or an `error_code`. An
+implementation that fails returns one,
+`failure<T>(errc::implementation_failed)` or any other `error_code`, and a
+machine that fails while it runs settles in a snapshot whose `status` is
+`error` and whose `error` is that code (<<rationale-errors>>).
+
+<<syntax-config,The toggle above>> already tests the `result` its
+`create_machine` returned: where XState's caller would catch, xstate's tests
+`has_value()` and reads `error()`.
+
+An implementation reports its failure with a `result` too. Here a counter's
+`setCount` fails on an event that carries no count. XState's throws:
+
+[source,javascript]
+----
+include::{twins}/xstate/context_value.mjs[tag=functions,indent=0]
+----
+
+xstate's returns a failure:
+
+[source]
+----
+include::{examples}/xstate/context_value.cpp[tag=functions,indent=0]
+----
+
+The program sends `set` without a count to a snapshot whose count is 1.
+XState's `getNextSnapshot` would let the error out of the call, so XState's
+program takes the step with an actor started from that snapshot, which
+keeps the error in its own:
+
+[source,javascript]
+----
+include::{twins}/xstate/context_value.mjs[tag=failure]
+----
+
+xstate's `get_next_snapshot` returns the failed snapshot itself, as an
+actor's would be (<<differences-failures>>):
+
+[source]
+----
+include::{examples}/xstate/context_value.cpp[tag=failure,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/context_value.expected[lines=2]
+----
+
+The failed step keeps the context it began from, a count of 1, though
+`increment` ran before `setCount` failed: a macrostep that fails settles with
+the snapshot it began from.
+
+[cols="1,1",options="header"]
+|===
+| XState | xstate
+
+| `+try { createMachine(config) } catch (error) { ... }+`
+| `create_machine(config, implementations)` returns a `result<machine>`; the
+program tests `has_value()` and reads `error()`
+
+| `+throw new Error('...')+` in an implementation
+| `+return xstate::failure<T>(xstate::errc::implementation_failed);+`, or
+any other `error_code`
+
+| `snapshot.status === 'error'`, `snapshot.error`
+| `snapshot.status == xstate::status::error`, and `snapshot.error`, an
+`error_code` whose `message()` is its name, such as
+`implementation_failed`
+
+| `actor.subscribe({ error })`
+| No error callback: `status_of(actor)` says the actor failed
+(<<actors-watching>>)
+
+| The `error` of `xstate.error.actor.<id>`: what the child threw
+| The member `error` of `args.event.payload`: the failed child's error, or
+the name of its code (<<differences-failures>>)
+|===
+
+The rules:
+
+* A `result` is tested before it is read. `*` reads the value of a result
+  that holds one, and `value()` of a failure calls `boost::throw_exception`,
+  which ends a program built without exceptions (<<webcpp-xstate-result>>).
+* The actor layer refuses a call it cannot take, such as one that names no
+  actor, with xactor's
+  link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`invalid_argument`],
+  and changes nothing
+  (<<overview-errors>>).
+* Boost.JSON's accessors that check by throwing, such as `at` and
+  `as_int64`, have counterparts that answer instead: `if_contains` and
+  `if_int64` with a pointer, `try_at` and `try_as_int64` with a `result`
+  (<<quick-start-context>>).
+
+[#reference-xstate-names]
+=== XState's names
+
+Each function and type of XState that xstate ports, and its counterpart.
+Some of XState's are internal to it, not exported by its package; the table
+marks them.
+
+[cols="1,1",options="header"]
+|===
+| XState | xstate
+
+| `+createMachine(config)+`, `+setup({ ... }).createMachine(config)+`
+| <<webcpp-xstate-create_machine,`create_machine(config, implementations)`>>
+
+| `+setup({ actions, actors, guards, delays })+`
+| <<webcpp-xstate-implementations,`implementations`>>
+
+| `StateMachine`
+| <<webcpp-xstate-machine,`machine`>>
+
+| `StateNode`, `TransitionDefinition`, `InvokeDefinition`
+| <<webcpp-xstate-state_node,`state_node`>>,
+<<webcpp-xstate-transition_definition,`transition_definition`>>,
+<<webcpp-xstate-invoke_definition,`invoke_definition`>>
+
+| `machine.getStateNodeById(id)`
+| <<webcpp-xstate-machine-node_by_id,`machine::node_by_id`>>
+
+| `getStateNodeByPath(node, path)` (internal)
+| <<webcpp-xstate-machine-node_by_path,`machine::node_by_path`>>
+
+| `getStateNodes(node, value)`
+| None in the interface: the `nodes` of the snapshot
+<<webcpp-xstate-resolve_state,`resolve_state`>> returns (<<pure-state-nodes>>)
+
+| `ExecutableActionObject`
+| <<webcpp-xstate-action,`action`>>
+
+| `assign`, `raise`, `log`
+| <<webcpp-xstate-assign_action,`assign_action`>>,
+<<webcpp-xstate-raise_action,`raise_action`>>,
+<<webcpp-xstate-log_action,`log_action`>>
+
+| `sendTo`, `sendParent`, `forwardTo`, `cancel`, `emit`
+| <<webcpp-xstate-send_to_action,`send_to_action`>>,
+<<webcpp-xstate-send_parent_action,`send_parent_action`>>,
+<<webcpp-xstate-forward_to_action,`forward_to_action`>>,
+<<webcpp-xstate-cancel_action,`cancel_action`>>,
+<<webcpp-xstate-emit_action,`emit_action`>>
+
+| `spawnChild`, `stopChild`
+| <<webcpp-xstate-spawn_child_action,`spawn_child_action`>>,
+<<webcpp-xstate-stop_child_action,`stop_child_action`>>
+
+| `not`, `and`, `or`, `stateIn`
+| `xstate.not`, `xstate.and`, `xstate.or` and `xstate.stateIn` in a config's
+`guard` (<<webcpp-xstate-guard_node,`guard_node`>>)
+
+| `fromPromise`
+| <<webcpp-xstate-host_actor,`host_actor`>>
+
+| `getInitialSnapshot`, `initialTransition`, `getInitialMicrosteps`
+| <<webcpp-xstate-get_initial_snapshot,`get_initial_snapshot`>>,
+<<webcpp-xstate-initial_transition,`initial_transition`>>,
+<<webcpp-xstate-get_initial_microsteps,`get_initial_microsteps`>>
+
+| `transition`, `getNextSnapshot`, `getMicrosteps`
+| <<webcpp-xstate-transition,`transition`>>,
+<<webcpp-xstate-get_next_snapshot,`get_next_snapshot`>>,
+<<webcpp-xstate-get_microsteps,`get_microsteps`>>
+
+| `getNextTransitions`
+| <<webcpp-xstate-get_next_transitions,`get_next_transitions`>>
+
+| `snapshot.can(event)`
+| <<webcpp-xstate-can,`can`>>
+
+| `snapshot.status`
+| <<webcpp-xstate-status,`status`>>
+
+| `snapshot.matches(value)`, `snapshot.hasTag(tag)`
+| <<webcpp-xstate-snapshot-matches,`snapshot::matches`>>,
+<<webcpp-xstate-snapshot-has_tag,`snapshot::has_tag`>>
+
+| `snapshot.getMeta()`
+| <<webcpp-xstate-get_meta,`get_meta`>>
+
+| `+machine.resolveState({ value, context })+`
+| <<webcpp-xstate-resolve_state,`resolve_state`>>
+
+| `machine.toJSON()`
+| `to_json` (<<machines-definition>>), and
+<<webcpp-xstate-create_machine_from_definition,`create_machine_from_definition`>>
+to load it back
+
+| `matchesState`, `pathToStateValue`
+| <<webcpp-xstate-matches_state,`matches_state`>>,
+<<webcpp-xstate-path_to_state_value,`path_to_state_value`>>
+
+| `toStatePath`, `toStateValue` (internal)
+| <<webcpp-xstate-to_state_path,`to_state_path`>>,
+<<webcpp-xstate-to_state_value,`to_state_value`>>
+
+| `SimulatedClock`
+| <<webcpp-xstate-simulated_clock,`simulated_clock`>>
+
+| `+createActor(machine, { input, id, systemId })+`
+| <<webcpp-xstate-actor_system-create_actor,`actor_system::create_actor`>> with
+<<webcpp-xstate-actor_options,`actor_options`>>
+
+| `createDoneActorEvent`, `createErrorActorEvent` (internal)
+| <<webcpp-xstate-ending_event,`ending_event`>>
+
+| `actor.start()`, `actor.send(event)`, `actor.stop()`
+| <<webcpp-xstate-actor_system-start,`actor_system::start`>>,
+<<webcpp-xstate-actor_system-send,`send`>>, <<webcpp-xstate-actor_system-stop,`stop`>>
+
+| `actor.getSnapshot()`, `actor.subscribe(observer)`
+| <<webcpp-xstate-actor_system-snapshot_of,`actor_system::snapshot_of`>>,
+<<webcpp-xstate-actor_system-subscribe,`subscribe`>>
+
+| `+actor.on('*', handler)+`
+| <<webcpp-xstate-actor_system-on_emitted,`actor_system::on_emitted`>>
+
+| the `inspect` option of `createActor`
+| <<webcpp-xstate-actor_system-inspect,`actor_system::inspect`>> with
+<<webcpp-xstate-inspector,`inspector`>>
+
+| `actor.system.get(systemId)`
+| <<webcpp-xstate-actor_system-get,`actor_system::get`>>
+|===

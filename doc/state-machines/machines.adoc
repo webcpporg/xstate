@@ -1,0 +1,704 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#machines]
+== Machines
+
+A state machine describes how something behaves: the states it can be in,
+and the event that takes it from one state to another. A machine is the
+logic of an actor, not the actor itself. It holds no current state: the
+state it is in lives in a snapshot, and a running instance of it is an
+actor. Any number of snapshots and actors are made from one machine, each
+independent of the others.
+
+A machine is built from two things: a config, the description XState's
+`createMachine(config)` takes, and implementations, the code the config
+names. xstate reads the config as JSON and takes the implementations by
+name. This section shows how a machine is created, what its config holds,
+how implementations are registered and why by name, why a machine never
+changes, what creation refuses, how to find a state node, and how a machine
+is written out as XState's definition and loaded back.
+
+[#machines-creating]
+=== Creating a machine
+
+`create_machine(config, implementations)` builds a machine from a config,
+a `boost::json::value`, and the implementations the config names. It
+returns a `result<machine>`: the machine, or the error that refused the
+config (<<machines-refusals>>). Stately's feedback machine has two states,
+`question` and `thanks`, and goes from the first to the second on the event
+`feedback.good`:
+
+[source]
+----
+include::{examples}/xstate/machines_create.cpp[tag=create,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/machines_create.expected[]
+----
+
+Boost.JSON parses the config from a string; a program may as well read it
+from a file or a request. It names no implementation, so the second
+argument is empty, `{}`. Once `has_value()` says the result holds a
+machine, `*feedback` is that machine. `initial_transition` and `transition`
+are XState's pure functions `initialTransition` and `transition`: each
+returns, as a pair, the snapshot the machine reaches and the actions its
+caller executes, and changes nothing else, so `.first` is the snapshot.
+<<pure,Pure transitions and the macrostep cursor>> has all of them and the
+cursor they are built on. Stately's page runs the machine as an actor, with
+`createActor`; in xstate an `actor_system` does that, as <<actors,Actors>>
+shows.
+
+[#machines-config]
+=== The config
+
+A config describes the machine: its states, the transitions between them,
+the actions they run, its context. In xstate it is the object XState's
+`createMachine` takes, written as JSON. JSON holds data only, where XState's
+config, a JavaScript object, may also hold functions: an inline action, a
+guard written as an arrow function, a context computed from the input. That
+is a choice, for three reasons:
+
+* A config is data a person writes, or exports from Stately Studio, and a
+  program loads at run time, from a file, a database or a request, with
+  nothing to compile.
+* The JSON is XState's config: xstate's tests run their configs on XState
+  itself and compare the two, one microstep at a time
+  (<<testing,Testing>>). Only XState's higher-order guards, functions
+  there, take a JSON form of xstate's
+  (<<transitions-higher-order,Higher-order guards and stateIn>>).
+* {cpp} has no object literal that holds functions. A config holding {cpp}
+  code would be {cpp} code too, compiled into the program.
+
+What a function does in XState's config, a name does in xstate's: the
+config names the function, and the implementations hold it
+(<<machines-implementations,Implementations>>). An action or a guard is
+named as XState's JSON writes it, `"entry": "notify"`, or
+`+{"type": "notify", "params": {...}}+` with fixed `params`, which the
+implementation reads from its `action_args` together with the context and
+the event. A higher-order guard is a JSON object,
+`+{"type": "xstate.not", "guards": [...]}+` and the like.
+Appendix A maps each function XState's config may hold to its form in
+xstate (<<syntax-implementations>>), and <<differences-names>> gives the
+three that cannot keep what they do in XState.
+
+The members xstate reads, on any state unless the table says otherwise:
+
+[cols="1,3,1",options="header"]
+|===
+| Member | What it is | Section
+
+| `id`
+| The state's id; on the root, the machine's id
+| <<machines-nodes,State nodes and ids>>
+
+| `states`, `initial`
+| The child states, by key, and the child a compound state starts in: its
+  key, or `+{"target": "<key>", "actions": [...]}+`, which may also carry a
+  `meta` and a `description`
+| <<states,States>>
+
+| `type`
+| `atomic`, `compound`, `parallel`, `final` or `history`; without it, a
+  state with children is compound, one whose `history` is truthy as
+  JavaScript reads it is a history state, and any other is atomic, as in
+  XState: a `history` of `false`, `null`, `""` or `0` leaves it atomic
+| <<states,States>>
+
+| `history`, `target`
+| A history state's depth, deep for `"deep"` and shallow otherwise, as in
+  XState, and its default target
+| <<states,States>>
+
+| `context`
+| On the root: the initial context. A null one, or none, is `{}`, as in
+  XState; any other value that is not an object is kept as written, even
+  `false`, `0` or `""`, which XState makes `{}`
+  (<<differences-object-context,A context that is not an object>>)
+| <<context,Context>>
+
+| `on`
+| The transitions, by event type
+| <<transitions,Events and transitions>>
+
+| `always`, `after`
+| The eventless transitions, and the delayed ones by delay
+| <<transitions,Events and transitions>>
+
+| `onDone`
+| The transition a compound or parallel state takes when it is done
+| <<states,States>>
+
+| `entry`, `exit`
+| The actions run when the state is entered and when it is left
+| <<actions,Actions>>
+
+| `invoke`
+| The actors the state runs while it is active, `src` naming each
+| <<actors,Actors>>
+
+| `output`
+| On a final state, its output; on the root, the machine's
+| <<input-output,Input and output>>
+
+| `tags`, `meta`, `description`
+| Data the state carries for its readers: its tags, a string or a list of
+  strings; its meta, any value, a null one being none; and its
+  description, a string
+| <<states,States>>
+
+| `version`
+| On the root: the machine's version, which its definition repeats on every
+  node; a machine loaded from a definition has the definition's
+| <<machines-definition,The definition>>
+|===
+
+A transition is a target, an object (`target`, `actions`, `guard`,
+`reenter`, `description`, `meta`) or a list of them
+(<<transitions,Events and transitions>>). A target names a sibling of the
+transition's state by its key, or a state below that sibling by a path of
+keys joined by dots, `"red.stop"`; a state below the transition's own state
+by a path that starts with a dot, `".child"`; or any state by its id,
+`"#id"` (<<transitions-targets>>). `states`, `on` and `after` are read in
+the order JavaScript enumerates an object's keys, as XState reads them: a
+key that is an array index, such as `"500"`, first, by number, then the
+rest as written (<<machines-nodes>>).
+
+xstate reads no other member of a transition but `cond`, XState v4's name
+for `guard`: a truthy `cond` refuses the machine, as XState's development
+build refuses it (<<machines-refusals,What creation refuses>>). `types`,
+which only TypeScript reads, and `schemas`, which XState keeps on the
+machine without using, are left unread. So is `options`: XState uses its
+`maxIterations` to throw on a macrostep that never settles, and in xstate
+the bound is the fuel of the caller that drives the cursor
+(<<pure-cursor-fuel,Fuel>>). So is XState's `route`, which lets the event
+`+{"type": "xstate.route", "to": "#<id>"}+` reach, from any state, a state
+that has an `id` and a `route`; in xstate that event selects no transition.
+
+[#machines-implementations]
+=== Implementations
+
+Implementations are the code a machine runs that is not its states and
+transitions: actions, the side effects; guards, the conditions a transition
+is taken on; delays, the time before a delayed transition; and actors, what
+a state invokes. Three more compute a value: the initial context from the
+input, an invoked child's input, and a final state's output.
+
+`implementations` holds them by name, as XState's
+`setup({ actions, guards, delays, actors })` registers them, so that the
+config refers to each with a string. In xstate a name is the only way,
+because a JSON config holds nothing else, and registering by name gives
+three things:
+
+* The config stays data, XState's own, and `to_json` writes the machine
+  back as XState's definition (<<machines-definition,The definition>>).
+* One config runs with different implementations
+  (<<machines-immutable,A machine is immutable>>).
+* Creation checks the names the config uses: a guard, an `after` delay or
+  an actor the implementations do not hold refuses the machine
+  (<<machines-refusals,What creation refuses>>), where XState fails only
+  when it first needs the name, or never (<<differences-refused>>). A delay
+  that an action implementation names in its `delay` is not checked: one
+  that is not registered means no delay, as in XState.
+
+An action is the exception: an action name the implementations do not hold
+is not an error. It is a custom action, which xstate returns to its caller
+to execute, as XState's `transition` returns it
+(<<actions-custom,Custom actions>>). That is how a caller's own effects, a
+log line, a request, a write, reach it.
+
+Stately's setup example registers two assign actions, `increment` and
+`decrement`, which the config names under `on`:
+
+[source]
+----
+include::{examples}/xstate/machines_setup.cpp[tag=add,indent=0]
+include::{examples}/xstate/machines_setup.cpp[tag=setup,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/machines_setup.expected[]
+----
+
+`increment` and `decrement` are each an `assign_action`, holding an
+`assigner` that returns the members to change, and `emplace` registers each
+in `implementations.actions` under the name the config uses. xstate merges
+what an assigner returns into the context as `Object.assign` does, and
+fails with `implementation_failed` on a context that is not an object
+(<<differences-object-context,A context that is not an object>>). A
+context and an event are JSON values, which no compiler checks, as XState's
+`types` let TypeScript check them; so an implementation checks what it
+reads before it reads it, as `add` does, and returns `implementation_failed`
+when the context is not what it expects.
+
+Guards and delays are registered the same way, in `implementations.guards`
+and `implementations.delays`. After Stately's example, a delayed transition
+is guarded by `canAccess` and delayed by `shortDelay`; its action,
+`trackAccess`, is left unregistered:
+
+[source]
+----
+include::{examples}/xstate/machines_names.cpp[tag=guard,indent=0]
+include::{examples}/xstate/machines_names.cpp[tag=names,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/machines_names.expected[]
+----
+
+Entering `checking` returns the delayed `xstate.raise` of its after event,
+whose delay, 250, `shortDelay` resolved. A delay is always a function, here
+one that ignores its arguments, where XState's `delays` also takes a plain
+number. The example sends the after event itself, as a clock would once the
+delay has passed; <<transitions-delayed-core,delayed transitions in the
+machine core>> shows the `simulated_clock` that does it. `canAccess` lets
+the transition through, leaving `checking` returns the `xstate.cancel` of
+the delayed event, and `trackAccess`, which nothing implements, comes back
+as a custom action.
+
+`implementations` is a value: a module that adds its own entries to
+another's copies it and inserts them, where XState's `setup.extend` adds
+implementations to an existing setup. It holds seven members:
+
+[cols="1,1,3,1",options="header"]
+|===
+| Member | Keyed by | What it holds | Section
+
+| `actions`
+| action name
+| XState's `setup({ actions })`: one of xstate's built-in actions,
+  `assign_action`, `raise_action`, `log_action`, `send_to_action` and the
+  others, with the functions it resolves with
+| <<actions,Actions>>
+
+| `guards`
+| guard name
+| XState's `setup({ guards })`: a `predicate`, which returns
+  `result<bool>`
+| <<transitions,Events and transitions>>
+
+| `delays`
+| delay name
+| XState's `setup({ delays })`: a `delay_maker`, which returns the delay in
+  milliseconds, `result<std::uint64_t>`
+| <<transitions,Events and transitions>>
+
+| `actors`
+| `src`
+| XState's `setup({ actors })`: a `machine_actor`, a machine run as a
+  child, or a `host_actor`, work the host does, in place of `fromPromise`
+| <<actors,Actors>>
+
+| `context`
+| (one function)
+| XState's `+context: ({ input }) => ...+`: a `context_maker`, which
+  returns the initial context for the input, in place of the config's
+  `context`. A value that is not an object fails the initial macrostep with
+  `implementation_failed`, where XState merges it into `{}`
+  (<<differences-object-context,A context that is not an object>>)
+| <<context,Context>>
+
+| `inputs`
+| invoke id
+| An invoke's `+input: ({ context, event }) => ...+`: a `value_maker`
+| <<input-output,Input and output>>
+
+| `outputs`
+| state id
+| A final state's `+output: ({ context, event }) => ...+`, or, by the
+  root's id, the machine's: a `value_maker`
+| <<input-output,Input and output>>
+|===
+
+<<actions-built-in>> lists the built-in actions, each with what the core
+returns for it. The machine core runs no actor itself: entering a state
+that invokes one resolves into an `xstate.spawnChild` action and leaving it
+into an `xstate.stopChild`, an invoke's `onDone` and `onError` are
+transitions on `xstate.done.actor.<id>` and `xstate.error.actor.<id>`, and
+the actor layer runs the child and delivers those events
+(<<actors-invoke>>).
+
+The context's function receives the input. Every other function the
+implementations hold receives an `action_args`: the context as it is when
+the function runs, the event of the microstep, and the `params` the config
+gave the action or the guard, null when it gave none. The root's output is
+the one exception to the event: it receives the done event that completed
+the machine, as XState's does. For a compound root, that is the done event
+of the top-level final state, which carries that state's output; for a
+parallel root, it is the root's own done event, which carries none
+(<<input-output-machine-output-event,The machine's output and its final
+state>>). Each function returns a `result`, and an error it returns stops
+the macrostep, which leaves the snapshot it began from with the status
+`error`, where XState's implementation would have thrown
+(<<differences-failures>>).
+
+Three rules hold for the implementations, each checked at creation:
+
+* An implementation holding an empty function, a default-constructed
+  `std::function`, refuses the machine with `invalid_config`: calling it
+  would abort in a build without exceptions. An optional function
+  left out holds none: a `log_action` without a `value` is a log of the
+  context and the event, as in XState.
+* An `inputs` entry names an invoke whose config gives no `input`, and an
+  `outputs` entry a final state, or the root, whose config gives no
+  `output`; any other is `invalid_config`.
+* Every actor the config names, by an invoke's `src` or through a
+  `spawn_child_action` it names as an action, is an entry of `actors`; any
+  other is `unknown_actor`. A registered `spawn_child_action` the config
+  never names is not checked, as XState's `setup` accepts it.
+
+[#machines-immutable]
+=== A machine is immutable
+
+A machine never changes once it is created. The state it is in lives in a
+snapshot, a value of its own, so one machine serves any number of snapshots
+and actors at once, and nothing one of them does reaches another. A
+`machine` is a handle to data its copies share: copying one copies a
+pointer, not the tree, so a cursor, an actor or a `machine_actor` keeps a
+copy. The transitions a microstep reports point into the machine, and stay
+valid while any copy of it lives.
+
+To run one config with other implementations, create a second machine from
+it. `create_machine` takes the whole set of implementations, so a program
+that changes some of them copies the first machine's, `registry()`, and
+replaces the entries that change. XState's `machine.provide` does this in
+one call; xstate has no `provide` (<<overview-not-ported>>).
+
+[source]
+----
+include::{examples}/xstate/machines_provide.cpp[tag=provide,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/machines_provide.expected[]
+----
+
+`add` is the function of the previous section's example. `by_ten` starts
+from a copy of the implementations of `counter`, in which `insert_or_assign`
+replaces `increment` and keeps any other entry. Both machines are created
+from one parsed config; neither changes the other, nor the config.
+
+[#machines-refusals]
+=== What creation refuses
+
+A config is checked once, when the machine is created, and a config that is
+not a machine gives no machine: `create_machine` returns the error instead.
+Every machine comes from `create_machine`, which
+`create_machine_from_definition` calls too, so a machine that exists has
+passed every check, and a mistake in a config shows when the config is
+loaded, not when an event first reaches it.
+
+The error is a value, not an exception. xstate throws no exception of its
+own, and builds with exceptions turned off, as this page's examples are
+built for wasm32-wasip2; where XState throws, xstate returns an error.
+`result<T>` is
+`boost::system::result<T, boost::system::error_code>`; its error is a code
+of the category `webcpp.xstate`, one of the values of `errc`, and
+`message()` spells its name. Check `has_value()` before using a result.
+
+Here a transition is guarded by `isValid`, which the implementations do not
+hold:
+
+[source]
+----
+include::{examples}/xstate/machines_refused.cpp[tag=refused,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/machines_refused.expected[]
+----
+
+xstate finds the missing name when the machine is loaded, before any event.
+XState creates this machine and starts it, and throws only when `submit`
+arrives and the guard is evaluated (<<differences-refused>>). XState
+refuses some configs in `createMachine`, others only when the machine
+starts or an event reaches the broken part, and accepts some; xstate
+refuses each of those below at creation, and the last column says what
+XState does with it:
+
+[cols="3,1,2",options="header"]
+|===
+| The config, or the implementations | Error | XState
+
+| Is not a JSON object, or has a member xstate cannot read, such as an
+  `id` or a tag that is not a string, a `type` xstate does not know, or a
+  history `target` that is not a string or a list of strings
+| `invalid_config`
+| Accepts each of these at creation: a list is a machine with no state, a
+  non-string `id` or tag and an unknown `type` run, and a history `target`
+  that is not a string throws a TypeError when the history state is entered
+
+| Has an `entry`, `exit` or `actions` that is null, or a `tags` that is
+  null
+| `invalid_config`
+| Reads it, as its `toArray` does, as a list that holds null: the machine
+  runs with the null tag, and fails when it runs the null action
+
+| Has a compound state without `initial`
+| `invalid_config`
+| Throws in `createMachine`
+
+| Has an `on` key of `""`
+| `invalid_config`
+| Throws in `createMachine`: an eventless transition is `always`
+
+| Has a transition that declares a truthy `cond`, renamed `guard` in
+  XState v5
+| `invalid_config`
+| Throws in `createMachine`, in its development build
+
+| Has a transition target that names no state
+| `unknown_target`
+| Throws in `createMachine`
+
+| Has a history state, below the root, whose `target` names no state
+| `unknown_target`
+| Throws when the history state is entered
+
+| Has an `initial` that names no child
+| `unknown_target`
+| Throws when the state is entered, the root's when the machine starts
+
+| Has a higher-order guard without a `guards` list, an `xstate.not` with
+  other than one operand, or an `xstate.stateIn` without `stateValue`
+| `invalid_config`
+| No counterpart: these are functions in XState
+
+| Names a guard the implementations do not hold
+| `unknown_guard`
+| Throws when the guard is evaluated
+
+| Has an `after` key that is not digits alone but starts with a digit, a
+  sign or a dot, such as `1.5`, `-5` or `1e3`
+| `invalid_config`
+| Reads a key JavaScript takes as a number as that number, a delay of 1.5,
+  -5 or 1000 milliseconds, and any other as a delay's name
+
+| Names, as an `after` key, a delay the implementations do not hold
+| `unknown_delay`
+| Takes the delayed transition at once, as if it had no delay
+
+| Invokes an actor the implementations do not hold, or spawns one through
+  an action it names
+| `unknown_actor`
+| Creates no child, and fails where something reads it
+
+| Has a state whose default entry leads back to it: a history state whose
+  default target is an ancestor whose initial states lead back to the
+  history
+| `invalid_config`
+| Overflows its stack when it enters the state
+
+| Has an invoke whose `src` is not a string
+| `invalid_config`
+| Takes inline actor logic, which JSON cannot hold
+
+| Implementations: one holds an empty function
+| `invalid_config`
+| No counterpart
+
+| Implementations: an `inputs` entry names no invoke, an `outputs` entry
+  names neither a final state nor the root, or either names one whose
+  config already gives its `input` or `output`
+| `invalid_config`
+| No counterpart
+|===
+
+Some members hold any value, as in XState: a state's `meta`, the root's
+`version`, the `output` of a final state or of the root, and a transition's
+`meta` and `description`. Two values are dropped, where XState keeps them:
+a state's `meta` that is null, which xstate reads as no meta, and a state's
+`description` that is not a string, an exception to the first row.
+
+One config is accepted as XState accepts it: a machine whose root is itself
+a history state, which has no parent to resolve its default target against.
+A microstep that needs that default fails with `unknown_target`, where
+XState throws (<<states-history,History states>>).
+
+What creation cannot see fails later, and as a value too: an
+implementation that returns an error fails the microstep that calls it, and
+the snapshot it leaves has the status `error` (<<actions,Actions>>).
+
+[#machines-nodes]
+=== State nodes and ids
+
+A machine is a tree of state nodes, one for the root and one for each state
+of its config, and a node holds everything the config says of its state.
+A program reads the nodes to show a machine, to name a state in a target or
+a query, or to read what a snapshot's active states are.
+
+xstate keeps the nodes in one list, in document order: the root first, a
+parent before its children, and the children in the order JavaScript
+enumerates the keys of `states`, as XState reads them. A key that is an
+array index, such as `"0"` or `"2"`, comes first, by number, and the others
+follow as the config writes them: the children `b`, `10` and `2` are listed
+`2`, `10`, `b`. A node is named by its index in that list, so the tree
+holds no pointer: `size()` is the number of nodes, `node(index)` one of
+them, for an `index` below `size()`, and `root()` is `node(0)`.
+
+A `state_node` holds what XState's `StateNode` holds once it is
+initialised: its `key` in its parent's `states`, its `id`, its `path` of keys
+from the root, its `type`, the index of its `parent`, its children, its
+entry and exit actions, its transitions and invokes, its tags, meta, output
+and description. A state's id is the `id` its config gives, or, without one,
+the machine's id and the state's path, joined by dots; the machine's id,
+`id()`, is the root's `id`, `(machine)` when the config gives none, as in
+XState. An explicit id names its own node only: below, the children of
+`playing`, whose id is `active`, are `player.playing.normal` and
+`player.playing.fast`.
+
+[source]
+----
+include::{examples}/xstate/machines_nodes.cpp[tag=type_name,indent=0]
+include::{examples}/xstate/machines_nodes.cpp[tag=nodes,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/machines_nodes.expected[]
+----
+
+Each line gives a node's index, key, id and type, and `type_name` spells
+the type. The index is the node's `order` in XState, as long as no two
+nodes of the machine share an id. Three functions find a node, each
+returning its index as a `result<std::size_t>`:
+
+* `node_by_id(id)` is XState's `getStateNodeById`. The `#` is optional, and
+  a path after the id walks down from that node: `#active.fast` is the child
+  `fast` of the node whose id is `active`.
+* `child(node, key)` is the child of `node` whose key is `key`, a dot being
+  part of the key.
+* `node_by_path(from, path)` is XState's `getStateNodeByPath`: a path of
+  keys relative to `from`, or an id when it starts with `#`.
+
+A backslash escapes a dot in an id or a path: `#foo\.bar` names the node
+whose id is `foo.bar`, where `#foo.bar` names the child `bar` of the node
+`foo`. A name that finds no node is the error `unknown_state`, where
+XState's `getStateNodeById` throws.
+
+The machine also keeps what it was created from: `config()` is the config,
+`registry()` the implementations, and `context()` the config's `context`, an
+empty object when the config gives none or null. The reference lists every
+member of `machine` (<<webcpp-xstate-machine>>).
+
+[#machines-definition]
+=== The definition
+
+A machine's definition is the machine written out as JSON, once its config
+has been read: every node with its id, key, type, initial transition and
+children, its transitions with their targets resolved to lists of `#id`,
+its entry and exit actions, its `order` (the root's is written `-1`), its
+invokes and its tags. It is what a program stores, sends or hands to a tool
+when it needs the machine as data, every target already resolved. XState
+writes it with `machine.toJSON()`, which `JSON.stringify(machine)` calls,
+and `to_json(machine)` writes the same definition:
+
+[source]
+----
+include::{examples}/xstate/machines_definition.cpp[tag=definition,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/machines_definition.expected[]
+----
+
+The program reads the definition with JSON pointers: the root's `order` is
+`-1`, a state's own `type` is written even where its config leaves it out,
+and a transition's `target` and `source` are ids. `to_json` writes XState's
+definition key for key, with two exceptions. It leaves out the two values
+creation drops, a state's `meta` that is null and a `description` that is
+not a string, which XState writes (<<machines-refusals,What creation
+refuses>>). And it adds the higher-order guards, which XState cannot write:
+they are functions in XState, and `JSON.stringify` leaves a function out.
+The members of an object may come in another order than XState's, so
+compare two definitions as JSON values, with `==`, and not as text.
+
+`create_machine_from_definition(definition, implementations, context)`
+loads a definition back, one `to_json` wrote or one XState wrote. A
+definition holds names, not code, so the implementations are given again;
+and it holds no context, so the context is given too. It returns a
+`result<machine>`. Here a toggle is written out, stored as text, and loaded
+back:
+
+[source]
+----
+include::{examples}/xstate/machines_reload.cpp[tag=reload,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/machines_reload.expected[]
+----
+
+The reloaded machine takes the original's step, starts from the context it
+was given, and writes the definition it was loaded from, the toggle's
+`version` on every node included. XState has no function that creates a
+machine from a definition.
+
+The loader refuses with `invalid_config` what XState never writes: a value
+that is not an object, and a state whose `states`, `on`, `invoke`, `entry`
+or `exit` does not have the JSON type a definition gives it, an object of
+state objects, an object of lists of transition objects, a list of invoke
+objects, a list of actions; and, in a state that has `states`, an `initial`
+whose first target is not a string. From any other object it rebuilds the
+config the definition describes and creates the machine with
+`create_machine`, which checks it as it checks any config
+(<<machines-refusals,What creation refuses>>): an `id` that is not a
+string, or a `type` xstate does not know, is `invalid_config` there. So is
+an `entry`, `exit`, `actions` or `tags` list that holds null, the list
+XState writes for one of them that is null, which creation refuses in a
+config too. A compound state's `initial` is rebuilt from its first target,
+`#` and the id of a child, with the `actions`, `meta` and `description` of
+the written initial transition; a target that names none of the children
+leaves the state without an `initial`, which is `invalid_config` too, where
+a config's `initial` that names no child is `unknown_target`.
+
+Three members repeat what the rest of the definition says and are not
+read, whatever they hold: `key`, `order` and `transitions`; nor is the
+`version` of a state below the root, which repeats the root's. The root's
+`version` becomes the machine's, which `to_json` writes on every node
+again.
+
+A definition does not hold all of a config either. The definition, XState's
+and so the one `to_json` writes, leaves out the context, the eventless
+transitions (`always`) and a history state's default target; two states may
+share an id when a key holds a dot; and an entry or exit action named
+`xstate.raise` or `xstate.cancel`, a custom action, cannot be told from the
+raise and cancel an `after` adds, which the definition writes under those
+names, so the loader drops it with them. Given the original's context, a
+machine loaded from a definition takes the original's steps and writes the
+same definition whenever the original has none of those; one loaded from a
+definition XState wrote writes it without the two values `to_json` leaves
+out. A definition XState wrote has no higher-order guard either: the
+transition comes back unguarded, and the reloaded machine takes it whatever
+the guard would have decided. One `to_json` wrote keeps the guard.
+
+The sections that follow take the config apart: <<states,States>>,
+<<context,Context>>, <<transitions,Events and transitions>>,
+<<actions,Actions>> and <<input-output,Input and output>>.

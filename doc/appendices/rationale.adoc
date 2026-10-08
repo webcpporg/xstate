@@ -1,0 +1,368 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[appendix]
+[#rationale]
+== Rationale
+
+This appendix gives the decisions that shape xstate, each with its
+reason, the alternative it was weighed against where there was one, and
+what it costs. The chapters teach what each decision makes of the
+library, so a section here says why and points to the chapter rather than
+teach it again. Where a decision makes xstate behave otherwise than XState,
+Appendix B gives the case (<<differences>>).
+
+[#concepts-choices]
+=== Why it is built this way
+
+Three aims shape xstate, and each decision below serves at least one of
+them:
+
+XState's machines, unchanged:: A config written for XState, or exported
+from Stately Studio, runs in a {cpp} program and does there what it does in
+XState, transition for transition. A team keeps one machine for both
+languages, and XState itself can judge the port.
+A host in control:: The program that runs a machine may not have written
+it, and stays in charge of it all the same: of the work an event may cost,
+of time, of what a failure becomes and of every effect on the world, with
+the same run for the same inputs.
+A library in Boost's manner:: Portable to every {cpp}20 compiler and to
+WebAssembly, usable in every build a program makes, one without exceptions
+included, and built, tested and documented as Boost's libraries are.
+
+The first aim gives the JSON config, the implementations registered by
+name, the actor layer that runs machines as XState's actors, and the oracle.
+The second gives errors as values, the cursor and fuel, and determinism. The
+third gives header-only, no exception of its own, and Boost's tools. Where
+the first two pull apart, the host's control wins: XState runs a macrostep
+without a bound, and delivers an event nested in its sender's call, where
+xstate bounds every macrostep with fuel and queues every delivery. Appendix B
+lists each such place, with its reason (<<differences>>).
+
+[#rationale-json]
+=== A JSON config
+
+A machine is the JSON of XState's `createMachine` config, a
+`boost::json::value` read when the program runs (<<machines-config>>).
+
+* *A machine is data.* It is loaded from a file, a request or a store, with
+  nothing to compile, so a program runs machines that did not exist when it
+  was built: one a user wrote, one Stately Studio exported, one a request
+  carried.
+* *It is XState's format.* The config is the one a person writes for
+  XState's `createMachine`, and `to_json` writes a machine's definition as
+  XState's `machine.toJSON()` writes it (<<machines-definition>>). The same
+  config runs on XState and on xstate, and that is what lets XState judge
+  the port: every case of the oracle is a config both run
+  (<<rationale-evidence>>).
+* *Boost.JSON holds it.* It is Boost's JSON library, and its `object` keeps
+  its members in the order they were written, which xstate needs to read
+  `states`, `on` and `after` in the order XState reads them.
+
+The alternative is a machine described in {cpp}, by a builder or by a table
+of types. The compiler checks it, but it is code: it cannot come from a file
+or from Stately Studio, and XState cannot run it. Such a machine is what
+compile-time libraries such as Boost.MSM already provide
+(<<rationale-static-actors>>).
+
+The cost is what JSON cannot hold. A function, `undefined` and a reference
+to an actor each take another form (<<differences-json>>, and
+<<from-xstate-to-cpp>> for the spelling). And a mistake in a config is found
+when the program loads it, not when the program is compiled: so
+`create_machine` checks all it can at that moment, and refuses some configs
+that XState accepts and fails on only later (<<differences-refused>>).
+
+[#rationale-names]
+=== Implementations registered by name
+
+What JSON cannot hold, the code of an action, a guard, a delay or an actor,
+and the functions that compute a context, an input or an output, is {cpp}
+registered in `implementations` under the name the config gives it
+(<<machines-implementations>>).
+
+* *XState already does it.* `setup()` registers implementations by name,
+  and the config refers to them by name, with JSON `params`. A machine
+  written that way keeps its config unchanged in xstate
+  (<<syntax-implementations>>).
+* *Names are checked once.* A guard, an `after` delay or an actor that the
+  config names and the implementations do not hold refuses the machine when
+  it is created, before any event reaches the part that would fail
+  (<<differences-refused>>).
+* *Effects stay the program's.* An action name the implementations do not
+  hold is a custom action, which the machine returns with its params, for
+  its caller to perform (<<actions-custom>>). The machine says what is to be
+  done, and the program decides how.
+
+An implementation receives the context, the event and the params, its
+`action_args`, and returns a `result`. It receives no actor and no system,
+where XState's does: an effect that needs them is a custom action, which
+the host performs. The cost falls there: a custom action carries only its
+fixed params, so what it needs of the context or the event is in them, or
+travels in an emitted event (<<differences-custom>>).
+
+[#rationale-header-only]
+=== Header-only
+
+xstate is headers, as xactor is, and nothing of either is built, versioned
+or linked. The first chapter gives the first reason, portability
+(<<introduction-header-only>>): the same headers build the same way with
+every {cpp}20 compiler, natively and for WebAssembly, with no binary to
+match to each. Two more follow:
+
+* *The program's flags are the library's.* The headers are compiled with
+  the program, so a build without exceptions, or with a sanitizer, gets the
+  library built the same way, which a prebuilt library cannot promise.
+* *xactor is generic.* Its scheduler, its turns, its actor logic and its
+  drivers are templates over the program's message type, and a template is
+  a header in any case
+  (link:{webcpp-libs}/xactor/{webcpp-page}#xactor-model[xactor's model]).
+
+The one part a program compiles is Boost.JSON's definitions: one of its
+translation units includes `<boost/json/src.hpp>`, which is how Boost.JSON
+itself is used without a compiled library (<<overview-requirements>>).
+Boost.System and Boost.Asio are headers too, so no Boost library is built,
+neither by a program nor by webcpp, whose Boost.Test suites use its
+header-only form.
+
+The cost is compile time: each translation unit compiles what it includes.
+A program that only steps machines includes `<webcpp/xstate.hpp>` alone,
+which brings in nothing of xactor or of Boost.Asio (<<overview-layers>>).
+
+[#rationale-errors]
+=== Errors returned, not thrown
+
+Every call that can fail returns a `result<T>`, Boost.System's `result`
+with an `error_code`; an implementation fails by returning one; and a
+machine that fails while it runs settles in a snapshot whose status is
+`error` (<<overview-errors>>).
+
+* *A failure cannot pass unseen.* A caller reaches a value only through its
+  `result`, and the failure of a run is in the snapshot the caller receives:
+  the snapshot XState's actor keeps when an implementation throws, which
+  xstate's pure functions return too.
+* *Every build can use it.* A value works where exceptions are off
+  (<<rationale-no-exceptions>>), and an exception does not.
+* *A code travels.* An `error_code` carries its category, compares with the
+  codes of `xstate::errc` and
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc[`xactor::errc`],
+  and holds a code of any other
+  library as well: an implementation may return the code its own call
+  failed with, and the snapshot keeps it as it is.
+
+The alternatives fall short. `std::expected` is {cpp}23, and xstate is
+{cpp}20. Boost.System's `result` is the type Boost.JSON's own checking
+accessors, such as `try_at`, return. And a failure carried by an exception
+would not reach a caller in the builds xstate is made for.
+
+The cost: an `error_code` carries no value, where XState's implementation
+may throw any value. A machine child that fails in an implementation tells
+its parent the name of its code, `"implementation_failed"`, where XState's
+tells what was thrown (<<differences-failures>>).
+
+[#rationale-no-exceptions]
+=== No exception of its own
+
+xstate throws no exception and catches none
+(<<xstate-invariant-15,guarantee 15>>), and neither does xactor
+(
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-invariant-20[xactor's guarantee 20]).
+
+* *Programs turn them off.* Many builds disable exceptions: embedded and
+  real-time programs, games, and WebAssembly, some of whose hosts lack
+  exception handling, which is why webcpp builds every program for
+  wasm32-wasip2 without them. A header-only library is compiled with the
+  program's flags (<<rationale-header-only>>), so it must work under the
+  strictest of them; one that needed exceptions would make every program
+  that uses it turn them on. Whether a program uses them stays its own
+  choice.
+* *No hidden exit.* A call that throws nothing returns through its
+  `result`, so every way out of it is one its caller sees
+  (<<rationale-errors>>).
+
+The build keeps it so. Every lightweight_test program and every example is
+built for wasm32-wasip2 without exceptions, and run under wasmtime
+(<<testing-targets>>). Where Boost's own code would throw, a build without
+exceptions calls `boost::throw_exception`, which the program defines. In
+such a build that call is a defect, never a condition, and webcpp's
+definition reports it and aborts (<<overview-requirements>>).
+
+[#rationale-cursor-fuel]
+=== The macrostep cursor and fuel
+
+The machine core's one primitive is the macrostep cursor, whose `next()`
+runs one microstep; XState's pure functions are the cursor run to its end
+(<<pure-cursor>>). The actor layer drives the cursor under fuel. Every
+microstep, every message an actor sends and every timer it arms costs one
+unit, paid from one reservoir for each execution, and an actor that runs
+out parks until `resume()` (<<actors-fuel>>, and
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-fuel[xactor's fuel]).
+
+* *A host must bound the work.* XState runs a macrostep to its end inside
+  one call. A program that runs machines it did not write cannot know that
+  each one settles: a cycle of eventless transitions never does, and a
+  server answers within a budget whatever machine it runs.
+* *The bound is the host's.* XState's `options.maxIterations` is a member of
+  the config, set by the machine's author and unset by default, and it
+  throws when it is reached (<<transitions-eventless-loops>>). xstate's
+  bound is set by the program that runs the machine, and stopping keeps the
+  work: the cursor is a value, which resumes exactly where it stopped.
+* *The unit is XState's step.* A microstep is the smallest step of XState's
+  algorithm, so a run stops only between two of them, never inside one.
+* *One reservoir for each execution.* Fuel counted for each message would
+  bound the length of a chain of messages but not a fan-out, whose every
+  branch would start with almost the whole budget. One reservoir, from which
+  every actor of an execution pays, bounds its total work whatever its shape
+  (link:{webcpp-libs}/xactor/{webcpp-page}#xactor-fuel[xactor's fuel]).
+
+The cost: a host chooses a budget, and an execution that spends it ends
+with `out_of_fuel` and a parked actor, which holds the host's later
+deliveries until `resume()` (<<differences-fuel,Appendix B, Fuel>>). XState
+has no counterpart, so the examples of the cursor and of fuel have no twin.
+
+[#rationale-determinism]
+=== Determinism
+
+The same inputs give the same run. xactor runs actors on one thread, one
+message per turn, from a first-in first-out mailbox for each actor and one
+first-in first-out queue of the actors that have work. Neither library reads
+a clock, a file or a network: time is a number the host brings with
+`clock_tick`, or, in the machine core, a `simulated_clock` its caller moves.
+And neither holds static mutable state
+(
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-determinism[xactor's rules of determinism],
+<<actors-design>>).
+
+* *A run can be reproduced.* A test replays a run by repeating its inputs,
+  and a failure seen once is seen again. The oracle compares each actor's
+  events and snapshots with XState's (<<testing-oracle>>), and two
+  schedulers fed the same deliveries record equal envelope logs, under
+  either driver (
+  link:{webcpp-libs}/xactor/{webcpp-page}#xactor-drivers-log[xactor's envelope log]).
+* *Time is an input.* A delayed transition is tested without waiting, and
+  the program decides what time is: the wall clock, a simulated one, or the
+  time of a run it replays (<<actors-time>>).
+* *One thread needs no lock.* The actors share nothing another thread could
+  change, so they need no synchronisation, and they run the same everywhere:
+  every example prints on wasm32-wasip2 and wasm32-wasip3 the output it
+  prints natively (<<testing-examples>>).
+
+The cost: XState delivers an event to an idle actor at once, nested in its
+sender's call, and xactor queues it, so the order of events across actors
+can differ from XState's, though never within one actor
+(<<differences-interleaving>>). And the host owns the clock: a timer fires
+only when the host calls `clock_tick`.
+
+[#rationale-xactor]
+=== The actor layer on xactor
+
+xstate runs machines as XState's actors on xactor, webcpp's actor system,
+rather than on a second actor system of its own. Each actor that runs a
+machine is an xactor actor whose logic drives the machine's cursor under its
+turn's fuel. The layer adds what xactor leaves out: a child's done and error
+events reaching its parent, invoke, the systemId registry, emitted events
+and inspection (<<overview-actor-layer>>, <<overview-not-ported>>).
+
+* *XState separates the two.* A machine is logic, and an actor system runs
+  it. xactor already is such a system, with a mailbox for each actor, a
+  scheduler, timers, children that stop with their parent and the fuel of an
+  execution, under XState's names: `actor_logic`, `create_actor`,
+  `spawn_child`, `actor_ref`. A second system inside xstate would duplicate
+  all of it.
+* *Machines inherit xactor's guarantees.* Determinism and the bound on work
+  hold for a machine's actor as for any actor of xactor
+  (<<rationale-determinism>>, <<rationale-cursor-fuel>>).
+* *Each library stands alone.* xactor knows nothing of xstate, and a program
+  uses it on its own for actors written in {cpp}
+  (link:{webcpp-libs}/xactor/{webcpp-page}[xactor's page]). The machine
+  core knows nothing of xactor: `<webcpp/xstate.hpp>` includes none of it,
+  which a check of the build keeps so, and a program that only steps
+  machines does not depend on xactor.
+
+The cost: XState's actors are reached through xactor's model, so the
+deliveries are queued and the work is paid for, which Appendix B lists entry
+by entry (<<differences-xactor>>).
+
+[#rationale-static-actors]
+=== Static actors left to compile-time machines
+
+xstate interprets machines that are data; it does not compile a machine
+into {cpp} types. A program whose machine is known when it is written can
+write it with a compile-time state machine library, such as Boost.MSM, and
+run it as an xactor actor whose logic holds the machine
+(
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-static-actors[xactor's static actors]).
+
+* *Those libraries already do it well.* A compile-time machine is what they
+  are for: the compiler checks the transition table, and nothing is read or
+  interpreted when the program runs. A third such library inside xstate
+  would duplicate them.
+* *xactor needs no adapter.* An actor logic is any class with a `handle`, so
+  a logic holds a machine as a member and hands each message to it. xactor
+  depends on no such library, and any library whose machines take typed
+  events joins the same way.
+
+The cost: a static machine cannot come from JSON or from Stately Studio,
+and XState cannot run it, so nothing compares it with XState.
+
+[#rationale-boost]
+=== Boost's way of building and testing
+
+xstate is built, tested and documented as Boost's libraries are, as every
+library of webcpp is, so that people who know these tools can review it:
+
+* *b2 is the build,* of everything: the tests, the examples and this page,
+  from the root of a webcpp checkout, and a b2 project uses xstate through
+  `/webcpp/xstate//xstate` (<<quick-start-b2>>).
+* *Boost.Core's lightweight_test runs the tests,* a header of its own, so
+  that a test runs as it is on every target, without exceptions on
+  wasm32-wasip2 among them; Boost.Test runs the two suites that register a
+  test case for each ported case, natively, in its header-only form, so the
+  build compiles no Boost library (<<testing-suites>>).
+* *Every target is tested.* The tests and the examples run natively and
+  for wasm32-wasip2 and wasm32-wasip3; wasm32-wasip2 builds them without
+  exceptions, so that a library that works without them is a tested fact
+  rather than a claim. Every public header also compiles on its own, and
+  the machine core is checked to include nothing of xactor
+  (<<testing-xstate>>).
+* *Every program of this page is a test.* `b2 libs/xstate/example` builds
+  each one, runs it and compares what it printed with the output committed
+  beside it, on every target, and the page includes that source and that
+  output, so neither can drift from the library (<<testing-examples>>).
+* *The documentation is one page* of AsciiDoc, built with Asciidoctor.js on
+  Node, which the oracle needs already, so the build needs neither Ruby nor
+  Java; its reference is written by MrDocs from the Doc Comments of the
+  headers, and a message of Asciidoctor's fails the build.
+
+The continuous integration runs all of it with GCC, Clang, Apple Clang and
+MSVC, and for wasm32-wasip2 and wasm32-wasip3 (<<testing-targets>>).
+
+[#rationale-evidence]
+=== The oracle and the twins as evidence
+
+XState itself proves xstate. Every case ported from XState's tests, and
+every case written where they are silent, runs on XState 5.33.2 and on
+xstate, and xstate's result must equal XState's, microstep by microstep and
+actor by actor; and every program of this page that uses xstate runs on
+XState too, as its twin (<<overview-fidelity>>, <<testing-xstate>>).
+
+* *A port is right when it does what the original does.* An expectation
+  written by hand states what its writer believed XState does, and a mistake
+  in it would hold xstate to the mistake. What XState produces is what XState
+  does.
+* *The development build is the judge,* as it is of XState's own tests;
+  where its checks can meet a JSON machine, xstate makes them too
+  (<<differences-development>>).
+* *What XState produced is committed,* so the suites run without Node, and
+  the oracle lane runs XState again and fails when what it produces is no
+  longer what the suites hold (<<testing-expected>>).
+* *The twins hold this page to XState.* A program shown here that XState can
+  run has run on XState and printed what the page shows. Where xstate
+  differs on purpose, the twin's output is XState's own, and Appendix B
+  shows the two (<<differences>>).
+
+The cost is Node, for the oracle and for this page; and the programs
+that show what XState does not have, the cursor and fuel among them, have no
+twin, so only their own committed output proves them (<<testing-twins>>).

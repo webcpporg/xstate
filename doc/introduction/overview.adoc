@@ -1,0 +1,551 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#overview]
+== Overview
+
+https://stately.ai/docs/xstate[XState] is Stately's library of state
+machines, statecharts and actors for JavaScript and TypeScript. It models
+logic as event-driven state machines, and runs them as actors that send each
+other events. xstate ports XState 5.33.2 to {cpp}20, header-only, in the
+namespace `webcpp::xstate`. Its machines are the ones a person writes for
+XState: a config is JSON with the shape of XState's, loaded when the program
+runs rather than compiled into it. xstate runs a machine as XState does,
+transition for transition: through XState's pure functions, one microstep at
+a time when its caller bounds the work of an event, or as an actor that
+invokes and spawns children, sends other actors events, hears its children
+finish, waits on timers and asks the host program for work done outside it.
+
+xstate's actor layer is built on webcpp's
+link:{webcpp-libs}/xactor/{webcpp-page}[xactor], a deterministic actor
+system whose actors exchange messages one at a time each, on one thread, in
+an order that depends only on the order the messages were sent, each
+execution with a budget of fuel, and with no time but the host's.
+
+In this documentation, XState is always Stately's library, and xstate the
+port of its machines and actors.
+
+[#overview-first-look]
+=== A first look
+
+Stately's XState page introduces the library with a counter: a machine whose
+context holds a count, three events that change it, an actor that runs the
+machine, and a subscription that prints the count after each event. In
+xstate the counter is this program:
+
+[source]
+----
+include::{examples}/actors/ov_counter.cpp[tag=program,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/ov_counter.expected[]
+----
+
+Three things in it are xstate's own, and each has a section of this chapter:
+
+* The config is JSON, and JSON holds no function. XState's `assign` takes a
+  function that computes the new count; here the config names an action,
+  `increment`, and `implementations` binds that name to {cpp} code, an
+  `assign_action`, as XState's `setup` registers an action under a name.
+  This is <<overview-json,machines as JSON, implementations by name>>.
+* `create_machine` returns a `result`: the machine, or the reason the config
+  was refused. Every call that can fail does the same, and the program checks
+  each one, where XState would throw. An implementation returns a `result`
+  too; when `adding` finds no integer count, its failure puts the actor in
+  the status `error`, as an exception thrown by an assigner does in XState.
+  This is <<overview-errors,errors as values>>.
+* The actor lives in an `actor_system` the program creates. XState's
+  `createActor` makes an actor and the system that runs it in one call; in
+  xstate, `create_actor` makes an actor in a system, and `start`, `send` and
+  `subscribe` are XState's, with the actor as their first argument. The
+  system is built with a budget of fuel, which bounds the work of each
+  execution a call opens, one for each input the call applies; here each
+  `start` and `send` opens one, and 100 units are far more than this counter
+  needs. This is <<overview-actor-layer,the actor layer>>.
+
+[#introduction-why]
+== Why xstate
+
+A state machine names every state a process can be in and, for each state,
+every event it accepts and where that event leads, so a move it does not
+list never happens, and its logic can be read, drawn and tested as a whole.
+A statechart adds what larger processes need, nested and parallel states,
+history, delays and actions, and the actor model runs many machines
+together, each reaching the others only by events (<<concepts>>). XState
+brings both to JavaScript and TypeScript, and Stately Studio draws, edits
+and simulates XState's machines. xstate brings the same machines to
+{cpp}, for a program, native or WebAssembly, whose logic reacts to events.
+
+A machine in xstate is data, and that is what lets XState's machines run in
+{cpp}. Its config is the JSON a person writes for XState's `createMachine`,
+or exports from Stately Studio, read when the program runs. What JSON can
+say, states, transitions, guards and actions by name, delays and invokes,
+means in xstate what it means in XState. What JSON cannot hold, the code of
+an action, a guard, a delay or an invoked actor, the program registers in
+its `implementations` under the name the config gives it, as XState's
+`setup` registers it (<<overview-json>>). So the same machine runs on
+XState in JavaScript and on xstate in {cpp}, each with implementations of its
+own, and <<differences-json>> lists the few places where JSON gives a config
+another form. And a program can run machines that did not exist when it was
+compiled.
+
+From such a config, xstate does what XState does:
+
+* It loads the machine, with the implementations the program registers by
+  name, and refuses at once every config XState refuses (<<machines>>).
+* It runs the machine as XState's algorithm does: transition selection, the
+  exit and entry sets, history, done events, eventless transitions, raised
+  and delayed events, and output (<<transitions>>).
+* It offers XState's pure functions, `initial_transition`, `transition` and
+  the others, which compute one snapshot from another and change nothing
+  (<<pure>>).
+* It returns to its caller every action the machine does not perform
+  itself, as XState's `transition` does, for the caller to execute
+  (<<actions-custom>>).
+* It writes a machine's definition as XState's `machine.toJSON()` writes
+  it, and loads it back (<<machines-definition>>).
+* It runs machines as XState's actors: children invoked and spawned, events
+  between actors, a child's done and error events reaching its parent,
+  timers, host actors, systemIds and emitted events (<<xstate-on-xactor>>).
+
+It adds two things that a {cpp} program running machines it did not write
+needs, and XState does not have. Under the pure functions is the macrostep
+cursor, which runs one microstep per call, so that its caller bounds the
+work an event may cause; the actor layer bounds every call the same way,
+with fuel. And nothing in a run depends on the world outside it: a machine
+reads no clock, a delayed event waits on a clock its caller moves, and
+actors run on one thread in the order their messages were sent, so the same
+inputs give the same run (<<overview-layers>>).
+
+[#introduction-header-only]
+== Why header-only
+
+A program includes `<webcpp/xstate.hpp>` for machines, or
+`<webcpp/xstate/actors.hpp>` for actors, and compiles nothing of xstate's
+own: there is no library to build, version, install or link. The headers are
+compiled with the program, by its compiler and with its flags, so a build
+with flags of its own, without exceptions or with a sanitizer, needs no
+second build of the library.
+
+The reason is portability. The same headers build the same way wherever a
+{cpp}20 compiler does, natively or as a WebAssembly component, with no build
+of their own to port to each target and no binary to match to each
+compiler. Every program of this documentation is built and run natively,
+with GCC, Clang and MSVC, and for wasm32-wasip2 and wasm32-wasip3 with the
+Clang of wasi-sdk, under wasmtime. On wasm32-wasip2 webcpp builds every
+program without exceptions, since some WebAssembly hosts lack exception
+handling: xstate throws nothing, and builds and passes its tests there
+without them (<<overview-errors>>). Elsewhere, whether a program uses
+exceptions is its own choice.
+
+The dependencies follow the same rule. Boost.System, which gives xstate its
+`result` and its error codes, is header-only, and so are xactor and
+Boost.Asio, which xactor includes outside a WASI build for its Asio driver
+(link:{webcpp-libs}/xactor/{webcpp-page}#xactor-drivers-asio[xactor's Asio
+driver]). Boost.JSON is
+compiled by the program itself, once: one of its translation units includes
+`<boost/json/src.hpp>` (<<overview-requirements>>). No Boost library is
+built.
+
+[#overview-layers]
+== Two layers
+
+XState separates a machine, the logic, from the actor that runs it: a
+machine's transition computes the next snapshot and returns the actions to
+execute, and the actor executes them. xstate draws its line at the same
+place, and puts each side behind a header of its own.
+
+[cols="1,2,2,2",options="header"]
+|===
+| Layer | Header | What it holds | What it depends on
+
+| Machine core
+| `<webcpp/xstate.hpp>`
+| machines, snapshots, XState's pure functions, the macrostep cursor, the
+  simulated clock, a machine's definition as JSON
+| the standard library, Boost.JSON and Boost.System
+
+| Actor layer
+| `<webcpp/xstate/actors.hpp>`
+| `actor_system`: actors, children, host actors, timers, the `systemId`
+  registry, emitted events, subscriptions
+| the machine core and xactor, which includes Boost.Asio's headers outside a
+  WASI build
+|===
+
+`actors.hpp` includes `xstate.hpp`, so a program that uses actors includes
+the one header. The machine core includes nothing of xactor and runs no
+actor, so a program that only steps machines does not depend on xactor. It
+knows XState's actors as data all the same: `implementations.actors` holds
+the actors a machine may invoke and spawn, and `snapshot.children` lists its
+children. The entry of a state that invokes, or a `spawnChild`, resolves
+into an `xstate.spawnChild` action, and the exit of that state, or a
+`stopChild`, into `xstate.stopChild`; the core returns them, with the sends,
+for its caller to execute. The actor layer is that caller. The core
+resolves an action into a value and the layer executes it, as XState splits
+each action into `resolve` and `execute`.
+
+[#concepts-mapping]
+Both layers run the same machine. This one is a dog: `wakes up` takes it
+from `asleep` to `stretching`, whose eventless transition, `always`, takes
+it on to `awake`, whose entry action is `bark`. No implementation holds
+`bark`, so it is a custom action, which the machine returns to whatever runs
+it:
+
+[source]
+----
+include::{examples}/actors/concepts_mapping.cpp[tag=machine,indent=0]
+----
+
+[#overview-core]
+=== The machine core
+
+`create_machine(config, implementations)` builds a `machine` from XState's
+config. A machine never changes once it is created, and copying one is
+cheap. Where a machine is, its state value, its context, its status and the
+rest, is a `snapshot`, a plain value the caller keeps, copies or stores.
+
+The core holds XState's pure functions, each named after XState's in snake
+case. `get_initial_snapshot`, `initial_transition` and
+`get_initial_microsteps` compute where a machine starts, and
+`get_next_snapshot`, `transition` and `get_microsteps` where an event takes
+it from a snapshot; `get_next_transitions`, and `can`, XState's
+`snapshot.can`, say what it could do. None of them changes anything.
+`transition`, `initial_transition` and the microstep functions also return
+every action the machine does not perform itself, such as a custom action, a
+delayed event or a send to another actor, for the caller to execute, as
+XState's `transition` returns them; `get_next_snapshot` and
+`get_initial_snapshot` return the snapshot alone.
+
+Under those functions is the one primitive xstate adds, the macrostep
+cursor. An event runs one macrostep: the transitions the event selects, then
+every eventless transition and every raised event that follows, until the
+machine is stable again. Each of those steps is a microstep. XState runs a
+macrostep to its end inside one call. xstate's `begin(machine, snapshot,
+event)`, and `begin_initial(machine, input)` for the initial macrostep,
+return a cursor instead, whose `next()` runs exactly one microstep and
+reports whether that microstep settled the macrostep, and whose `done()`
+says when one has. The dog's `wakes up`, one microstep at a time:
+
+[source]
+----
+include::{examples}/actors/concepts_mapping.cpp[tag=core,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/concepts_mapping.expected[lines=1..3]
+----
+
+`wakes up` takes two microsteps: the first moves the dog to `stretching`,
+and the second takes its eventless transition to `awake`, whose entry action
+`bark` comes back with that microstep. XState's `getMicrosteps` returns both
+at once; the cursor hands them over one at a time, so its caller may stop
+between two and resume later, since the cursor is a value and a copy of it
+resumes exactly where the original stopped. The caller pays for each call
+and stops when it chooses. The library never stops a macrostep on its own: a
+cycle of eventless transitions never settles, and the caller's fuel is the
+only bound. The functions that compute where a machine goes are the cursor
+run to its end, without a bound.
+
+The core never reads a clock either. Entering a state with `after` returns
+its delayed event as an action, a built-in `xstate.raise` with a delay. The
+caller hands it to a `simulated_clock` it owns, XState's `SimulatedClock`,
+which keeps the event until the caller moves time forward and then gives it
+back, for the caller to send to the machine. The clock schedules only that
+built-in delayed raise: a custom action stays the caller's, whatever its type
+or params.
+
+<<pure>> covers the functions, the cursor and its fuel.
+
+[#overview-actor-layer]
+=== The actor layer
+
+`actor_system` runs machines as XState's actors. It is XState's
+`createActor` and its actor system in one: the host creates an actor from a
+machine, starts it, sends it events, reads its snapshot and subscribes to it.
+The machine invokes and spawns children, its `sendTo`, `sendParent` and
+`forwardTo` reach other actors, its children's done and error events reach
+it, its timers fire when the host brings the time with `clock_tick`, and a
+`host_actor`, xstate's counterpart of XState's `fromPromise`, waits until the
+host resolves or rejects it. What the core returns, the layer executes: it
+creates the child of a `spawnChild`, delivers the event of a `sendTo`, arms a
+timer for a delayed raise or send, and hands a custom action to the host's
+`on_action`. The dog, run as an actor:
+
+[source]
+----
+include::{examples}/actors/concepts_mapping.cpp[tag=actor,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/concepts_mapping.expected[lines=4..5]
+----
+
+The same machine and the same event lead to the same snapshot. The custom
+action `bark` reaches the host's `on_action`, where XState's actor calls the
+function `setup` registered under that name.
+
+The layer runs on xactor, webcpp's header-only actor system, which already
+is the system XState's actors need
+(link:{webcpp-libs}/xactor/{webcpp-page}#xactor-model[xactor's model]): a
+scheduler on one thread that holds one FIFO mailbox per actor and one FIFO
+queue of the actors that have work, and whose every turn hands one message
+to its actor, so that the order of deliveries depends only on the order
+messages were sent; fuel for each execution; timers; and a lifecycle, under
+XState's names. A
+second actor system inside xstate would duplicate all of it. Every message an
+actor sends is queued and handled in a turn of its own, where XState handles
+an event at once, nested in the sender's call, when its actor is running and
+idle (<<differences-interleaving>>).
+
+Fuel reaches the actors too. A host call that delivers something opens an
+execution for each input it applies, and `resume()` one for each parked actor
+besides; each execution has the budget's fuel. Every microstep costs one unit
+of it, and so does every message an actor sends and every timer it arms. An
+actor that runs out parks with what it has left to do, until `resume()` gives
+it more; XState has no such bound (<<differences-fuel>>). Time is the host's
+too: a timer fires when the host calls `clock_tick`, never on its own.
+
+<<actors>> covers the layer, its fuel and its time included.
+
+[#overview-which]
+=== Which to use
+
+* The pure functions, when the caller keeps the snapshot between events and
+  the work of one event needs no bound: a test, or a program that loads a
+  snapshot, applies one event and stores what it leads to.
+* The cursor, when the work of each event must be bounded, or watched one
+  microstep at a time.
+* The actor layer, when machines invoke or spawn other machines, send each
+  other events, wait on timers, or wait on work the host program does.
+
+[#overview-json]
+== Machines as JSON, implementations by name
+
+A config in xstate is a `boost::json::value` holding what XState's
+`createMachine` takes: `id`, `initial`, `context`, `states`, `on`, `always`,
+`after`, `entry`, `exit`, `invoke`, `tags`, `output` and the rest. Where
+XState's config holds a function, an action, a guard, a delay, the logic of
+an invoked actor, xstate's config names it, and `implementations` maps each
+name to its {cpp} code. `implementations` is what XState's
+`setup({ actions, guards, delays, actors })` gives a machine. The counter of
+<<overview-first-look,the first look>> registers its three actions this way.
+
+There are three reasons for this:
+
+* A machine is data. It is loaded when the program runs, from a file, a
+  request or a store, and needs no compiler. Its config has the shape of the
+  one a person writes for XState's `createMachine`.
+* JSON cannot hold a function, and neither can a `boost::json::value`: a {cpp}
+  lambda has no place in the config either. A name is the bridge between the
+  data and the code, and XState already has it: an action or a guard
+  registered with `setup` is referenced by its name, with `params`, in the
+  config.
+* Names are checked when the machine is created. A guard, a named delay or
+  an actor that the config names and the implementations do not hold is
+  refused then, with an error, where XState accepts the machine and fails
+  later, or never, when it runs (<<differences-refused>>). An action name the
+  implementations do not hold is not an error: it is a custom action, which
+  the machine returns to the caller with its `params`. That is how the
+  caller's own effects leave the machine.
+
+An action is registered as one of XState's built-in action creators:
+`assign_action`, `raise_action`, `log_action`, `send_parent_action`,
+`cancel_action`, `spawn_child_action`, `stop_child_action`,
+`send_to_action`, `forward_to_action` and `emit_action`, each holding what
+XState's creator takes, a {cpp} function where XState's takes a JavaScript
+one. A guard is a predicate, and a delay a function that returns
+milliseconds. `implementations.context` computes the initial context from
+the input, XState's `+context: ({ input }) => ...+`, and
+`implementations.inputs` and `implementations.outputs` compute an invoked
+child's input and a final state's output.
+
+XState's higher-order guards, `not`, `and`, `or` and `stateIn`, are
+functions in XState too; xstate writes them as JSON objects,
+`+{"type": "xstate.not", "guards": [...]}+` and the like
+(<<differences-guards>>). <<machines>> and <<actions>> cover each of these,
+and <<differences-json>> lists every place where a JSON config differs from
+a JavaScript one.
+
+[#overview-errors]
+== Errors as values
+
+xstate reports every failure as a value. Every call that can fail returns an
+`xstate::result<T>`, Boost.System's `result` with an `error_code`; xstate's
+own codes are `xstate::errc`, of the category `webcpp.xstate`. Where XState
+throws, xstate returns an error instead. At creation, it refuses a config
+XState refuses, and some that XState accepts and throws on only when it runs
+them, such as a guard the implementations do not hold or an `entry` that is
+null (<<differences-refused>>). While a machine runs, the error of an
+implementation that fails is in the snapshot's `status` and `error`, as
+XState's actor keeps the error of an implementation that threw.
+
+There are two reasons for this. A caller reaches a value only through its
+`result`, so a failure cannot pass unseen. And xstate builds where exceptions
+are off: on wasm32-wasip2, where webcpp builds every program without them,
+xstate's tests and examples pass (<<introduction-header-only>>).
+
+The actor layer refuses the calls it cannot take with xactor's
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`webcpp::xactor::errc::invalid_argument`],
+of the category `webcpp.xactor`, and changes
+nothing: a `start`, `send`, `stop`, `status_of`, `subscribe` or `on_emitted`
+whose address names no actor, a `stop` of a child, an answer to a request no
+longer pending, and a call that changes the system made from inside a
+callback the host registered; `xstate::errc` has no `invalid_argument`. One
+refusal of the layer is xstate's own: `create_actor` refuses a systemId
+another running actor holds with `errc::system_id_taken`, of the category
+`webcpp.xstate`. `snapshot_of`, `child_of`, `parent_of`, `id_of` and `get`
+refuse nothing: they answer `nullptr`, none or an empty view for what they
+do not find (<<actors-create>>, <<actors-options>>, <<actors-watching>>).
+
+[#overview-fidelity]
+== How the port is proven
+
+xstate's reference is `xstate@5.33.2`, commit
+`fbee62e7c1586315ed478c2fedf530d7e0ff5a3e`. It is a port of XState's
+algorithm, not a semantics of its own: transition selection, the exit and
+entry sets, history, done events, eventless transitions, raised and delayed
+events and output are translated function by function, and every ported
+function names, in its comment, the TypeScript function it ports. So a
+difference from XState points at one function on each side.
+
+Where xstate departs from XState, it does so on purpose, for one of four
+reasons: XState's behaviour belongs to JavaScript, JSON cannot say what
+XState's config says, xactor runs actors differently, or xstate checks
+earlier than XState. So a config or a name is refused when the machine is
+created; a name stands where XState holds a function; an error is returned
+where XState throws; a host actor stands where XState awaits a promise; an
+event waits in a queue where XState delivers it to an idle actor at once,
+nested in its sender's call; and fuel bounds the work XState leaves
+unbounded. The text says so where it matters, and <<differences>> gathers
+the cases, each with its reason.
+
+A port is right when it does what the original does, so XState itself is
+the judge, twice. The oracle holds the library to what XState does, case by
+case; the twins hold this documentation to it, program by program.
+<<testing-xstate>> tells how both run.
+
+[#overview-oracle]
+=== XState as the oracle
+
+XState's own tests are ported to cases written as JSON, one file per test
+file of XState's, each with the tests it leaves out and why. Further cases
+pin what XState does where its own tests are silent, such as a machine whose
+root is a history node, an event of the type `*` or a timer armed twice
+under one id. Two scripts in `test/oracle/` run every case on XState 5.33.2
+and record what XState produced: `oracle.mjs` the machine cases, one
+macrostep at a time through `machine.transition`, which XState's pure
+functions call, and `actors.mjs` the actor cases, on XState's actors.
+xstate's test suites run the same cases and compare, microstep by microstep,
+the event, the transitions, the actions and the snapshot. The actor cases
+are compared actor by actor: the events each actor processed and the
+snapshot each left, the events it emitted, its status, and the host's
+pending requests.
+
+What XState produced is committed, so xstate's suites run without Node. The
+oracle lane, `b2 libs/xstate/test/oracle//oracle`, runs both scripts on
+XState again, and fails when what XState produces is no longer what the
+suites hold.
+
+The oracle runs XState's development build, as XState's own test suite does.
+That build makes checks the production build leaves out. Three of them can
+meet a JSON machine, and xstate makes them too: it refuses an event of the
+type `*` sent from outside, a transition that declares a truthy `cond`, and
+a `forwardTo` whose target resolves to no actor
+(<<differences-development>>).
+
+[#overview-twins]
+=== A twin for every example
+
+Every program of `example/xstate` and `example/actors`, the programs of this
+documentation that use xstate, has a twin in `test/oracle/twins`: a
+JavaScript program that does on XState 5.33.2 what the {cpp} program does on
+xstate. The oracle lane runs every twin on XState's development build and
+compares what it prints with what the {cpp} program printed:
+
+* {n-twins-agreeing} twins print the same output, the one this page shows
+  under the program.
+* {n-twins-divergent} twins print something else, on purpose. Their program
+  shows a place where xstate differs from XState, and the twin's output,
+  committed beside it, is what XState does there; <<differences>> shows both
+  outputs, and why xstate differs.
+* {n-examples-without-twin} programs have no twin, because XState has
+  nothing that does what they show: the macrostep cursor, fuel, a machine
+  created again from its definition, an event read from JSON and the like.
+  `test/oracle/twins/without-twin.txt` gives the reason for each.
+
+So every program of this page that XState can run has run on XState, and
+printed what the page shows, or what <<differences>> explains.
+
+[#overview-not-ported]
+== What is not ported
+
+These parts of XState 5.33.2 have no counterpart in xstate yet:
+
+* `enqueueActions`.
+* Callback actors, `fromCallback`, and observable actors, `fromObservable`
+  and `fromEventObservable`.
+* `fromTransition`.
+* The persistence of actors: `getPersistedSnapshot`, and an actor created
+  from a persisted snapshot. A machine's snapshot is a value its caller may
+  store, and `resolve_state`, XState's `machine.resolveState`, brings it
+  back; <<pure>> shows it.
+* `toPromise` and `waitFor`.
+* `syncSnapshot`, and with it an invoke's `onSnapshot`: the config accepts
+  `onSnapshot`, but the actor layer sends no child's snapshot to its parent,
+  so no child's snapshot ever takes that transition.
+* `spawn` inside `assign`.
+* `machine.provide()`: a machine takes its implementations once, from
+  `create_machine`, and the same config created again with other
+  implementations is the machine `provide` would return; <<machines>> shows
+  it.
+
+xactor on its own leaves four things to the library built on it
+(link:{webcpp-libs}/xactor/{webcpp-page}#xactor-reading[what xactor leaves
+out]): a child's done and error reaching its parent, invoke, a registry of
+named actors, and the inspection of state changes. xstate's actor layer
+builds all four for machines (<<xstate-on-xactor>>).
+
+[#overview-requirements]
+== Requirements
+
+* *A {cpp}20 compiler.* xstate's tests and examples are built and run
+  natively, and for wasm32-wasip2 and wasm32-wasip3 with the Clang of
+  wasi-sdk, under wasmtime (<<testing-targets>>).
+* *xstate's headers and xactor's*, `libs/xstate/include` and
+  `libs/xactor/include` in a webcpp checkout. The machine core needs only
+  xstate's; the actor layer needs xactor's too. Nothing of xstate is
+  compiled on its own (<<introduction-header-only>>).
+* *Boost 1.92.0's headers.* Every value a machine holds, its config, its
+  context, an event's payload, an action's `params`, is a Boost.JSON value;
+  results and error codes are Boost.System's. Outside a WASI build, xactor
+  includes Boost.Asio's headers for its Asio driver.
+* *Boost.JSON's definitions, compiled once.* Boost.JSON's headers declare
+  and `<boost/json/src.hpp>` defines, so exactly one translation unit of the
+  program includes that header; webcpp's is `tools/boost_json.cpp`.
+* *Without exceptions, a definition of `boost::throw_exception`.* xstate
+  throws nothing, and it is built and tested with exceptions on and, on
+  wasm32-wasip2, off. Whether a program uses them is its own choice. Without
+  them, Boost's code still names `boost::throw_exception`, and the program
+  defines it: webcpp's `tools/throw_exception.cpp` does it with a report on
+  the standard error and an abort, since in such a build a throw is a
+  defect, never a condition. A program built with exceptions needs nothing
+  here, since Boost defines the function then.
+* *Nothing else:* no threads, and no global or static mutable state. A
+  machine never reads a clock, a file or the network: the same machine and
+  the same events give the same run.
+
+<<quick-start-installing>> sets this up, and compiles a first program.

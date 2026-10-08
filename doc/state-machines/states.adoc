@@ -1,0 +1,670 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#states]
+== States
+
+A state is a mode of a machine: what it is doing now, and so which events it
+reacts to and how. A video player is _paused_ or _playing_; a feedback form is
+_prompting_ the user, _showing a form_, _thanking_ them or _closed_. A machine
+is in one of these states at a time, out of a set fixed when the machine is
+written, which is why they are called finite (a parallel state counts as one,
+made of its regions). It moves between them only through the transitions its
+config declares, so an impossible state, a form being filled in and submitted
+at the same time, cannot happen.
+
+States nest. A state with child states is a parent state, a state whose
+children are all active at once is a parallel state, and the machine itself is
+the root of that tree. The active states and the context, the machine's data
+(<<context>>), make up the machine's whole condition, which xstate, as XState,
+calls a _snapshot_.
+
+This section covers the snapshot and how to read it, then each kind of state:
+initial, parent, parallel, final and history states, and the tags, meta data
+and descriptions a state carries.
+
+The examples step their machines with the core's pure functions (<<pure>>).
+An example that prints only snapshots calls `get_initial_snapshot` and
+`get_next_snapshot`, which return the snapshot alone; one that also prints
+the actions a step returns calls `initial_transition` and `transition`,
+which return both, as XState's `initialTransition` and `transition` do.
+XState 5.33.2 deprecates its `getInitialSnapshot` and `getNextSnapshot` in
+favour of those two; xstate keeps both pairs. An actor hands out the same
+snapshots, through `snapshot_of` in xstate's actor layer
+(<<actors-snapshots>>). Each program is in `example/xstate/`, named after
+its topic: `states_finite.cpp`, `states_snapshot.cpp` and so on.
+
+[#states-finite]
+=== Finite states
+
+A config lists the machine's states under `states`, each by its key, and names
+the one the machine starts in with `initial`. The snapshot's `value` says
+which state is active, here by its key.
+
+[source]
+----
+include::{examples}/xstate/states_finite.cpp[tag=finite,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_finite.expected[]
+----
+
+The snapshot holds both halves of the machine's condition: `value`, the finite
+state, and `context`, the data no finite set of states could enumerate, such
+as what the user typed (<<context>>). The event `feedback.good` moved the
+machine from `prompt` to `thanks`; the context did not change, as no action
+assigned to it.
+
+Each key under `states` is a _state node_, and the machine itself is the root
+node. A node has an id: the one its config gives with `id`, or else the
+machine's id and the node's path joined by dots, `feedback.prompt` here. A
+machine without an `id` is `(machine)`, as in XState. `machine::node_by_id`
+finds a node by its id and `machine::node` reads it (<<machines-nodes>>). An
+id does not change the state value; it is another way for a transition to
+name the state (<<transitions-targets>>).
+
+[#states-snapshot]
+=== The snapshot
+
+A snapshot is where a machine is at one moment: its state value, its context,
+whether it still runs, and what it produced. xstate's `snapshot` is a plain
+struct: XState's snapshot without its machine, its node objects, its
+children's actor objects and the methods that read them. You keep it, copy
+it, store it, and hand it back to the function that computes the next one.
+
+It holds no pointer into its machine: it names the active state nodes by their
+index in the machine. A value that points nowhere has no lifetime to manage,
+so it can wait between two requests or two microsteps, and a copy is
+independent of the original. A query that needs the tree of nodes takes the
+machine as an argument instead, as every pure function does (`get_meta`,
+`can`), where XState's snapshot carries its machine and reads it through its
+methods.
+
+Two rules follow from this. A snapshot's `nodes` are indexes into the
+machine that computed it, so a snapshot is read and advanced only with that
+machine, or with one created from the same config. And its members are
+public so they can be read: the next step reads both `value`, to select an
+event's transitions, and `nodes`, to select eventless ones and to exit and
+enter states, so a snapshot edited by hand is not one xstate computed. To
+put a machine in a given state, build the snapshot with `resolve_state`
+(<<pure-persisted>>).
+
+[cols="1,4,2",options="header"]
+|===
+| Member | What it holds | XState
+
+| `value`
+| The state value: which states are active (<<states-value>>). xstate
+computes it from `nodes`, so the two never disagree.
+| `value`
+
+| `context`
+| The context, a `boost::json::value` (<<context>>).
+| `context`
+
+| `status`
+| `status::active` while the machine runs, `status::done` once it has reached
+a top-level final state, or every region of a parallel root has
+(<<states-done>>), `status::error` once a step has failed.
+| `status`, which has a fourth value, `'stopped'`
+
+| `output`
+| The machine's output once it is done, when it has one; none otherwise, where
+XState's is `undefined` (<<input-output-output>>).
+| `output`
+
+| `error`
+| Why the machine failed, when `status` is `error`: the code a failing
+implementation returned, or one of xstate's `errc` (<<webcpp-xstate-errc>>). Empty
+otherwise.
+| `error`, the value an implementation threw
+
+| `error_value`
+| When `error` is `actor_failed`, the failed child's error, if its error event
+carried one (<<actors-done-error>>).
+| `error`
+
+| `nodes`
+| The active state nodes, root included, by their index in the machine, in
+XState's order.
+| `_nodes`, internal
+
+| `history`
+| What each history state remembers, by the history node's id
+(<<states-history>>).
+| `historyValue`
+
+| `tags`
+| The tags of the active nodes, each once, in the order of `nodes`
+(<<states-tags>>).
+| `tags`, a `Set`
+
+| `children`
+| The machine's child actors, as (id, src) pairs, in the order JavaScript
+enumerates XState's children object. The core only records them: its caller
+runs them, from the `xstate.spawnChild` and `xstate.stopChild` actions a step
+returns (<<actors>>).
+| `children`, each child's `ActorRef` by its id
+|===
+
+XState's `'stopped'` is the status of a stopped actor, and the status its
+`transition` gives a snapshot that receives the event `xstate.stop`. In
+xstate the actor layer reports a stopped actor through `status_of`
+(<<actors-snapshots>>), and the core runs `xstate.stop` as any other event
+(<<transitions-events>>).
+
+Its queries are `matches` (<<states-matches>>), `has_tag` (<<states-tags>>) and
+`remembered` (<<states-history>>); `get_meta(machine, snapshot)`
+(<<states-meta>>) and `can(machine, snapshot, event)` (<<pure-can>>) take
+the machine. A snapshot is rebuilt from a state value and a context with
+`resolve_state` (<<pure-persisted>>); XState's `toJSON` of a snapshot has no
+counterpart.
+
+XState's `mapState(snapshot, mapper)`, which Stately's page on states shows,
+walks the active nodes from each state without children up to the root and
+calls, for each one, the `map` function the mapper object gives for its path.
+xstate has no `mapState`: a program reads `snapshot.nodes` and maps each node
+by its id or its path, `machine.node(index)`, as `describe` does in the
+example below.
+
+The example prints the members of a snapshot before and after an event that
+completes the machine:
+
+[source]
+----
+include::{examples}/xstate/states_snapshot.cpp[tag=describe,indent=0]
+include::{examples}/xstate/states_snapshot.cpp[tag=run,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_snapshot.expected[]
+----
+
+The first snapshot is in `form`, and in its initial child `invalid`; `nodes`
+lists every active node, from the root down, and `tags` the one tag `form`
+carries. `feedback.submit` takes the machine to `thanks`, a final child of the
+root, so the machine is done: its status is `done` and its output is the
+config's `output`.
+
+The order of `nodes` is XState's, and xstate keeps it because it is not
+cosmetic: it decides the order in which the regions of a parallel state
+take their eventless transitions. The nodes a microstep keeps keep their
+place, those it exits leave, and those it enters are appended in document
+order; a microstep that ends with the same active nodes, and in which no
+history state records anything, keeps the order it had. Once a step
+completes the machine, XState sorts the nodes in reverse document order, a
+child before its parent, and so does xstate: `feedback.thanks` before
+`feedback`.
+
+Document order is the order of the states in the config as XState reads
+it: a parent before its children, and siblings in the order JavaScript
+enumerates the keys of `states`, a key that is an array index, such as `0`
+or `10`, first, by number, then the rest as written. A parallel state whose
+config writes its regions `b`, `10`, `2` and `a` enters them in the order
+`2`, `10`, `b`, `a`.
+
+[#states-value]
+==== The state value
+
+The state value names the active states in JSON, the same JSON XState
+writes, its keys in the same order:
+
+* the key of the active child, a string, when that child has no children of
+  its own;
+* an object when it has: the child's key, and under it the child's own value
+  (<<states-parent>>);
+* an object with one member per region for a parallel state
+  (<<states-parallel>>);
+* `{}` for a machine that has no states but its root.
+
+[source]
+----
+include::{examples}/xstate/states_value.cpp[tag=value,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_value.expected[]
+----
+
+An object value writes its keys in the order JavaScript enumerates an
+object's keys, as XState's value is a JavaScript object: a key that is an
+array index first, by number, then the rest in the order of `nodes`. The
+parallel state whose config writes its regions `b`, `10`, `2` and `a`
+(<<states-snapshot>>) writes them `2`, `10`, `b`, `a` in its value when it
+is entered, and `2`, `10`, `a`, `b` when it is the root and a step
+completes the machine, as that step sorts `nodes` in reverse document
+order. The regions of a parallel state take an event's transitions in the
+order of its value's keys, and their eventless transitions in the order of
+`nodes`.
+
+Stately's page on states says the value of a machine without states is `null`;
+XState 5.33.2 writes `{}`, and so does xstate.
+
+[#states-matches]
+==== Matching a state value
+
+`snapshot.matches(value)` says whether the machine is in a state: whether the
+value given is the snapshot's value or a part of it, as XState's
+`snapshot.matches` does. A string names a state by its key, or a nested one by
+its path with dots, `"form.invalid"`; an object names nested and parallel
+states, and needs to list only the ones it tests. `matches_state(parent,
+child)` says whether the state value `child` is `parent` or a state within
+it, XState's `matchesState`; `snapshot.matches(v)` is `matches_state(v,
+snapshot.value)`.
+
+[source]
+----
+include::{examples}/xstate/states_matches.cpp[tag=matches,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_matches.expected[]
+----
+
+`"form"` matches because the machine is in `form`, whichever child of `form`
+is active; `{"form": "valid"}` does not, because the active child is another.
+The last line tests a part of the value of a parallel state:
+`{"track": "playing"}` is within `{"track": "playing", "volume": "normal"}`.
+The order of the arguments matters, the value tested first: the same two
+values the other way round do not match. When the question is
+what the machine is doing rather than where it is, a tag survives a
+reorganisation of the states better than a state value (<<states-tags>>).
+
+[#states-initial]
+=== Initial states
+
+A machine starts in its initial state, the child of the root that `initial`
+names. A parent state names one too: entering the parent enters its initial
+child, and, when that child is a parent, the child's own initial child, and so
+on until every active branch reaches a state without children. A machine has
+at most one initial state, so it always knows where to start. A parallel
+state, the root included, has none: entering it enters every region
+(<<states-parallel>>).
+
+[source]
+----
+include::{examples}/xstate/states_initial.cpp[tag=types_of,indent=0]
+include::{examples}/xstate/states_initial.cpp[tag=initial,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_initial.expected[]
+----
+
+`timer` targets `red`, so the machine enters `red` and its initial child
+`walk`. `initial` may be an object, `{"target", "actions"}`: its actions run
+when the parent is entered through its initial state, and only then. So
+`timer` returns `beep`, and `emergency`, which targets `red.stop` directly,
+does not. `beep` has no implementation, so it comes back to the caller to
+execute (<<actions>>), and `types_of` lists the types of the actions a step
+returned. Both transitions start from the same `yellow` snapshot: a snapshot
+is a value, and nothing stops a caller from computing two futures of it.
+
+A parent state must name its initial state, even when every transition
+targets one of its children, and the name must be one of its children.
+`create_machine` refuses the machine otherwise:
+
+[source]
+----
+include::{examples}/xstate/states_initial_refused.cpp[tag=refused,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_initial_refused.expected[]
+----
+
+The first config, a parent without `initial`, is `invalid_config`; the
+second, an `initial` that names no child, is `unknown_target`. XState's
+`createMachine` refuses the first too, and accepts the second, which throws
+only when the state is first entered (<<differences-refused>>). xstate
+refuses both when the machine is created, with every other config error it
+can detect there, so a mistake in a config shows before the machine runs.
+Two are left to run time: the `#id` of an `xstate.stateIn` guard that names
+no state, found when the guard is evaluated (<<transitions-higher-order>>),
+and the default of a history state that is the machine's root
+(<<states-history-deep>>).
+
+[#states-parent]
+=== Parent states
+
+A state can contain states, its children, which are active only while it is.
+A parent state is also called a compound state. Grouping states under a parent
+lets them share what is common to them: a transition every child takes, an
+entry or exit action, a sub-process with its own initial state and its own
+end.
+
+The machine is a parent state too, the root, and it is always active. A machine
+may have no states besides the root: its transitions are then the root's, which
+run actions and target no state, and its state value is `{}`
+(<<states-value>>).
+
+[source]
+----
+include::{examples}/xstate/states_parent.cpp[tag=parent,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_parent.expected[]
+----
+
+The first `next` is handled by `child1`, the deepest active state, whose own
+transition goes to `child2` and so into its initial child `grandchild1`. The
+second `next` finds no transition in `grandchild1` or `child2`, and reaches
+`parent`, whose transition targets `grandchild2`. `restart` targets `child1`
+from the parent.
+
+Three rules govern transitions on parent states:
+
+* An event is offered to the deepest active state first, then to its parent,
+  and so on up to the root; the first one with an enabled transition for the
+  event takes it (<<transitions-selection>>).
+* A transition that targets a parent enters the parent's initial state, and
+  that state's initial state, down to a state without children.
+* A parent's transition targets its own descendants with a path that starts
+  with a dot: `.child1`, `.child2.grandchild2` (<<transitions-targets>>).
+
+A parent state also ends: when one of its final children is reached, the
+parent is done, and its `onDone` transition is taken (<<states-final-parent>>).
+
+[#states-parallel]
+=== Parallel states
+
+A parallel state's children, its regions, are all active at the same time,
+where a parent state has one active child. Parallel states model aspects of a
+system that change independently, such as a player's track and its volume.
+Entering a parallel state enters every region, exiting it exits every region,
+and an event reaches every region: each region with a transition for it takes
+it, all in one microstep. A parallel state has `"type": "parallel"` and needs
+no `initial`.
+
+[source]
+----
+include::{examples}/xstate/states_parallel.cpp[tag=parallel,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_parallel.expected[]
+----
+
+The value of a parallel state is an object with one member per region.
+`PLAY` reaches both regions and only `track` handles it; `MUTE` only
+`volume`. `RESET` is handled by both regions, in a single microstep, which
+`get_microsteps` shows: that microstep's `transitions` lists the two
+transitions taken (<<pure-get-microsteps>>).
+
+A parallel state is done when every one of its regions is
+(<<states-final-parallel>>).
+
+[#states-final]
+=== Final states
+
+A final state, `"type": "final"`, is a state where a piece of work is complete.
+A final child completes its parent; a final child of the root completes the
+machine. A machine may have several final states, or none, if it runs for as
+long as it lives.
+
+[#states-final-parent]
+==== A parent state is done
+
+When a parent's final child is entered, the parent is done: the machine raises
+the event `xstate.done.state.<parent id>`, and the parent's `onDone` is a
+transition on that event. It is taken in the same macrostep, so the caller of
+`transition` sees only where it led.
+
+[source]
+----
+include::{examples}/xstate/states_final.cpp[tag=final,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_final.expected[]
+----
+
+`ground` takes two microsteps, which `get_microsteps` returns one by one. The
+first enters `ready`, the final child; the second runs the raised event
+`xstate.done.state.coffee.preparation`, whose `onDone` transition leaves
+`preparation` for `brewing`. Each microstep also carries its event,
+`step.event`, which XState's `getMicrosteps` does not return
+(<<pure-get-microsteps>>). A final state may have an `output`, which travels
+in the done event (<<input-output-final-state-output>>).
+
+[#states-final-parallel]
+==== A parallel state is done
+
+A parallel state is done when every one of its regions is in a final state:
+the machine then raises the parallel state's own done event, and its `onDone`
+is taken.
+
+[source]
+----
+include::{examples}/xstate/states_final_parallel.cpp[tag=final_parallel,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_final_parallel.expected[]
+----
+
+After `BEANS_GROUND` one region is in its final state and the other is not, so
+`preparing` waits. `WATER_BOILED` completes the second region, and `preparing`
+is done.
+
+[#states-done]
+==== When the machine is done
+
+A final child of the root completes the machine, and so does a parallel root
+once each of its regions is in a final state. In the same microstep the
+snapshot's `status` becomes `done` and its `output` is computed: the root's
+`output`, a fixed value in the config, or one an implementation computes from
+the context and the done event (<<input-output-output>>). The snapshot keeps
+the state value of the final state.
+
+[source]
+----
+include::{examples}/xstate/states_done.cpp[tag=done,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_done.expected[]
+----
+
+`finish` takes the machine to `complete`, a final child of the root, so its
+status becomes `done` and its output is the config's `output`; `name_of`, a
+function of the program, spells the status. As XState does, the machine then
+resolves the exit actions of every active node, in reverse document order
+(<<states-snapshot>>): it applies those it executes itself, such as an
+`assign`, and returns the others to its caller. After them it returns one
+`xstate.stopChild` for each child its snapshot still lists, which the
+snapshot keeps; the core runs no child, so stopping it is the caller's work
+(<<actors-stop-child>>).
+
+A machine that is done receives no more events: an actor stops there
+(<<actors>>). The pure functions do not check the status, as XState's do
+not: from a done snapshot, `get_next_snapshot` takes the transition an event
+selects, and the status stays `done`. A caller that drives the core itself
+stops sending events once the status is `done`.
+
+A final state should have no transitions, as Stately's page on final states
+says, but neither XState 5.33.2 nor xstate enforces it: a final state that
+declares a transition takes it. Leave final states without transitions.
+
+[#states-history]
+=== History states
+
+A history state is a pseudostate: it is never active itself. A transition that
+targets it enters, instead, the children its parent had active when the parent
+was last exited, so a machine can resume where it left off. When the parent
+has never been exited, it enters the history state's `target`, when it has one,
+or else the parent's initial state, or, when the parent is a parallel state,
+every one of its regions.
+
+[source]
+----
+include::{examples}/xstate/states_history.cpp[tag=history,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_history.expected[]
+----
+
+`checkout` targets `payment.hist` before `payment` was ever exited, so the
+machine enters the initial state of `payment`, `card`. `next` exits `payment`
+while `paypal` is active, and the history state records it; `back` returns to
+`paypal`. The snapshot's `history` holds what each history state remembers,
+and `remembered(id)` returns it for one history node, as node indexes, or
+`nullptr` before the history state has recorded anything; XState's is
+`historyValue[id]`, the node objects.
+
+A history state is `"type": "history"`, and shallow unless it says
+`"history": "deep"`; `"history": "shallow"` and `"history": true` say shallow.
+A node with no `type`, no children and a `history` member is a history state
+too, when that member is truthy as JavaScript reads it, as in XState: a
+`history` of `false`, `null`, `""` or `0` leaves the node atomic.
+
+[#states-history-deep]
+==== Shallow and deep history
+
+A shallow history state remembers its parent's active children only: entering
+one of them again enters that child's initial state. A deep history state
+remembers the active states without children below its parent, so the whole
+nested configuration comes back.
+
+[source]
+----
+include::{examples}/xstate/states_history_deep.cpp[tag=remembered,indent=0]
+include::{examples}/xstate/states_history_deep.cpp[tag=deep,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_history_deep.expected[]
+----
+
+Both resumptions start from the same `standby` snapshot. The shallow history
+state remembers `radio`, so it enters `radio` and its initial child
+`stopped`; the deep one remembers `radio.playing`, and enters it.
+
+Three more rules:
+
+* A history state whose default leads back to it, a `target` that is an
+  ancestor whose initial chain reaches the history state again, would never
+  finish entering: `create_machine` refuses it with `invalid_config`, where
+  XState overflows its stack when it enters it.
+* A machine whose root is itself a history state has no parent to resolve its
+  default against. The machine is created, and a microstep that needs the
+  default, the first one included, fails with `unknown_target`, where XState's
+  initial snapshot reports a `TypeError` as its `error`
+  (<<differences-refused>>, <<differences-failures>>).
+* `resolve_state` builds a snapshot from a state value and a context, and from
+  nothing else, so none of its history states has recorded anything. XState
+  restores what they remember through the persistence of its actors, which
+  xstate does not port (<<pure-persisted>>). When what a history state
+  remembers must survive a pause, keep the snapshot itself, a value the
+  program holds between two events.
+
+[#states-tags]
+=== Tags
+
+A tag is a name a state carries to say what kind of state it is, such as
+`loading` or `visible`: several states may share it, and a state may carry
+several. A state lists its tags under `tags`, one string or a list of
+strings; `create_machine` refuses any other `tags`, `null` included, with
+`invalid_config` (<<machines-refusals>>). The snapshot's `tags` holds the
+tags of every active node, each once, and `has_tag(tag)` says whether one of
+them is the tag given, as XState's `snapshot.hasTag` does.
+
+[source]
+----
+include::{examples}/xstate/states_tags.cpp[tag=show,indent=0]
+include::{examples}/xstate/states_tags.cpp[tag=tags,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_tags.expected[]
+----
+
+In `thanks`, both `thanks` and its child `celebrating` carry `visible`, and the
+snapshot lists it once, in the order of the active nodes. `closed` writes its
+one tag as a string. A tag answers what the machine is doing without naming
+where it is: code that asks `has_tag("visible")` keeps working when the
+states are renamed or nested differently, where a test of a state value
+would need to change. XState types its tags with `setup({ types })`; a JSON
+config has no types, so xstate's tags are any strings.
+
+[#states-meta]
+=== Meta and descriptions
+
+`meta` is static data a state carries for whoever reads the machine, such as
+the text a view shows in that state: any JSON, which the machine never reads
+itself. `get_meta(machine, snapshot)` collects the `meta` of every active node
+that has one, by the node's id, as XState's `snapshot.getMeta()` does. It takes
+the machine because the meta belongs to the nodes, and the snapshot names its
+nodes by index.
+
+A `description` is a string that documents a state for the people who read the
+machine; Stately's editor shows it beside the state. A transition may have a
+`description` and a `meta` too. xstate keeps each where the config put it, a
+state's description in `state_node::description`, and writes them in the
+machine's definition (<<machines-definition>>), except a state's `meta` that
+is null and a state's `description` that is not a string, which it drops
+(<<differences-null-meta>>).
+
+[source]
+----
+include::{examples}/xstate/states_meta.cpp[tag=meta,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/states_meta.expected[]
+----
+
+The root's `meta` is in both results, because the root is always active; the
+`meta` of `prompt` and then of `thanks` follows the active state. The
+description of `prompt` is read from its node, an optional string.

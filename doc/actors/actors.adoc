@@ -1,0 +1,920 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#actors]
+== Actors
+
+When a machine runs as an actor, the actor keeps the machine's snapshot,
+takes its events one at a time and executes what each macrostep returns. It
+receives events, sends events to other actors and changes its behaviour by
+the events it receives. It can invoke and spawn other actors, its children,
+and it hears from them when they are done or fail.
+
+An actor is what a machine needs once it does not live alone. The pure
+functions suit one machine whose caller keeps the snapshot and executes its
+actions (<<pure>>). A machine that invokes another, sends it events, waits
+on a timer or waits on work the host does needs something to run all of
+that, in order, between the host's calls. An actor does it, and the host
+only creates actors, sends them events, brings the time and reads what the
+actors publish.
+
+[#actors-model]
+=== Actor logic
+
+An actor runs its logic, what XState calls actor logic. xstate knows two
+kinds:
+
+[cols="3,1,2,1,1,1",options="header"]
+|===
+| Logic | Receives events | Sends events | Has children | Input | Output
+
+| A machine, `machine_actor`: XState's `createMachine`
+| yes
+| yes
+| yes
+| yes
+| yes
+
+| A host actor, `host_actor`: in place of XState's `fromPromise`
+| no
+| only its done or error event
+| no
+| yes
+| yes
+|===
+
+The host creates a machine actor with `create_actor`, and a machine invokes
+or spawns one where `implementations.actors` names a `machine_actor`. A host
+actor is always a child, which a machine invokes or spawns where
+`implementations.actors` names a `host_actor`, and whose work the host does
+(<<actors-host>>). XState's callback, observable and transition actors have
+no counterpart yet (<<overview-not-ported>>).
+
+Every actor lives in an `actor_system`: one
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-scheduler[xactor scheduler]
+on the host's thread, which the host
+drives by calling the system. The scheduler holds a
+first-in first-out mailbox for each actor and a first-in first-out queue of
+the actors that have work, and each turn hands one message to one actor
+(<<actors-design>>). So <<concepts-actor-model,the actor model>> holds as
+XState applies it: an actor changes only its own state, talks only by
+events, takes one event at a time from its mailbox, its whole macrostep,
+and creates children.
+
+[#actors-create]
+=== Creating an actor
+
+An `actor_system` is XState's `createActor` and the system it creates, in
+one object. `create_actor` creates an actor from a machine, not yet started;
+`start` runs its initial macrostep; `send` delivers an event; `stop` stops
+it with its children. XState makes a system for each root actor,
+implicitly; xstate makes it explicit, because the system owns what a host
+must decide: the fuel of each execution its calls open, the time, and the
+systemIds its actors share. The machine is the toggle of Stately's page on
+state machine actors, and a listener prints each snapshot:
+
+[source]
+----
+include::{examples}/actors/actors_create.cpp[tag=create,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/actors_create.expected[]
+----
+
+`create_actor` returns `result<actor_ref>`: the actor's address on xactor, or
+`system_id_taken` (<<actors-options>>). Every operation names the actor by that
+address, through the system. `subscribe` hears the snapshots the actor settles
+in while it is active, and the one it is done in, as XState's does: the
+initial one on `start`, then one for each event, whether it took a transition
+or not (<<actors-watching>>).
+
+The constructor takes
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-budgets[`budgets`],
+xactor's limits. Its one
+member, `fuel`,
+bounds the work of one execution, a million units by default. A call that
+delivers opens executions of its own, each with the whole budget: one for each
+input it applies and, for `resume()`, one for each parked actor. So one call
+can spend more than one budget (<<actors-fuel>>). The examples give 10'000,
+far more than they use, and check only that a call returned no error; a host
+with a tight budget also checks whether it returned `settled` or
+`out_of_fuel`.
+
+Each call that delivers something, `start` and `send` here, and
+`clock_tick`, `resolve`, `reject` and `resume` in the later sections, runs
+the system until no message is left before it returns, as XState's `send`
+processes its event at once. It returns `result<run_outcome>`: `settled`, or
+`out_of_fuel` when an actor is left parked for want of fuel
+(<<actors-fuel>>).
+
+A call the system cannot take fails with xactor's
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`errc::invalid_argument`],
+of the category `webcpp.xactor`, and changes nothing: a `start`, a `send`, a
+`stop`, a `status_of`, a `subscribe` or an `on_emitted` whose `actor_ref`
+names no actor of the system, a `stop` of a child, an answer to a request no
+longer pending (<<actors-host>>), and any call that changes the system made
+from inside a callback (<<actors-watching>>). The other readers refuse
+nothing: `snapshot_of`, `child_of`, `parent_of`, `id_of` and `get` answer
+`nullptr`, none or an empty view for what they do not find. xstate's own
+codes, such as the `system_id_taken` of `create_actor`, are `xstate::errc`,
+of the category `webcpp.xstate`, and none of them is `invalid_argument`.
+
+The rules of an actor's life:
+
+* An event sent before `start` waits, and runs after the initial macrostep, as
+  XState's mailbox holds it until the actor starts. A second `start` does
+  nothing.
+* `stop` stops a root actor and its whole family, each after its descendants,
+  and returns them. For a child it is xactor's
+  link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`invalid_argument`]
+  and changes
+  nothing: a child is its parent's to stop, as XState's `actor.stop()` refuses
+  one.
+* A stopped actor drops what is sent to it.
+
+[#actors-snapshots]
+==== Snapshots and status
+
+`snapshot_of(actor)` is a machine actor's last snapshot
+(<<concepts-snapshot>>), as XState's `getSnapshot()`.
+
+* It is published once the macrostep has settled and its actions are
+  resolved, before the effects they deferred (sends, emits, starts, stops and
+  timers) run. Subscribers hear it after those effects. An actor parked before
+  that point (<<actors-fuel>>) still shows the snapshot from before; one parked
+  while running the effects already shows the new one, which its subscribers
+  have not heard yet.
+* It is `nullptr` before the actor is constructed, and for a host actor.
+  xstate constructs a root on `start`, where XState's `createActor`
+  constructs it at once, so XState's `getSnapshot()` has the initial snapshot
+  before `start()` (<<differences-construction>>).
+
+`status_of(actor)` is xactor's
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-status[`status`]:
+`active`, `done`, `error` or
+`stopped`. The snapshot's own `status` has only the first three; XState's has a
+fourth, `'stopped'`. A stopped actor keeps its last snapshot, whose `status`
+stays what it was, and `status_of` says `stopped` where XState's snapshot says
+`'stopped'`.
+
+[#actors-options]
+==== Options
+
+`actor_options` holds the options of XState's `createActor` that concern one
+actor: `input`, `id` and `system_id`. The others belong to the system:
+`logger` is `on_log` (<<actors-watching>>), `inspect` is `inspect`
+(<<actors-inspection>>), and `clock` is `clock_tick` (<<actors-time>>).
+`snapshot`, which restores a persisted actor, has no counterpart yet. Here
+one actor is named and registered, and another is left unnamed:
+
+[source]
+----
+include::{examples}/actors/actors_options.cpp[tag=options,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/actors_options.expected[]
+----
+
+* `id` is the actor's id, which `id_of(actor)` returns. Without one, the id is
+  the actor's session id, `x:<n>`, n the number of actors the system created or
+  began to create before it. XState counts the actors of the whole process, so
+  the two agree while the process runs one `actor_system` with one root
+  (<<differences-system>>). The example's two roots agree with XState only
+  because the first has no children: XState numbers a root's initial children
+  when it creates the root, xstate when it starts it
+  (<<differences-construction>>).
+* `system_id` registers the actor under that name at once: `get(system_id)`
+  finds it, and a `#system:` target names it (<<actors-system>>). A name
+  another running actor holds is refused with `system_id_taken`. The empty name
+  registers nothing, as XState registers only a truthy one.
+* `input` is the machine's input (<<actors-machine-actors>>).
+
+[#actors-watching]
+=== Watching an actor
+
+The host learns what its actors do through callbacks it registers on the
+system.
+
+* `subscribe(actor, f)` hands `f` each snapshot the actor settles in while it
+  is active, and the one it is done in: XState's `actor.subscribe`. A failed
+  actor's snapshot is not handed over; XState hands the error to an observer's
+  `error` callback, which xstate does not have, and `status_of` tells it.
+* `on_emitted(actor, f)` hands `f` each event the actor emits, in order:
+  XState's `actor.on('*', f)` (<<actions-emit>>). The listener reads the
+  event's type.
+* `on_action(f)` hands `f` every custom action of every actor, with the actor
+  that returned it.
+* `on_log(f)` hands `f` every log of every actor (<<actions-log>>), with the
+  actor, the value, `nullptr` for JavaScript's `undefined`, and the label:
+  XState's `logger` option. The label is empty when the log has none, where
+  XState calls the logger with the value alone.
+
+A custom action is one the implementations do not hold (<<actions-custom>>).
+XState runs it as a function of the machine; xstate hands it to the host as its
+`type` and `params`, because JSON cannot hold a function and the library runs
+no effect of its own: the host decides what `greet` does. Here a machine
+greets on entry, and answers `ping` by emitting `pong` and logging the
+event:
+
+[source]
+----
+include::{examples}/actors/actors_watching.cpp[tag=implementations]
+----
+
+[source]
+----
+include::{examples}/actors/actors_watching.cpp[tag=watching,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/actors_watching.expected[]
+----
+
+The order is XState's. Custom actions and logs are handed over as each
+microstep's actions are resolved, those of the initial macrostep when the
+actor starts; emits, like sends, wait until the macrostep has settled, as
+XState defers them. So `note` logs before `answer` emits, though the machine
+lists `answer` first. A macrostep that fails has handed over the custom
+actions and logs it resolved before the failure, as XState's running actor has
+run them by then; an initial macrostep that fails hands over none, as XState's
+`start()` runs no initial action of an actor whose construction failed.
+
+`subscribe` and `on_emitted` add a listener of one actor, and an empty one is
+none; such a listener is kept as long as the system lives, with no
+unsubscribe. Both refuse an address that names no actor with
+`invalid_argument`, as `send` does. `on_action`, `on_log` and `inspect` hold
+one callback for the whole system: each call replaces the previous one, so an
+empty callback removes it. Each returns a `result<void>`.
+
+A callback, a `subscribe` or `on_emitted` listener, the `on_action` or
+`on_log` callback or the inspector, runs inside an actor's turn, while the
+system runs. It may call the const members, which read the system:
+`snapshot_of`, `status_of`, `get`, `child_of`, `parent_of`, `id_of` and
+`host_requests`. Every other member changes the system: `create_actor`,
+`start`, `send`, `clock_tick`, `resolve`, `reject`, `resume`,
+`run_until_idle`, `stop`, and the registrations `subscribe`, `on_emitted`,
+`on_action`, `on_log` and `inspect`. A call to one of them from a callback
+returns xactor's
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`invalid_argument`]
+and changes nothing. A host that must act
+on what it heard records it in the callback and acts once the call that ran
+the system has returned. XState accepts a send from a subscriber and handles
+it after the update in progress (<<differences-callbacks>>).
+
+[#actors-inspection]
+==== Inspection
+
+`inspect(inspector)` is XState's `inspect` option: it hears every actor of the
+system, and replaces the inspector given before. An `inspector` holds three
+callbacks, each of which may be left empty:
+
+[cols="1,1",options="header"]
+|===
+| XState | xstate
+
+| `@xstate.actor`, when an actor is created
+| `started`, when an actor starts
+
+| `@xstate.snapshot`, each snapshot with the event that caused it
+| `settled`, each macrostep a machine actor settles, with its machine, the
+event that began the macrostep and the snapshot
+
+| `@xstate.action` of the type `xstate.emit`, whose params hold the event,
+reported when the action runs; the actor's `actor.on` listeners hear the event
+once the macrostep has settled
+| `emitted`, each event an actor emits, just before its `on_emitted` listeners
+hear it
+
+| `@xstate.action` of every other type: each custom action, and each built-in
+action but `assign` and `enqueueActions`: a send, a raise, a log, a spawn, a
+stop or a cancel
+| none in the inspector: `on_action` hears the custom actions and `on_log` the
+logs, and no callback hears the other built-in actions
+
+| `@xstate.event` and `@xstate.microstep`
+| none: the macrostep cursor gives each microstep (<<pure-cursor>>)
+|===
+
+A macrostep that an unhandled error event fails is heard, with the status
+`error` and the error `actor_failed`, as XState inspects the snapshot that
+event leaves. Any other that fails while it is computed or while its actions
+resolve is not heard. Nor does XState inspect one where it throws, as for an
+implementation that fails, a systemId taken when a spawn resolves or a target
+that names no actor when a send resolves; where it does not fail, on a context
+that is not an object (<<differences-object-context>>), its inspector hears
+the macrostep as any other. A macrostep whose deferred effect fails, such as
+a send to a child gone when it is bound (<<differences-gone>>), is heard with
+the snapshot it reached, as XState's update inspects the snapshot it was
+given; `snapshot_of` has the status `error`.
+
+Here an inspector watches the toggle of
+<<actors-create,the first example>>, whose `active` state now emits
+`activated` on entry:
+
+[source]
+----
+include::{examples}/actors/actors_inspect.cpp[tag=inspect,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/actors_inspect.expected[]
+----
+
+The inspector hears the actor start, then its initial macrostep settle for
+`xstate.init`. The `toggle` enters `active`, whose entry emits `activated`:
+the inspector hears the emit while the actor runs the effects of that
+macrostep, before the snapshot of `toggle`, which it hears once those
+effects have run.
+
+[#actors-machine-actors]
+=== Machine actors
+
+A machine actor runs a machine: it receives events, sends events, has
+children, starts from an input and ends with an output. `create_actor` creates
+one from a `machine`; a machine child is a `machine_actor` of the
+implementations (<<actors-invoke>>).
+
+Its input is `actor_options::input`. The machine reads it in
+`implementations.context`, XState's `+context: ({ input }) => ...+`, which
+returns `result<boost::json::value>`. A failure it returns fails the initial
+macrostep with its code, and a value that is not an object fails it with
+`implementation_failed`, where XState merges whatever its function returns
+into an empty object (<<differences-object-context>>). The event
+`xstate.init` carries the input too. When the machine reaches its top-level
+final state, the actor is done: `status_of` says `done`, its last snapshot
+holds the output, and it takes no more events. The output here is the
+context, which `implementations.outputs` computes under the root's id,
+XState's `+output: ({ context }) => context+`.
+<<input-output-machine-input,A machine's input>> and
+<<input-output-output,its output>> have sections of their own. The example
+is the feedback machine of Stately's page on state machine actors, given a
+final state and an output.
+
+[source]
+----
+include::{examples}/actors/actors_machine.cpp[tag=machine,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/actors_machine.expected[]
+----
+
+The listener hears the initial snapshot, its context computed from the
+input, and the snapshot the actor is done in, after `submit`; that last
+snapshot holds the output.
+
+[#actors-invoke]
+=== Invoking actors
+
+A state can invoke an actor: a child that starts when the state is entered and
+stops when the state is exited. Invoking suits work the machine orchestrates
+without knowing its details: a request to a server, a process with states of
+its own. An invoke on the root lives as long as the machine. A state's
+`invoke` is one object or a list of them, each a child of its own.
+
+An invoke's members:
+
+`src`:: The name of an entry of `implementations.actors`: a `machine_actor` or
+a `host_actor`. XState also takes inline logic, which JSON cannot hold; a name
+is XState's `setup({ actors })`, the logic registered there. A name the
+implementations do not hold is refused when the machine is created, with
+`unknown_actor`, where XState fails later.
+`id`:: How the parent knows the child: `<index>.<state id>` when none is given,
+as in XState.
+`input`:: The child's input: a JSON value (<<input-output-invoke-input>>),
+or what `implementations.inputs` computes for the invoke's id, in place of
+XState's input function (<<input-output-computed-input>>).
+`onDone`:: The transition taken on `xstate.done.actor.<id>`, when the child is
+done.
+`onError`:: The transition taken on `xstate.error.actor.<id>`, when the child
+fails.
+`systemId`:: A name every actor of the system can find the child by
+(<<actors-system>>).
+
+A machine can declare `onSnapshot` too, but the layer sends no
+`xstate.snapshot.<id>` event yet, so it is never taken.
+
+The host reaches a child through its parent: `child_of(parent, id)` is XState's
+`snapshot.children[id]`, and the parent's snapshot lists its children as
+`(id, src)` pairs. `parent_of(child)` goes the other way. Here a parent invokes
+a worker and takes its output when it is done.
+
+[source]
+----
+include::{examples}/actors/actors_invoke.cpp[tag=machines,indent=0]
+----
+
+[source]
+----
+include::{examples}/actors/actors_invoke.cpp[tag=run,indent=0]
+----
+
+`print`, a helper of the program, writes the parent's state value and the
+ids of its children. It prints:
+
+[listing]
+----
+include::{examples}/actors/actors_invoke.expected[]
+----
+
+Entering `waiting` starts the worker, which the parent lists as its child.
+When the worker reaches its final state, the parent receives
+`xstate.done.actor.worker` with the worker's output, and `onDone` logs that
+event and takes the parent to `finished`. Leaving `waiting` removes the
+worker from the parent's children; the worker itself is `done`.
+
+A child's life follows its parent's macrosteps, as in XState:
+
+* A machine child is constructed when its parent resolves the action that
+  spawns it: its initial macrostep runs and its own children are constructed,
+  their systemIds registered, before the parent resolves its next action, so
+  a `#system:` send later in the same macrostep reaches a grandchild. It
+  starts once the parent's macrostep has settled, and the custom actions and
+  logs of its initial macrostep are handed over then, none when that
+  macrostep failed (<<actors-watching>>).
+* A child spawned and stopped in the same macrostep never starts: XState
+  constructs it and never starts it, so a state entered and left in one
+  macrostep runs none of its invokes.
+* A transition that re-enters the state (`reenter: true`) stops its invoked
+  children and starts new ones.
+
+[#actors-done-error]
+==== Done and error events
+
+A child that ends tells its parent:
+
+* `xstate.done.actor.<id>`, with `output` and `actorId`, when it is done; the
+  `output` is left out when it has none (<<input-output-actor-done>>).
+* `xstate.error.actor.<id>`, with `error` and `actorId`, when it fails. A host
+  actor's error is what the host rejected it with. A machine child's is the
+  error of the child whose failure failed it in turn, or else the name of its
+  own error code, such as `"implementation_failed"`, where XState's is the
+  value its implementation threw.
+
+An error event that no transition takes fails the parent too, and the error
+climbs unchanged: the parent's snapshot has the status `error`, the error
+`actor_failed` and, as `error_value`, the event's error, and the parent reports
+to its own parent. Here a payment fails, the checkout that invoked it has no
+`onError`, and the shop above it handles the checkout's error. The payment is
+a host actor, xstate's stand-in for XState's promise actor, which the host
+answers (<<actors-host>>): `host_requests()` lists it as a pending request,
+and `reject` fails it with the error given, as rejecting its promise fails
+XState's promise actor.
+
+[source]
+----
+include::{examples}/actors/actors_errors.cpp[tag=machines,indent=0]
+----
+
+[source]
+----
+include::{examples}/actors/actors_errors.cpp[tag=run,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/actors_errors.expected[]
+----
+
+The checkout's snapshot holds the code `actor_failed` in `error`, since
+every failure in xstate is an `error_code`, and the payment's error in
+`error_value`, which the shop's event carries unchanged. XState's snapshot
+holds the value itself in `error`, and has no code to print
+(<<differences-failures>>). A failed actor's children keep running, as in
+XState; a done actor's were stopped by its last macrostep.
+
+[#actors-spawn]
+=== Spawning actors
+
+Invoking ties a child to a state. Some children must outlive a state, or come
+in a number the machine learns as it runs, one per item of a list. Those are
+spawned: `spawn_child_action`, XState's `spawnChild`, creates a child that
+lives until a `stop_child_action`, XState's `stopChild`, stops it, or until its
+parent is done or stopped; a failed parent's children keep running, as in
+XState (<<actors-done-error>>).
+
+`spawn_child_action` holds XState's options: `src`, the actor's name in
+`implementations.actors`; `id`, a string, or an `id_maker` that computes it
+when the action resolves; `system_id`; and `input`, a `value_maker`
+(<<input-output-spawn-input>>). An `id` left out is the empty string, and
+the child is keyed under `""`, where XState keys a child spawned without an
+id `"undefined"` (<<differences-spawn-id>>). XState's other
+way to spawn, `spawn` inside `assign`, keeps an actor reference in the context,
+which JSON cannot hold; it has no counterpart. The example is the one of
+Stately's page on spawning, with its children registered by name. `spawning`
+makes each spawn action:
+
+[source]
+----
+include::{examples}/actors/actors_spawn.cpp[tag=spawning]
+----
+
+[source]
+----
+include::{examples}/actors/actors_spawn.cpp[tag=machine,indent=0]
+----
+
+[source]
+----
+include::{examples}/actors/actors_spawn.cpp[tag=run,indent=0]
+----
+
+`print_children`, a helper of the program, writes the ids of the parent's
+children. It prints:
+
+[listing]
+----
+include::{examples}/actors/actors_spawn.expected[]
+----
+
+The entry spawns the three children, which the parent lists in the order
+they were spawned. `STOP` stops `child-2`: it leaves the list, and its
+status is `stopped`.
+
+[#actors-stop-child]
+==== Stopping a child
+
+A `stop_child_action` stops the child its id names. The systemIds of the
+child's family are released at once, or, in an initial macrostep, when the
+actor starts, since that macrostep defers everything to the start. The parent
+forgets the child, which leaves the snapshot's children. A started child
+receives the stop behind everything already sent to it: it finishes the
+macrostep it runs and the events that arrived before, ignores what arrives
+after, asks its own children to stop the same way, and stops, running no exit
+action. A child that has already ended ignores the stop; a failed one's
+children keep running, as in XState. A child spawned and stopped in the same
+macrostep never starts (<<actors-invoke>>). Leaving a state stops its invoked
+children the same way.
+
+[#actors-sending]
+=== Sending events between actors
+
+A machine sends an event with a `send_to_action`, XState's `sendTo`
+(<<actions-send>>), whose target is a string:
+
+[cols="1,1",options="header"]
+|===
+| XState | xstate's target
+
+| `sendTo('child', event)`
+| `"child"` or `"#_child"`: the child with that id
+
+| `sendParent(event)`
+| `"#_parent"`, or a `send_parent_action`
+
+| `sendTo('#_internal', event)`
+| `"#_internal"`: the actor itself, as an event of its own
+
+| `+sendTo(({ system }) => system.get('name'), event)+`
+| `"#system:name"`: the actor registered under that systemId
+
+| `forwardTo('child')`
+| a `forward_to_action`, which sends the event being handled
+|===
+
+The target is resolved when the action resolves, and the event is delivered
+once the macrostep has settled, as XState defers its sendTo. A target that
+names no actor fails the sender with `unknown_target`, where XState throws. A
+`#system:` target under which nothing is registered sends to the actor itself,
+as XState's `sendTo` of an undefined actor does; a `forward_to_action` fails
+there with `unknown_target`, as XState's development build throws.
+
+An actor reference is not data (<<differences-targets>>). XState can put
+`self` in an event, and the receiver can answer `event.sender`; xstate's events
+hold JSON, so an answer goes to `#_parent`, to a child's id or to a systemId.
+The example is Stately's, where the server answers the client's `sender`;
+here the server answers its parent, the client that invoked it.
+
+[source]
+----
+include::{examples}/actors/actors_sending.cpp[tag=sending,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/actors_sending.expected[]
+----
+
+`AUTH` takes the client to `authorizing`, which invokes the server and, on
+entry, sends it `CODE`. The entry's send names the state's own invoke, which
+does not exist yet when the entry action is resolved; the event waits until
+the child has started, as in XState. The server answers `TOKEN`, which takes
+the client to `authorized`. Stately's server answers after a second, with
+`{ delay: 1000 }`; with `+.delay = xstate::delay_ref{std::uint64_t{1000}}+`,
+the token arrives when the host brings the time to 1000 (<<actors-time>>).
+
+Each actor receives what one sender sends it in the order sent. Between
+senders the order can differ from XState's, which delivers an event to an
+idle actor at once, nested in the sender's call, where xactor queues every
+delivery (<<differences-interleaving>>).
+
+[#actors-system]
+=== The system
+
+All the actors of an `actor_system` belong to one system. An actor registered
+under a systemId can be found by any other: an invoke's `systemId`, a spawn's
+`system_id` and `actor_options::system_id` register one. From the host,
+`get(system_id)` finds it, XState's `system.get`; from a machine, a send's
+target `#system:<systemId>` names it, where XState writes
+`+({ system }) => system.get(id)+`, a function JSON cannot hold. The example
+is the one of Stately's page on systems: a feedback machine invokes a form
+and a notifier, each under a systemId, and the form notifies the notifier
+by name. That page's machine registers no `notifier`; this one invokes one,
+so the event has somewhere to go.
+
+[source]
+----
+include::{examples}/actors/actors_system.cpp[tag=implementations]
+----
+
+[source]
+----
+include::{examples}/actors/actors_system.cpp[tag=system,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/actors_system.expected[]
+----
+
+A systemId names its actor from the actor's creation until it is done, failed
+or stopped, or until a stopChild of it or of an ancestor releases it. A claim
+of a name another actor holds fails the claiming actor with `system_id_taken`,
+as XState throws; `create_actor` returns the error instead.
+
+The roots of one `actor_system` share one system: their systemIds, `get` and
+the `#system:` targets. XState's `createActor` makes a system for each root; a
+host that wants that creates an `actor_system` for each root
+(<<differences-system>>). The host stops a system by stopping its roots: `stop`
+refuses a child.
+
+[#actors-time]
+=== Delayed events and time
+
+Every `after` and every delayed built-in action that sends arms a timer
+(<<actions-delayed>>): a delayed `raise_action`, `send_to_action`,
+`send_parent_action` or `forward_to_action`. The timer is owned by the actor
+that armed it, under the action's id when it has one, and a `cancel_action`
+of that id removes it. Only built-in actions arm one: a custom action goes to
+`on_action`, whatever its type or params. The machine never reads a clock, and
+neither does the system: the host brings the time. `clock_tick(now)` moves the
+system's clock to `now`, in milliseconds, and releases the timers due by then
+one at a time, by deadline and then by arming order, running the system after
+each. It is XState's `SimulatedClock`, passed to `createActor` as its
+`clock`, and its `set(now)`. The machine core's `simulated_clock` is the clock
+of a machine run without actors: it schedules only the built-in delayed
+raises a step returns, and leaves a custom action to its caller, whatever its
+type or params (<<pure-clock>>). A timer is due at the time of the last tick,
+0 before any, plus its delay. The example is the delayed send and cancel of
+Stately's page on actions. That page does not define `someActor`; here it is
+a child the machine invokes, which counts what it receives.
+
+[source]
+----
+include::{examples}/actors/actors_time.cpp[tag=machines,indent=0]
+----
+
+[source]
+----
+include::{examples}/actors/actors_time.cpp[tag=run,indent=0]
+----
+
+`print_count`, a helper of the program, writes the count in the context of
+the child `someActor`. It prints:
+
+[listing]
+----
+include::{examples}/actors/actors_time.expected[]
+----
+
+At 0 ms, `event` arms a timer for 1000 ms under the id `someId`, and
+`cancelEvent` removes it, so nothing arrives at 1000. At 1000 ms, `event`
+arms another, due at 2000: at 1999 it has not fired, and at 2000 it has.
+
+The rules of time:
+
+* Timers fire one at a time, so the handling of one can cancel a later one of
+  the same tick, as XState's `SimulatedClock` fires them. A timer armed during
+  the tick and already due fires in the same call (<<differences-tick>>).
+* The timers of an actor that has stopped, is done or has failed never fire
+  (<<differences-timers>>).
+* Time is whole milliseconds, where XState's `SimulatedClock` takes fractions
+  (<<differences-time>>).
+* Bring the time forward only. `clock_tick` does not refuse a time before the
+  last one, and a timer armed after it counts from the earlier time; XState's
+  `set` throws for it, and the core's `simulated_clock` refuses it with
+  `invalid_config` (<<differences-earlier-tick>>).
+
+[#actors-host]
+=== Host actors
+
+A host actor is a child whose work the host does: a request to a server, a
+file to read, anything that waits on the world outside the machines. It
+stands for XState's promise actor, `fromPromise`, which runs asynchronous
+work and resolves with an output or rejects with an error. A {cpp} library
+with no event loop and no thread cannot await a promise; the host, which
+owns the I/O, does that work, at its own pace, and answers. A `host_actor`
+in `implementations.actors` registers one. Once started, a host actor is a
+pending request, a `host_request`:
+
+[cols="1,3",options="header"]
+|===
+| Member | What it holds
+
+| `actor` | The host actor.
+| `parent` | The actor that invoked or spawned it.
+| `id` | Its id, as its parent knows it.
+| `src` | The name it is registered under.
+| `input` | Its input; none for JavaScript's `undefined`, when it was given none.
+|===
+
+`host_requests()` lists the pending requests, in the order their actors
+started. `resolve(request, output)` ends the host actor done: its parent
+receives `xstate.done.actor.<id>` with the output, or without one when the
+output is none. `reject(request, error)` ends it failed: its parent receives
+`xstate.error.actor.<id>` with the error. Both run the system, as `send` does.
+The example is Stately's user machine, whose promise fetches a user; the host
+rejects the first request and resolves the second. The invoke's input, the
+user id of the context, is computed by `user_id_of`, registered under the
+invoke's id `getUser` (<<input-output-computed-input>>), and the host reads
+it from the request.
+
+[source]
+----
+include::{examples}/actors/actors_host.cpp[tag=implementations]
+----
+
+[source]
+----
+include::{examples}/actors/actors_host.cpp[tag=machine,indent=0]
+----
+
+[source]
+----
+include::{examples}/actors/actors_host.cpp[tag=run,indent=0]
+----
+
+`print_requests`, a helper of the program, writes each pending request's
+src, id and input, and `print` the state value and the context. It prints:
+
+[listing]
+----
+include::{examples}/actors/actors_host.expected[]
+----
+
+`FETCH` enters `loading`, whose invoke starts the host actor, and its
+request appears. The rejection takes the machine to `failure`, with the
+error in its context; `RETRY` enters `loading` again, which invokes a new
+host actor with a new request, and its resolution takes the machine to
+`success`, with the user. The context starts with `null` for the user and
+the error: Stately's page leaves them `undefined`, and JSON has no
+<<differences-undefined,`undefined`>>.
+
+A host actor takes no event, as XState's promise actor ignores them. A
+request ends with its actor: when the invoking state is left, the host actor
+is stopped and its request is no longer pending, and `resolve` or `reject`
+of it returns xactor's
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`invalid_argument`]
+and changes nothing, as XState
+ignores a promise that settles after its actor stopped. A host actor is
+always a child: `create_actor` takes a machine.
+
+[#actors-fuel]
+=== Fuel, parking and resume
+
+XState runs each call to its end: `send` returns when every macrostep it
+caused has settled, however long that takes, and a call that enters a cycle of
+eventless transitions never returns. A host that runs machines it does not
+trust, or must answer within a budget, cannot allow that. xstate bounds the
+work of each call by fuel.
+
+The `fuel` of the `budgets` given to the constructor (<<actors-create>>), a
+million by default, is the fuel of one execution. An execution pays one unit
+for each microstep, before it runs, and one for each message an actor sends: an
+event, a child's construction and the answer to it, a child's start, a stop.
+Each timer an actor arms costs one too. Each call that delivers opens
+executions of its own, each with the whole budget: one for each input it
+applies, and one for each parked actor `resume()` continues. The timers a
+`clock_tick` releases all share its one execution, so the budget also bounds
+timers that keep arming within one tick. The start of a machine that invokes
+one machine child costs five: the root's initial microstep, the child's
+construction, its initial microstep, its answer and its start.
+
+When an execution cannot pay, the actor parks: it keeps its cursor, the actions
+it has not resolved and the effects it has not run, and the call returns
+`out_of_fuel`. A parked actor runs nothing it has not paid for, and nothing
+twice. An event that reaches it waits behind what it has left, so run to
+completion holds: no event starts before the macrostep in progress has
+settled. `resume()` gives each parked actor a new execution and continues it
+where it stopped. `run_until_idle()` delivers nothing: it runs what is queued
+and returns the same outcome. Every call above already ends with it, so after
+one of them it only reports whether an actor is still parked.
+
+While an actor is parked, the host's inputs wait: `start`, `send`,
+`clock_tick`, `resolve` and `reject` are checked, then held in the order made,
+and return `out_of_fuel`. `resume()` applies them once the parked actors have
+settled, each run to its end before the next, as XState runs each call to its
+end. `stop` is never held: it is how the host ends an actor that would never
+settle. The example runs a chain of eventless transitions on a fuel of 3,
+then a cycle that never settles; it has no twin, since XState has no fuel.
+
+[source]
+----
+include::{examples}/actors/actors_fuel.cpp[tag=chain,indent=0]
+----
+
+[source]
+----
+include::{examples}/actors/actors_fuel.cpp[tag=spin,indent=0]
+----
+
+`print`, a helper of the program, writes the call, the outcome it returned
+and the state value the actor has published. It prints:
+
+[listing]
+----
+include::{examples}/actors/actors_fuel.expected[]
+----
+
+With a fuel of 3, the five microsteps of `GO` cannot be paid in one call: the
+actor parks after three, its snapshot still the one from before `GO`, and
+`PING` waits behind it. `resume()` pays the last two, then runs `PING`. The
+second machine's initial macrostep never settles: its `start` and each
+`resume()` spend a budget of 100 and park it again, before it has published
+a snapshot, until `stop` ends it. XState has no fuel
+(<<differences-fuel,Appendix B, Fuel>>): it returns from
+`send({ type: 'GO' })` with the actor in `"e"`, and never returns from the
+`createActor` of the second machine, since it runs the initial macrostep
+when it constructs the actor (<<differences-construction>>). The macrostep
+cursor bounds a single machine the same way, one microstep for each call of
+`next()` (<<pure-cursor-fuel,the cursor's fuel>>).
+
+[#actors-design]
+=== How the layer runs
+
+* *One thread, queued deliveries.* The system runs on one xactor scheduler, on
+  the host's thread (
+  link:{webcpp-libs}/xactor/{webcpp-page}#xactor-model[xactor's model]).
+  Each actor has a
+  first-in first-out mailbox, and the
+  actors that have work wait in one first-in first-out queue: a turn takes the
+  actor at its head and hands it the first message of its mailbox, and the
+  actor goes back to the end of the queue while its mailbox holds more. So
+  messages to different actors are served actor by actor, in turns, and can
+  run in another order than the one they were sent in. Nothing runs between
+  two calls of the host, and the same calls give the same run: the order of
+  the events, the callbacks and the timers depends on the inputs alone.
+* *Run to completion, per actor.* An actor runs one macrostep at a time; an
+  event that arrives while one has not settled waits, and the waiting events
+  run in the order they arrived, each a macrostep of its own.
+* *Interleaving.* XState delivers an event to an idle actor at once, nested in
+  its sender's call; xactor queues it. Within one actor the order is XState's.
+  Across actors it can differ, and so can the order of the callbacks: a parent
+  handles the last sends of a child that is done after the child has released
+  its systemId, and an actor's start hands over its own initial custom actions
+  before its initial children hand over theirs (<<differences-interleaving>>).
+* *Errors are values.* No call throws: a refusal is an error code, and an actor
+  that fails says so in its snapshot and to its parent
+  (<<differences-failures>>).
+* *The host owns the effects.* Custom actions, logs, emitted events, snapshots,
+  the work of host actors and time cross between the system and the host as
+  data, through its calls and callbacks, and nothing else does.
+
+[#actors-differences]
+=== Where the layer differs from XState
+
+Within one actor, the layer keeps XState's order. What differs, between
+actors and around the host's calls, follows from running on xactor: fuel and
+parking (<<differences-fuel,Appendix B, Fuel>>), deliveries queued instead of
+nested, a root constructed on `start`, one system for every root of an
+`actor_system`, time in whole milliseconds that the host brings, and
+callbacks that run inside an actor's turn. Appendix B gives each with what
+XState does and why, in
+<<differences-xactor,What the actor model on xactor imposes>>, which also
+names the entries of its other groups that concern actors.
