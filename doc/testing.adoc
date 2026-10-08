@@ -581,7 +581,7 @@ The oracle lane: XState 5.33.2 runs every case, and what it records must be
 what the suites hold (<<testing-oracle>>); and every twin runs on XState and
 must print what its program printed (<<testing-twins>>). It needs Node and
 npm. The continuous integration runs it from scratch, beside the lanes, in
-its job _Own lane (xstate, oracle, libs/xstate/test/oracle)_.
+its job _Own lane (xstate, oracle)_.
 
 `b2 libs/xstate/test/oracle//update-expected`::
 Not a check: it writes XState's output again, over the committed one
