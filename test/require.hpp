@@ -29,12 +29,16 @@ inline void require(bool held) {
 }
 
 // Returns `held`, what a BOOST_TEST returned, and, when it did not hold, prints `note` on the
-// line after the failure BOOST_TEST reported: `noted(BOOST_TEST_EQ(a, b), "for ", row)`.
+// line after the failure BOOST_TEST reported: `noted(BOOST_TEST_EQ(a, b), "for ", row)`. A
+// helper that only some of its callers give a note passes its own, maybe empty, through; an
+// empty note prints nothing.
 template <class... Parts>
 bool noted(bool held, const Parts&... note) {
-    if (!held) {
-        BOOST_LIGHTWEIGHT_TEST_OSTREAM << "  ";
-        (BOOST_LIGHTWEIGHT_TEST_OSTREAM << ... << note) << '\n';
+    if constexpr (sizeof...(Parts) != 0) {
+        if (!held) {
+            BOOST_LIGHTWEIGHT_TEST_OSTREAM << "  ";
+            (BOOST_LIGHTWEIGHT_TEST_OSTREAM << ... << note) << '\n';
+        }
     }
     return held;
 }

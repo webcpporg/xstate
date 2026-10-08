@@ -1,5 +1,11 @@
-# The tests inherit the superproject's configuration, narrow two checks and
-# switch off two, each measured on these tests.
+# The tests inherit the superproject's configuration. They narrow two checks
+# through their options:
+#   misc-use-internal-linkage
+#   bugprone-exception-escape
+# and switch off two, one of them under both its names:
+#   bugprone-unchecked-optional-access
+#   cert-err58-cpp, with bugprone-throwing-static-initialization, its alias
+# Each was measured on these tests.
 #
 # misc-use-internal-linkage would report every BOOST_AUTO_TEST_CASE of
 # cases_test.cpp: the macro defines a struct per case at namespace scope,

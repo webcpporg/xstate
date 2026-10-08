@@ -89,13 +89,15 @@ struct started {
     xstate::snapshot initial;
 };
 
-started start() {
+/** Starts the cursor machine. A failed check names `note`, the row of the case that calls it. */
+template <class... Note>
+started start(const Note&... note) {
     boost::system::error_code failed;
     const boost::json::value the_case = boost::json::parse(cursor_case, failed);
-    require(BOOST_TEST(!failed));
+    require(noted(BOOST_TEST(!failed), note...));
     xstate::result<xstate::machine> created =
         xstate::create_machine(the_case.at("machine"), vocabulary::of_case(the_case.get_object()));
-    require(BOOST_TEST(created.has_value()));
+    require(noted(BOOST_TEST(created.has_value()), note...));
     xstate::snapshot initial = xstate::get_initial_snapshot(*created);
     return {.machine = std::move(*created), .initial = std::move(initial)};
 }
@@ -175,7 +177,7 @@ void an_event_that_selects_no_transition_settles_at_once_changing_nothing() {
 // check ends its row, as Boost.Test ended the row's case.
 
 void a_copy_of_a_stopped_cursor_settles_where_a_straight_run_settles(std::size_t stopped) {
-    const started machine = start();
+    const started machine = start("for stopped = ", stopped);
     xstate::macrostep straight = xstate::begin(machine.machine, machine.initial, named("GO"));
     run_to_end(straight);
 
@@ -211,7 +213,7 @@ void an_eventless_cycle_never_settles_and_only_the_caller_stops_it() {
 
 void a_failing_implementation_settles_in_error_with_the_snapshot_it_began_from(
     std::string_view event_type) {
-    const started machine = start();
+    const started machine = start("for ", event_type);
     xstate::macrostep cursor = xstate::begin(machine.machine, machine.initial, named(event_type));
     noted(BOOST_TEST(cursor.next().settled), "for ", event_type);
     noted(BOOST_TEST(cursor.done()), "for ", event_type);
