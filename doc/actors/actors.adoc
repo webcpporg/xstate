@@ -879,8 +879,8 @@ cursor bounds a single machine the same way, one microstep for each call of
 === How the layer runs
 
 * *One thread, queued deliveries.* The system runs on one xactor scheduler, on
-  the host's thread (
-  link:{webcpp-libs}/xactor/{webcpp-page}#xactor-model[xactor's model]).
+  the host's thread
+  (link:{webcpp-libs}/xactor/{webcpp-page}#xactor-model[xactor's model]).
   Each actor has a
   first-in first-out mailbox, and the
   actors that have work wait in one first-in first-out queue: a turn takes the

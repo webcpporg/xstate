@@ -256,8 +256,8 @@ the JSON the config gives.
 === What the actor model on xactor imposes
 
 xstate's actor layer runs machines as XState's actors on xactor, webcpp's
-actor system (
-link:{webcpp-libs}/xactor/{webcpp-page}#xactor-model[xactor's model]):
+actor system
+(link:{webcpp-libs}/xactor/{webcpp-page}#xactor-model[xactor's model]):
 one scheduler, which
 holds a first-in first-out mailbox for each actor and a first-in first-out
 queue of the actors that have work, and hands one message to its actor per
@@ -951,7 +951,7 @@ include::{twins}/actors/diff_failures.expected[]
 include::{examples}/actors/diff_failures.expected[]
 ----
 
-Three programs of the chapters meet the same difference. In
+Programs of the chapters meet the same difference too. In
 <<transitions-guards,the example of guards>>, `submit` without `feedback`
 reaches a guard that reads it. XState's guard throws a `TypeError`, which
 `transition` lets out behind `Unable to evaluate guard`; xstate's returns
@@ -1068,7 +1068,7 @@ include::{examples}/xstate/diff_refusals.expected[]
 The last config also makes XState's development build warn, on the standard
 error, that the actor type `worker` was not found.
 
-Two programs of the chapters meet the same difference. In
+Programs of the chapters meet the same difference too. In
 <<machines-refusals,the example of a refused config>>, `submit` is guarded by
 `isValid`, which no implementation holds: XState creates the machine and
 throws when `submit` first evaluates the guard, and xstate refuses the

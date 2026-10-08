@@ -29,8 +29,8 @@ link:{webcpp-libs}/xactor/{webcpp-page}#glossary-envelope[envelope] and the
 link:{webcpp-libs}/xactor/{webcpp-page}#glossary-envelope-log[envelope log], a
 link:{webcpp-libs}/xactor/{webcpp-page}#glossary-driver[driver] and
 a link:{webcpp-libs}/xactor/{webcpp-page}#glossary-static-actor[static actor].
-The last subsections show the
-terms at work in three programs.
+The last subsections show the terms at work in programs: a machine, an
+actor system, and an actor system that runs out of fuel.
 
 [#glossary-terms]
 === Terms

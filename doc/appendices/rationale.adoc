@@ -167,8 +167,7 @@ tells what was thrown (<<differences-failures>>).
 
 xstate throws no exception and catches none
 (<<xstate-invariant-15,guarantee 15>>), and neither does xactor
-(
-link:{webcpp-libs}/xactor/{webcpp-page}#xactor-invariant-20[xactor's guarantee 20]).
+(link:{webcpp-libs}/xactor/{webcpp-page}#xactor-invariant-20[xactor's guarantee 20]).
 
 * *Programs turn them off.* Many builds disable exceptions: embedded and
   real-time programs, games, and WebAssembly, some of whose hosts lack
@@ -231,16 +230,15 @@ first-in first-out queue of the actors that have work. Neither library reads
 a clock, a file or a network: time is a number the host brings with
 `clock_tick`, or, in the machine core, a `simulated_clock` its caller moves.
 And neither holds static mutable state
-(
-link:{webcpp-libs}/xactor/{webcpp-page}#xactor-determinism[xactor's rules of determinism],
+(link:{webcpp-libs}/xactor/{webcpp-page}#xactor-determinism[xactor's rules of determinism],
 <<actors-design>>).
 
 * *A run can be reproduced.* A test replays a run by repeating its inputs,
   and a failure seen once is seen again. The oracle compares each actor's
   events and snapshots with XState's (<<testing-oracle>>), and two
   schedulers fed the same deliveries record equal envelope logs, under
-  either driver (
-  link:{webcpp-libs}/xactor/{webcpp-page}#xactor-drivers-log[xactor's envelope log]).
+  either driver
+  (link:{webcpp-libs}/xactor/{webcpp-page}#xactor-drivers-log[xactor's envelope log]).
 * *Time is an input.* A delayed transition is tested without waiting, and
   the program decides what time is: the wall clock, a simulated one, or the
   time of a run it replays (<<actors-time>>).
@@ -292,8 +290,7 @@ xstate interprets machines that are data; it does not compile a machine
 into {cpp} types. A program whose machine is known when it is written can
 write it with a compile-time state machine library, such as Boost.MSM, and
 run it as an xactor actor whose logic holds the machine
-(
-link:{webcpp-libs}/xactor/{webcpp-page}#xactor-static-actors[xactor's static actors]).
+(link:{webcpp-libs}/xactor/{webcpp-page}#xactor-static-actors[xactor's static actors]).
 
 * *Those libraries already do it well.* A compile-time machine is what they
   are for: the compiler checks the transition table, and nothing is read or
@@ -318,7 +315,8 @@ library of webcpp is, so that people who know these tools can review it:
   `/webcpp/xstate//xstate` (<<quick-start-b2>>).
 * *Boost.Core's lightweight_test runs the tests,* a header of its own, so
   that a test runs as it is on every target, without exceptions on
-  wasm32-wasip2 among them; Boost.Test runs the two suites that register a
+  wasm32-wasip2 among them; Boost.Test runs the {n-boost-test-suites}
+  suites that register a
   test case for each ported case, natively, in its header-only form, so the
   build compiles no Boost library (<<testing-suites>>).
 * *Every target is tested.* The tests and the examples run natively and
