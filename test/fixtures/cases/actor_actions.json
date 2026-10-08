@@ -1,0 +1,1102 @@
+{
+  "source": "actions that name actors, through the pure functions",
+  "cases": [
+    {
+      "name": "spawnChild adds a child, stopChild removes it",
+      "test": "actions/spawnChild.ts resolveSpawn and actions/stopChild.ts resolveStop",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "SPAWN": {
+                "actions": [
+                  "spawn_kid"
+                ]
+              },
+              "STOP": {
+                "actions": [
+                  "stop_kid"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "spawn_kid": {
+          "kind": "spawn_child",
+          "src": "child",
+          "id": "kid",
+          "input": {
+            "n": 1
+          }
+        },
+        "stop_kid": {
+          "kind": "stop_child",
+          "id": "kid"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SPAWN"
+          }
+        },
+        {
+          "send": {
+            "type": "STOP"
+          }
+        },
+        {
+          "send": {
+            "type": "STOP"
+          }
+        }
+      ]
+    },
+    {
+      "name": "spawnChild's input is read from the context as the earlier actions left it",
+      "test": "actions/spawnChild.ts resolveSpawn: input({context, event, self})",
+      "machine": {
+        "id": "m",
+        "context": {
+          "n": 0
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "SPAWN": {
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "n",
+                      "value": 5
+                    }
+                  },
+                  "spawn_kid"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "spawn_kid": {
+          "kind": "spawn_child",
+          "src": "child",
+          "id": "kid",
+          "systemId": "worker",
+          "input_from_context": "n"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SPAWN"
+          }
+        }
+      ]
+    },
+    {
+      "name": "spawnChild under an id already there replaces the child in place",
+      "test": "actions/spawnChild.ts resolveSpawn: {...snapshot.children, [resolvedId]: actorRef}",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": [
+              {
+                "src": "child",
+                "id": "first"
+              },
+              {
+                "src": "child",
+                "id": "kid"
+              }
+            ],
+            "on": {
+              "AGAIN": {
+                "actions": [
+                  "spawn_other"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        },
+        "other": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "spawn_other": {
+          "kind": "spawn_child",
+          "src": "other",
+          "id": "kid"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "AGAIN"
+          }
+        }
+      ]
+    },
+    {
+      "name": "sendTo a child by its id and by #_ and its id",
+      "test": "actions/send.ts resolveSendTo: a child id, and #_<id>",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            },
+            "on": {
+              "PING": {
+                "actions": [
+                  "send_plain",
+                  "send_hash"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "send_plain": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "HELLO",
+            "n": 1
+          }
+        },
+        "send_hash": {
+          "kind": "send_to",
+          "target": "#_kid",
+          "event": {
+            "type": "HELLO",
+            "n": 2
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PING"
+          }
+        }
+      ]
+    },
+    {
+      "name": "sendTo with an id and a delay, by number and by name",
+      "test": "actions/send.ts resolveSendTo: params {to, targetId, event, id, delay}",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            },
+            "on": {
+              "PING": {
+                "actions": [
+                  "send_later",
+                  "send_named",
+                  "send_unknown"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "delays": {
+        "short": 10
+      },
+      "actions": {
+        "send_later": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "LATER"
+          },
+          "id": "later",
+          "delay": 100
+        },
+        "send_named": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "NAMED"
+          },
+          "delay": "short"
+        },
+        "send_unknown": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "NOW"
+          },
+          "delay": "unknown"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PING"
+          }
+        }
+      ]
+    },
+    {
+      "name": "sendTo the machine itself and its parent",
+      "test": "actions/send.ts resolveSendTo: #_internal and #_parent",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "PING": {
+                "actions": [
+                  "send_self",
+                  "send_parent"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "send_self": {
+          "kind": "send_to",
+          "target": "#_internal",
+          "event": {
+            "type": "SELF"
+          }
+        },
+        "send_parent": {
+          "kind": "send_to",
+          "target": "#_parent",
+          "event": {
+            "type": "UP"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PING"
+          }
+        }
+      ]
+    },
+    {
+      "name": "sendTo a child that does not exist fails the macrostep",
+      "test": "actions/send.ts resolveSendTo: Unable to send event to actor",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "PING": {
+                "actions": [
+                  "send_nope"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "send_nope": {
+          "kind": "send_to",
+          "target": "nope",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PING"
+          }
+        }
+      ]
+    },
+    {
+      "name": "sendTo #_ and a child that does not exist fails the macrostep",
+      "test": "actions/send.ts resolveSendTo: #_<id> reads only the children",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "PING": {
+                "actions": [
+                  "send_nope"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "send_nope": {
+          "kind": "send_to",
+          "target": "#_nope",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PING"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an entry sendTo to its own state's invoke resolves before the spawn",
+      "test": "stateUtils.ts enterStates: deferredActorIds are the entered state's invoke ids",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              "send_kid"
+            ],
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "send_kid": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an initial entry sendTo to its own state's invoke resolves",
+      "test": "stateUtils.ts enterStates: deferredActorIds in the initial microstep",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": [
+              "send_kid"
+            ],
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "send_kid": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "an entry sendTo with #_ to its own state's invoke fails",
+      "test": "actions/send.ts resolveSendTo: #_<id> never reads deferredActorIds",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              "send_kid"
+            ],
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "send_kid": {
+          "kind": "send_to",
+          "target": "#_kid",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a transition's sendTo to its target's invoke fails",
+      "test": "stateUtils.ts microstep: transition actions resolve before enterStates",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": {
+                "target": "b",
+                "actions": [
+                  "send_kid"
+                ]
+              }
+            }
+          },
+          "b": {
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "send_kid": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a parent's entry sendTo to a child state's invoke fails",
+      "test": "stateUtils.ts enterStates: deferredActorIds hold only the entered state's own invokes",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "p"
+            }
+          },
+          "p": {
+            "entry": [
+              "send_kid"
+            ],
+            "initial": "q",
+            "states": {
+              "q": {
+                "invoke": {
+                  "src": "child",
+                  "id": "kid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "send_kid": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a child state's entry sendTo to its parent's invoke resolves",
+      "test": "stateUtils.ts enterStates: the ancestor's spawn was resolved first",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "p"
+            }
+          },
+          "p": {
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            },
+            "initial": "q",
+            "states": {
+              "q": {
+                "entry": [
+                  "send_kid"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "send_kid": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an exit sendTo to its own state's invoke comes before the stop",
+      "test": "stateUtils.ts exitStates: exit actions, then stopChild",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "exit": [
+              "send_kid"
+            ],
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            },
+            "on": {
+              "GO": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "send_kid": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "BYE"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a sendTo after a spawn of the same actions finds the child",
+      "test": "stateUtils.ts resolveActionsAndContext: each action sees the snapshot the earlier left",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": {
+                "actions": [
+                  "spawn_kid",
+                  "send_kid"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "spawn_kid": {
+          "kind": "spawn_child",
+          "src": "child",
+          "id": "kid"
+        },
+        "send_kid": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a sendTo before a spawn of the same actions fails",
+      "test": "actions/send.ts resolveSendTo: deferredActorIds are invoke ids only",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": {
+                "actions": [
+                  "send_kid",
+                  "spawn_kid"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "spawn_kid": {
+          "kind": "spawn_child",
+          "src": "child",
+          "id": "kid"
+        },
+        "send_kid": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "forwardTo sends the microstep's event to a child",
+      "test": "actions/send.ts forwardTo: sendTo(target, ({ event }) => event)",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            },
+            "on": {
+              "FWD": {
+                "actions": [
+                  "forward",
+                  "forward_later"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "forward": {
+          "kind": "forward_to",
+          "target": "kid"
+        },
+        "forward_later": {
+          "kind": "forward_to",
+          "target": "kid",
+          "id": "f",
+          "delay": 5
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FWD",
+            "x": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "forwardTo a child that does not exist fails",
+      "test": "actions/send.ts forwardTo resolves its target as sendTo does",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "FWD": {
+                "actions": [
+                  "forward"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "forward": {
+          "kind": "forward_to",
+          "target": "kid"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FWD"
+          }
+        }
+      ]
+    },
+    {
+      "name": "emit returns its event",
+      "test": "actions/emit.ts resolveEmit: params {event}",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "entry": [
+          "emit_hello"
+        ],
+        "states": {
+          "a": {
+            "on": {
+              "GO": {
+                "actions": [
+                  "emit_go"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "emit_hello": {
+          "kind": "emit",
+          "event": {
+            "type": "HELLO"
+          }
+        },
+        "emit_go": {
+          "kind": "emit",
+          "event": {
+            "type": "WENT",
+            "n": 1
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "stopChild of an invoked child leaves its state's stop without one",
+      "test": "actions/stopChild.ts resolveStop: an id the children do not hold is no error",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            },
+            "on": {
+              "STOP": {
+                "actions": [
+                  "stop_kid"
+                ]
+              },
+              "LEAVE": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "stop_kid": {
+          "kind": "stop_child",
+          "id": "kid"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "STOP"
+          }
+        },
+        {
+          "send": {
+            "type": "LEAVE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a spawned child is stopped when the machine is done",
+      "test": "stateUtils.ts macrostep: stopChildren stops spawned and invoked children alike",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": {
+                "target": "f",
+                "actions": [
+                  "spawn_kid"
+                ]
+              }
+            }
+          },
+          "f": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "spawn_kid": {
+          "kind": "spawn_child",
+          "src": "child",
+          "id": "kid",
+          "input": {
+            "n": 1
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "actions.test.ts > sendTo, sendParent, forwardTo, stopChild",
+      "reason": "deliver events to running children; ported with the actor cases, fixtures/actors/cases/actions.json, test by test: the tests of actions.test.ts's sendTo and forwardTo() are listed there, ported or excluded with their own reasons, except sendTo's self-event handler test, which fixtures/cases/actions.json excludes, as it does sendParent's one test, a TypeScript compile check"
+    },
+    {
+      "test": "a spawnChild without an id",
+      "reason": "the difference 'A spawned child without an id' (doc: #differences-spawn-id): XState keys the child \"undefined\" and a stopChild then leaves that key, where xstate's spawn_child_action requires an id, and the vocabulary's spawn_child takes one; it would need xstate to accept a spawnChild without an id and key its child as XState does"
+    }
+  ]
+}

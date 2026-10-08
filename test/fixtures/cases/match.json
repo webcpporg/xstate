@@ -1,0 +1,53 @@
+{
+  "source": "match.test.ts",
+  "cases": [
+    {
+      "name": "matches on a snapshot's parent state value",
+      "test": "match.test.ts > matches() method > should execute matchesState on a State given the parent state value",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "initial": "bar",
+            "states": {
+              "bar": {
+                "initial": "baz",
+                "states": {
+                  "baz": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "matches": "foo"
+          }
+        },
+        {
+          "query": {
+            "matches": {
+              "foo": "bar"
+            }
+          }
+        },
+        {
+          "query": {
+            "matches": "fake"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "match.test.ts > matchesState() > (12 tests)",
+      "reason": "pure value tests of matchesState(parentStateValue, childStateValue) with no machine, ported one row per expect() (24 rows) as match_rows in test/xstate/values_test.cpp (xstate-values), which calls xstate::matches_state on the test's own values; a case could reach matchesState only through a query's snapshot.matches(v), whose child is a machine's snapshot value and so never a dotted string path such as 'b.b1' or 'a.b', which 7 of the 24 rows pass as the child"
+    }
+  ]
+}

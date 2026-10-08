@@ -1,0 +1,502 @@
+{
+  "source": "deep.test.ts",
+  "cases": [
+    {
+      "name": "exit all substates when superstate exits",
+      "test": "deep.test.ts > deep transitions > exiting super/substates > should exit all substates when superstates exits",
+      "machine": {
+        "id": "root",
+        "initial": "A",
+        "states": {
+          "DONE": {
+            "entry": "enter: DONE"
+          },
+          "FAIL": {},
+          "A": {
+            "on": {
+              "A_EVENT": "#root.DONE"
+            },
+            "exit": "exit: A",
+            "initial": "B",
+            "states": {
+              "B": {
+                "exit": "exit: A.B",
+                "initial": "C",
+                "states": {
+                  "C": {
+                    "exit": "exit: A.B.C",
+                    "initial": "D",
+                    "states": {
+                      "D": {
+                        "exit": "exit: A.B.C.D"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "A_EVENT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exit substates and superstates on B_EVENT",
+      "test": "deep.test.ts > deep transitions > exiting super/substates > should exit substates and superstates when exiting (B_EVENT)",
+      "machine": {
+        "id": "root",
+        "initial": "A",
+        "states": {
+          "DONE": {
+            "entry": "enter: DONE"
+          },
+          "A": {
+            "exit": "exit: A",
+            "initial": "B",
+            "states": {
+              "B": {
+                "on": {
+                  "B_EVENT": "#root.DONE"
+                },
+                "exit": "exit: A.B",
+                "initial": "C",
+                "states": {
+                  "C": {
+                    "exit": "exit: A.B.C",
+                    "initial": "D",
+                    "states": {
+                      "D": {
+                        "exit": "exit: A.B.C.D"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "B_EVENT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exit substates and superstates on C_EVENT",
+      "test": "deep.test.ts > deep transitions > exiting super/substates > should exit substates and superstates when exiting (C_EVENT)",
+      "machine": {
+        "id": "root",
+        "initial": "A",
+        "states": {
+          "DONE": {
+            "entry": "enter: DONE"
+          },
+          "A": {
+            "exit": "exit: A",
+            "initial": "B",
+            "states": {
+              "B": {
+                "exit": "exit: A.B",
+                "initial": "C",
+                "states": {
+                  "C": {
+                    "on": {
+                      "C_EVENT": "#root.DONE"
+                    },
+                    "exit": "exit: A.B.C",
+                    "initial": "D",
+                    "states": {
+                      "D": {
+                        "exit": "exit: A.B.C.D"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "C_EVENT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exit superstates on D_EVENT",
+      "test": "deep.test.ts > deep transitions > exiting super/substates > should exit superstates when exiting (D_EVENT)",
+      "machine": {
+        "id": "root",
+        "initial": "A",
+        "states": {
+          "DONE": {
+            "entry": "enter: DONE"
+          },
+          "A": {
+            "exit": "exit: A",
+            "initial": "B",
+            "states": {
+              "B": {
+                "exit": "exit: A.B",
+                "initial": "C",
+                "states": {
+                  "C": {
+                    "exit": "exit: A.B.C",
+                    "initial": "D",
+                    "states": {
+                      "D": {
+                        "on": {
+                          "D_EVENT": "#root.DONE"
+                        },
+                        "exit": "exit: A.B.C.D"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "D_EVENT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exit substate on machine-level event",
+      "test": "deep.test.ts > deep transitions > exiting super/substates > should exit substate when machine handles event (MACHINE_EVENT)",
+      "machine": {
+        "id": "deep",
+        "initial": "A",
+        "on": {
+          "MACHINE_EVENT": "#deep.DONE"
+        },
+        "states": {
+          "DONE": {
+            "entry": "enter: DONE"
+          },
+          "A": {
+            "exit": "exit: A",
+            "initial": "B",
+            "states": {
+              "B": {
+                "exit": "exit: A.B",
+                "initial": "C",
+                "states": {
+                  "C": {
+                    "exit": "exit: A.B.C",
+                    "initial": "D",
+                    "states": {
+                      "D": {
+                        "exit": "exit: A.B.C.D"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "MACHINE_EVENT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exit deep and enter deep on A_S",
+      "test": "deep.test.ts > deep transitions > exiting super/substates > should exit deep and enter deep (A_S)",
+      "machine": {
+        "id": "root",
+        "initial": "A",
+        "states": {
+          "A": {
+            "on": {
+              "A_S": "#root.P.Q.R.S"
+            },
+            "exit": "exit: A",
+            "initial": "B",
+            "states": {
+              "B": {
+                "exit": "exit: A.B",
+                "initial": "C",
+                "states": {
+                  "C": {
+                    "exit": "exit: A.B.C",
+                    "initial": "D",
+                    "states": {
+                      "D": {
+                        "exit": "exit: A.B.C.D"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "P": {
+            "entry": "enter: P",
+            "initial": "Q",
+            "states": {
+              "Q": {
+                "entry": "enter: P.Q",
+                "initial": "R",
+                "states": {
+                  "R": {
+                    "entry": "enter: P.Q.R",
+                    "initial": "S",
+                    "states": {
+                      "S": {
+                        "entry": "enter: P.Q.R.S"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "A_S"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exit deep and enter deep on D_P",
+      "test": "deep.test.ts > deep transitions > exiting super/substates > should exit deep and enter deep (D_P)",
+      "machine": {
+        "id": "deep",
+        "initial": "A",
+        "states": {
+          "A": {
+            "exit": "exit: A",
+            "initial": "B",
+            "states": {
+              "B": {
+                "exit": "exit: A.B",
+                "initial": "C",
+                "states": {
+                  "C": {
+                    "exit": "exit: A.B.C",
+                    "initial": "D",
+                    "states": {
+                      "D": {
+                        "on": {
+                          "D_P": "#deep.P"
+                        },
+                        "exit": "exit: A.B.C.D"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "P": {
+            "entry": "enter: P",
+            "initial": "Q",
+            "states": {
+              "Q": {
+                "entry": "enter: P.Q",
+                "initial": "R",
+                "states": {
+                  "R": {
+                    "entry": "enter: P.Q.R",
+                    "initial": "S",
+                    "states": {
+                      "S": {
+                        "entry": "enter: P.Q.R.S"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "D_P"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exit deep and enter deep targeting an ancestor (A_P)",
+      "test": "deep.test.ts > deep transitions > exiting super/substates > should exit deep and enter deep when targeting an ancestor of the final resolved deep target",
+      "machine": {
+        "id": "root",
+        "initial": "A",
+        "states": {
+          "A": {
+            "on": {
+              "A_P": "#root.P"
+            },
+            "exit": "exit: A",
+            "initial": "B",
+            "states": {
+              "B": {
+                "exit": "exit: A.B",
+                "initial": "C",
+                "states": {
+                  "C": {
+                    "exit": "exit: A.B.C",
+                    "initial": "D",
+                    "states": {
+                      "D": {
+                        "exit": "exit: A.B.C.D"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "P": {
+            "entry": "enter: P",
+            "initial": "Q",
+            "states": {
+              "Q": {
+                "entry": "enter: P.Q",
+                "initial": "R",
+                "states": {
+                  "R": {
+                    "entry": "enter: P.Q.R",
+                    "initial": "S",
+                    "states": {
+                      "S": {
+                        "entry": "enter: P.Q.R.S"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "A_P"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exit deep and enter deep targeting a deep state (D_S)",
+      "test": "deep.test.ts > deep transitions > exiting super/substates > should exit deep and enter deep when targeting a deep state",
+      "machine": {
+        "id": "root",
+        "initial": "A",
+        "states": {
+          "A": {
+            "exit": "exit: A",
+            "initial": "B",
+            "states": {
+              "B": {
+                "exit": "exit: A.B",
+                "initial": "C",
+                "states": {
+                  "C": {
+                    "exit": "exit: A.B.C",
+                    "initial": "D",
+                    "states": {
+                      "D": {
+                        "on": {
+                          "D_S": "#root.P.Q.R.S"
+                        },
+                        "exit": "exit: A.B.C.D"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "P": {
+            "entry": "enter: P",
+            "initial": "Q",
+            "states": {
+              "Q": {
+                "entry": "enter: P.Q",
+                "initial": "R",
+                "states": {
+                  "R": {
+                    "entry": "enter: P.Q.R",
+                    "initial": "S",
+                    "states": {
+                      "S": {
+                        "entry": "enter: P.Q.R.S"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "D_S"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

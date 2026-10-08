@@ -1,0 +1,666 @@
+{
+  "source": "XState's input, output and spawnChild id functions, through the pure functions",
+  "cases": [
+    {
+      "name": "an invoke's input is computed from the context its state's entry actions left",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.idle"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "idle": {
+            "id": "m.idle",
+            "key": "idle",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.idle",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "GO": [
+                {
+                  "target": [
+                    "#m.busy"
+                  ],
+                  "actions": [],
+                  "source": "#m.idle",
+                  "reenter": false,
+                  "eventType": "GO"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#m.busy"
+                ],
+                "actions": [],
+                "source": "#m.idle",
+                "reenter": false,
+                "eventType": "GO"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "busy": {
+            "id": "m.busy",
+            "key": "busy",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.busy",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "increment",
+                "params": {
+                  "key": "count"
+                }
+              }
+            ],
+            "exit": [],
+            "order": 2,
+            "invoke": [
+              {
+                "src": "child",
+                "id": "kid",
+                "type": "xstate.invoke"
+              }
+            ],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "idle",
+                "context": {
+                  "count": 1
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.idle"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "GO"
+              },
+              "transitions": [
+                {
+                  "source": "#m.idle",
+                  "eventType": "GO",
+                  "target": [
+                    "#m.busy"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "src": "child",
+                    "input": {
+                      "total": 102,
+                      "why": "GO"
+                    }
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "busy",
+                "context": {
+                  "count": 2
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.busy"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a final state's output is computed from the context and the event that entered it",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#m.a.inner"
+              ],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "inner": {
+                "id": "m.a.inner",
+                "key": "inner",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#m.a.inner",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "DONE": [
+                    {
+                      "target": [
+                        "#m.a.end"
+                      ],
+                      "actions": [],
+                      "source": "#m.a.inner",
+                      "reenter": false,
+                      "eventType": "DONE"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#m.a.end"
+                    ],
+                    "actions": [],
+                    "source": "#m.a.inner",
+                    "reenter": false,
+                    "eventType": "DONE"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "end": {
+                "id": "m.a.end",
+                "key": "end",
+                "type": "final",
+                "initial": {
+                  "target": [],
+                  "source": "#m.a.end",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "xstate.done.state.m.a": [
+                {
+                  "actions": [
+                    {
+                      "type": "set_from_event",
+                      "params": {
+                        "key": "revealed",
+                        "from": "output.secret"
+                      }
+                    }
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "xstate.done.state.m.a"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  {
+                    "type": "set_from_event",
+                    "params": {
+                      "key": "revealed",
+                      "from": "output.secret"
+                    }
+                  }
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "xstate.done.state.m.a"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "a": "inner"
+                },
+                "context": {
+                  "secret": "x"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a",
+                  "m.a.inner"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "DONE"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a.inner",
+                  "eventType": "DONE",
+                  "target": [
+                    "#m.a.end"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "a": "end"
+                },
+                "context": {
+                  "secret": "x"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a",
+                  "m.a.end"
+                ]
+              }
+            },
+            {
+              "event": {
+                "type": "xstate.done.state.m.a",
+                "output": {
+                  "secret": "x-DONE"
+                }
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "xstate.done.state.m.a"
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "a": "end"
+                },
+                "context": {
+                  "secret": "x",
+                  "revealed": "x-DONE"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a",
+                  "m.a.end"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the machine's output is computed from the done event of the final state that completed it",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "FIN": [
+                {
+                  "target": [
+                    "#m.end"
+                  ],
+                  "actions": [],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "FIN"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#m.end"
+                ],
+                "actions": [],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "FIN"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "end": {
+            "id": "m.end",
+            "key": "end",
+            "type": "final",
+            "initial": {
+              "target": [],
+              "source": "#m.end",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {
+                  "n": 2
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "FIN"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "FIN",
+                  "target": [
+                    "#m.end"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "end",
+                "context": {
+                  "n": 2
+                },
+                "status": "done",
+                "tags": [],
+                "nodes": [
+                  "m.end",
+                  "m"
+                ],
+                "output": {
+                  "total": 20,
+                  "kind": "xstate.done.state.m.end"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a spawnChild's id is computed from the context",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "atomic",
+        "initial": {
+          "target": [],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {},
+        "on": {
+          "GO": [
+            {
+              "actions": [
+                "spawn"
+              ],
+              "source": "#m",
+              "reenter": false,
+              "eventType": "GO"
+            }
+          ]
+        },
+        "transitions": [
+          {
+            "actions": [
+              "spawn"
+            ],
+            "source": "#m",
+            "reenter": false,
+            "eventType": "GO"
+          }
+        ],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {},
+                "context": {
+                  "n": 7
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "GO"
+              },
+              "transitions": [
+                {
+                  "source": "#m",
+                  "eventType": "GO"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid-7",
+                    "src": "child"
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": {},
+                "context": {
+                  "n": 7
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m"
+                ],
+                "children": {
+                  "kid-7": "child"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

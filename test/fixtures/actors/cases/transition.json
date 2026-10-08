@@ -1,0 +1,69 @@
+{
+  "source": "transition.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "a workflow of two invoked promises ends in finish",
+      "test": "transition.test.ts > transition function > serverless workflow example (experimental) (as an actor: the two promises are host actors settled by steps, the second with null for its undefined; driving the machine by hand with initialTransition and transition, the snapshot persisted as JSON and restored with resolveState, and toPromise are not ported)",
+      "machine": {
+        "initial": "sendingWelcomeEmail",
+        "states": {
+          "sendingWelcomeEmail": {
+            "invoke": {
+              "src": "sendWelcomeEmail",
+              "input": {
+                "message": "hello world",
+                "subject": "hi"
+              },
+              "onDone": "logSent"
+            }
+          },
+          "logSent": {
+            "invoke": {
+              "src": "logSentPromise",
+              "onDone": "finish"
+            }
+          },
+          "finish": {}
+        }
+      },
+      "actors": {
+        "sendWelcomeEmail": {
+          "kind": "host"
+        },
+        "logSentPromise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "sendWelcomeEmail",
+            "output": {
+              "status": "sent"
+            }
+          }
+        },
+        {
+          "send": {
+            "type": "sent"
+          }
+        },
+        {
+          "resolve": {
+            "src": "logSentPromise",
+            "output": null
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "transition.test.ts > transition function > sendTo action should be returned",
+      "reason": "ported with the core cases, fixtures/cases/transition.json: the test asserts the action objects that initialTransition and transition return, which only the core's record holds"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+# The examples that have no twin, each with the reason XState has no
+# counterpart for it. Every other program of example/xstate and
+# example/actors has its twin beside this file (twins.py).
+actors/actors_fuel: XState has no fuel and no resume
+actors/gl_fuel: XState has no fuel and no resume
+actors/testing_fuel: XState has no fuel to run an actor under every budget
+xstate/io_refused: XState computes inputs and outputs with functions in the config; it has no registry by invoke id or state id to refuse
+xstate/machines_reload: XState cannot create a machine from the definition machine.toJSON() writes
+xstate/pure_begin_initial: XState has no macrostep cursor
+xstate/pure_cursor: XState has no macrostep cursor
+xstate/pure_fuel: XState has no macrostep cursor and no fuel
+xstate/testing_resume: XState has no macrostep cursor to stop and resume
+xstate/transitions_event_json: XState takes an event as an object and reads none from JSON

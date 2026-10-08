@@ -1,0 +1,1062 @@
+{
+  "source": "transient.test.ts",
+  "cases": [
+    {
+      "name": "first candidate guard matches, data false (1)",
+      "test": "transient.test.ts > transient states (eventless transitions) > should choose the first candidate target that matches the guard 1",
+      "machine": {
+        "context": {
+          "data": false
+        },
+        "initial": "G",
+        "states": {
+          "G": {
+            "on": {
+              "UPDATE_BUTTON_CLICKED": "E"
+            }
+          },
+          "E": {
+            "always": [
+              {
+                "target": "D",
+                "guard": {
+                  "type": "context_equals",
+                  "params": {
+                    "key": "data",
+                    "value": false
+                  }
+                }
+              },
+              {
+                "target": "F"
+              }
+            ]
+          },
+          "D": {},
+          "F": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "UPDATE_BUTTON_CLICKED"
+          }
+        }
+      ]
+    },
+    {
+      "name": "first candidate guard matches, data false (2)",
+      "test": "transient.test.ts > transient states (eventless transitions) > should choose the first candidate target that matches the guard 2",
+      "machine": {
+        "context": {
+          "data": false
+        },
+        "initial": "G",
+        "states": {
+          "G": {
+            "on": {
+              "UPDATE_BUTTON_CLICKED": "E"
+            }
+          },
+          "E": {
+            "always": [
+              {
+                "target": "D",
+                "guard": {
+                  "type": "context_equals",
+                  "params": {
+                    "key": "data",
+                    "value": false
+                  }
+                }
+              },
+              {
+                "target": "F"
+              }
+            ]
+          },
+          "D": {},
+          "F": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "UPDATE_BUTTON_CLICKED"
+          }
+        }
+      ]
+    },
+    {
+      "name": "final candidate without a guard, data true",
+      "test": "transient.test.ts > transient states (eventless transitions) > should choose the final candidate without a guard if none others match",
+      "machine": {
+        "context": {
+          "data": true
+        },
+        "initial": "G",
+        "states": {
+          "G": {
+            "on": {
+              "UPDATE_BUTTON_CLICKED": "E"
+            }
+          },
+          "E": {
+            "always": [
+              {
+                "target": "D",
+                "guard": {
+                  "type": "context_equals",
+                  "params": {
+                    "key": "data",
+                    "value": false
+                  }
+                }
+              },
+              {
+                "target": "F"
+              }
+            ]
+          },
+          "D": {},
+          "F": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "UPDATE_BUTTON_CLICKED"
+          }
+        }
+      ]
+    },
+    {
+      "name": "carries actions across the same step",
+      "test": "transient.test.ts > transient states (eventless transitions) > should carry actions from previous transitions within same step",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "exit": "exit_A",
+            "on": {
+              "TIMER": {
+                "target": "T",
+                "actions": "timer"
+              }
+            }
+          },
+          "T": {
+            "always": [
+              {
+                "target": "B"
+              }
+            ]
+          },
+          "B": {
+            "entry": "enter_B"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "all raised internal events execute one after the other",
+      "test": "transient.test.ts > transient states (eventless transitions) > should execute all internal events one after the other",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "A": {
+            "initial": "A1",
+            "states": {
+              "A1": {
+                "on": {
+                  "E": "A2"
+                }
+              },
+              "A2": {
+                "entry": "raiseInt1"
+              }
+            }
+          },
+          "B": {
+            "initial": "B1",
+            "states": {
+              "B1": {
+                "on": {
+                  "E": "B2"
+                }
+              },
+              "B2": {
+                "entry": "raiseInt2"
+              }
+            }
+          },
+          "C": {
+            "initial": "C1",
+            "states": {
+              "C1": {
+                "on": {
+                  "INT1": "C2",
+                  "INT2": "C3"
+                }
+              },
+              "C2": {
+                "on": {
+                  "INT2": "C4"
+                }
+              },
+              "C3": {
+                "on": {
+                  "INT1": "C4"
+                }
+              },
+              "C4": {}
+            }
+          }
+        }
+      },
+      "actions": {
+        "raiseInt1": {
+          "kind": "raise",
+          "event": {
+            "type": "INT1"
+          }
+        },
+        "raiseInt2": {
+          "kind": "raise",
+          "event": {
+            "type": "INT2"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ]
+    },
+    {
+      "name": "all eventless transitions execute in the same microstep",
+      "test": "transient.test.ts > transient states (eventless transitions) > should execute all eventless transitions in the same microstep",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "A": {
+            "initial": "A1",
+            "states": {
+              "A1": {
+                "on": {
+                  "E": "A2"
+                }
+              },
+              "A2": {
+                "always": "A3"
+              },
+              "A3": {
+                "always": {
+                  "target": "A4",
+                  "guard": {
+                    "type": "xstate.stateIn",
+                    "stateValue": {
+                      "B": "B3"
+                    }
+                  }
+                }
+              },
+              "A4": {}
+            }
+          },
+          "B": {
+            "initial": "B1",
+            "states": {
+              "B1": {
+                "on": {
+                  "E": "B2"
+                }
+              },
+              "B2": {
+                "always": {
+                  "target": "B3",
+                  "guard": {
+                    "type": "xstate.stateIn",
+                    "stateValue": {
+                      "A": "A2"
+                    }
+                  }
+                }
+              },
+              "B3": {
+                "always": {
+                  "target": "B4",
+                  "guard": {
+                    "type": "xstate.stateIn",
+                    "stateValue": {
+                      "A": "A3"
+                    }
+                  }
+                }
+              },
+              "B4": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ]
+    },
+    {
+      "name": "checks for automatic transitions even after microsteps are done",
+      "test": "transient.test.ts > transient states (eventless transitions) > should check for automatic transitions even after microsteps are done",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "A": {
+            "initial": "A1",
+            "states": {
+              "A1": {
+                "on": {
+                  "A": "A2"
+                }
+              },
+              "A2": {}
+            }
+          },
+          "B": {
+            "initial": "B1",
+            "states": {
+              "B1": {
+                "always": {
+                  "target": "B2",
+                  "guard": {
+                    "type": "xstate.stateIn",
+                    "stateValue": {
+                      "A": "A2"
+                    }
+                  }
+                }
+              },
+              "B2": {}
+            }
+          },
+          "C": {
+            "initial": "C1",
+            "states": {
+              "C1": {
+                "always": {
+                  "target": "C2",
+                  "guard": {
+                    "type": "xstate.stateIn",
+                    "stateValue": {
+                      "A": "A2"
+                    }
+                  }
+                }
+              },
+              "C2": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "A"
+          }
+        }
+      ]
+    },
+    {
+      "name": "resolved initial state from the transient state",
+      "test": "transient.test.ts > transient states (eventless transitions) > should determine the resolved initial state from the transient state",
+      "machine": {
+        "id": "greeting",
+        "initial": "pending",
+        "context": {
+          "hour": 10
+        },
+        "states": {
+          "pending": {
+            "always": [
+              {
+                "target": "morning",
+                "guard": {
+                  "type": "xstate.not",
+                  "guards": [
+                    {
+                      "type": "context_at_least",
+                      "params": {
+                        "key": "hour",
+                        "value": 12
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "target": "afternoon",
+                "guard": {
+                  "type": "xstate.not",
+                  "guards": [
+                    {
+                      "type": "context_at_least",
+                      "params": {
+                        "key": "hour",
+                        "value": 18
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "target": "evening"
+              }
+            ]
+          },
+          "morning": {},
+          "afternoon": {},
+          "evening": {}
+        },
+        "on": {
+          "CHANGE": {
+            "actions": {
+              "type": "set",
+              "params": {
+                "key": "hour",
+                "value": 20
+              }
+            }
+          },
+          "RECHECK": "#greeting"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "resolved state from an initial transient state, after CHANGE then RECHECK",
+      "test": "transient.test.ts > transient states (eventless transitions) > should determine the resolved state from an initial transient state",
+      "machine": {
+        "id": "greeting",
+        "initial": "pending",
+        "context": {
+          "hour": 10
+        },
+        "states": {
+          "pending": {
+            "always": [
+              {
+                "target": "morning",
+                "guard": {
+                  "type": "xstate.not",
+                  "guards": [
+                    {
+                      "type": "context_at_least",
+                      "params": {
+                        "key": "hour",
+                        "value": 12
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "target": "afternoon",
+                "guard": {
+                  "type": "xstate.not",
+                  "guards": [
+                    {
+                      "type": "context_at_least",
+                      "params": {
+                        "key": "hour",
+                        "value": 18
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "target": "evening"
+              }
+            ]
+          },
+          "morning": {},
+          "afternoon": {},
+          "evening": {}
+        },
+        "on": {
+          "CHANGE": {
+            "actions": {
+              "type": "set",
+              "params": {
+                "key": "hour",
+                "value": 20
+              }
+            }
+          },
+          "RECHECK": "#greeting"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "CHANGE"
+          }
+        },
+        {
+          "send": {
+            "type": "RECHECK"
+          }
+        }
+      ]
+    },
+    {
+      "name": "selects eventless transition before processing a raised event",
+      "test": "transient.test.ts > transient states (eventless transitions) > should select eventless transition before processing raised events",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "FOO": "b"
+            }
+          },
+          "b": {
+            "entry": "raiseBar",
+            "always": "c",
+            "on": {
+              "BAR": "d"
+            }
+          },
+          "c": {
+            "on": {
+              "BAR": "e"
+            }
+          },
+          "d": {},
+          "e": {}
+        }
+      },
+      "actions": {
+        "raiseBar": {
+          "kind": "raise",
+          "event": {
+            "type": "BAR"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FOO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "does not select a wildcard transition for an eventless transition",
+      "test": "transient.test.ts > transient states (eventless transitions) > should not select wildcard for eventless transition",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "FOO": "b"
+            }
+          },
+          "b": {
+            "always": "pass",
+            "on": {
+              "*": "fail"
+            }
+          },
+          "fail": {},
+          "pass": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FOO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "transient transition on the root reaches a final state",
+      "test": "transient.test.ts > transient states (eventless transitions) > should work with transient transition on root",
+      "machine": {
+        "id": "machine",
+        "context": {
+          "count": 0
+        },
+        "initial": "first",
+        "states": {
+          "first": {
+            "on": {
+              "ADD": {
+                "actions": {
+                  "type": "increment",
+                  "params": {
+                    "key": "count"
+                  }
+                }
+              }
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        },
+        "always": [
+          {
+            "target": ".success",
+            "guard": {
+              "type": "context_at_least",
+              "params": {
+                "key": "count",
+                "value": 1
+              }
+            }
+          }
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "ADD"
+          }
+        }
+      ]
+    },
+    {
+      "name": "taken even in absence of other transitions",
+      "test": "transient.test.ts > transient states (eventless transitions) > should be taken even in absence of other transitions",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "always": {
+              "target": "b",
+              "guard": {
+                "type": "event_equals",
+                "params": {
+                  "key": "type",
+                  "value": "WHATEVER"
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "WHATEVER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "selects subsequent transient transitions even in absence of other transitions",
+      "test": "transient.test.ts > transient states (eventless transitions) > should select subsequent transient transitions even in absence of other transitions",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "always": {
+              "target": "b",
+              "guard": {
+                "type": "event_equals",
+                "params": {
+                  "key": "type",
+                  "value": "WHATEVER"
+                }
+              }
+            }
+          },
+          "b": {
+            "always": {
+              "target": "c"
+            }
+          },
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "WHATEVER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "preserves the triggering event in an eventless transition's guard",
+      "test": "transient.test.ts > transient states (eventless transitions) > events that trigger eventless transitions should be preserved in guards",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": "b"
+            }
+          },
+          "b": {
+            "always": "c"
+          },
+          "c": {
+            "always": {
+              "guard": {
+                "type": "event_equals",
+                "params": {
+                  "key": "type",
+                  "value": "EVENT"
+                }
+              },
+              "target": "d"
+            }
+          },
+          "d": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "no infinite loop, false-guarded fallback candidate is skipped",
+      "test": "transient.test.ts > transient states (eventless transitions) > shouldn't end up in an infinite loop when selecting the fallback target",
+      "machine": {
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "on": {
+              "event": "active"
+            }
+          },
+          "active": {
+            "initial": "a",
+            "states": {
+              "a": {},
+              "b": {}
+            },
+            "always": [
+              {
+                "target": ".b"
+              }
+            ]
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "event"
+          }
+        }
+      ]
+    },
+    {
+      "name": "no infinite loop, a true-guarded first candidate is chosen",
+      "test": "transient.test.ts > transient states (eventless transitions) > shouldn't end up in an infinite loop when selecting a guarded target",
+      "machine": {
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "on": {
+              "event": "active"
+            }
+          },
+          "active": {
+            "initial": "a",
+            "states": {
+              "a": {},
+              "b": {}
+            },
+            "always": [
+              {
+                "target": ".a"
+              },
+              {
+                "target": ".b"
+              }
+            ]
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "event"
+          }
+        }
+      ]
+    },
+    {
+      "name": "fire-and-forget action that does not change state runs exactly once",
+      "test": "transient.test.ts > transient states (eventless transitions) > shouldn't end up in an infinite loop when executing a fire-and-forget action that doesn't change state",
+      "machine": {
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "on": {
+              "event": "active"
+            }
+          },
+          "active": {
+            "initial": "a",
+            "states": {
+              "a": {}
+            },
+            "always": [
+              {
+                "actions": "tick",
+                "target": ".a"
+              }
+            ]
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "event"
+          }
+        }
+      ]
+    },
+    {
+      "name": "loops but not infinitely for assign actions",
+      "test": "transient.test.ts > transient states (eventless transitions) > should loop (but not infinitely) for assign actions",
+      "machine": {
+        "context": {
+          "count": 0
+        },
+        "initial": "counting",
+        "states": {
+          "counting": {
+            "always": {
+              "guard": {
+                "type": "xstate.not",
+                "guards": [
+                  {
+                    "type": "context_at_least",
+                    "params": {
+                      "key": "count",
+                      "value": 5
+                    }
+                  }
+                ]
+              },
+              "actions": {
+                "type": "increment",
+                "params": {
+                  "key": "count"
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "preserves the triggering event in an eventless transition's actions",
+      "test": "transient.test.ts > transient states (eventless transitions) > events that trigger eventless transitions should be preserved in actions (each action's expect on the event as a push of {action, event} into context.seen, so that expect.assertions(3) shows as exactly one entry per action)",
+      "machine": {
+        "initial": "a",
+        "context": {
+          "seen": []
+        },
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": "b"
+            }
+          },
+          "b": {
+            "always": {
+              "target": "c",
+              "actions": {
+                "type": "push",
+                "params": {
+                  "key": "seen",
+                  "value": {
+                    "action": "always",
+                    "event": {
+                      "$event": ""
+                    }
+                  }
+                }
+              }
+            },
+            "exit": {
+              "type": "push",
+              "params": {
+                "key": "seen",
+                "value": {
+                  "action": "exit",
+                  "event": {
+                    "$event": ""
+                  }
+                }
+              }
+            }
+          },
+          "c": {
+            "entry": {
+              "type": "push",
+              "params": {
+                "key": "seen",
+                "value": {
+                  "action": "entry",
+                  "event": {
+                    "$event": ""
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT",
+            "value": 42
+          }
+        }
+      ]
+    },
+    {
+      "name": "an always transition runs again after a raised transition that changes nothing",
+      "test": "transient.test.ts > transient states (eventless transitions) > should execute an always transition after a raised transition even if that raised transition doesn't change the state (the spy as the custom action spy and the external counter's increment as the custom action incrementCounter, so that the RAISED transition changes nothing; the spy's calls [0] and [1] as spy running once in response to EV, before incrementCounter, and once in response to RAISED, after it)",
+      "machine": {
+        "always": {
+          "actions": "spy"
+        },
+        "on": {
+          "EV": {
+            "actions": "raiseRaised"
+          },
+          "RAISED": {
+            "actions": "incrementCounter"
+          }
+        }
+      },
+      "actions": {
+        "raiseRaised": {
+          "kind": "raise",
+          "event": {
+            "type": "RAISED"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EV"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "transient.test.ts > transient states (eventless transitions) > shouldn't crash when invoking a machine with initial transient transition depending on custom data",
+      "reason": "ported with the actor cases, fixtures/actors/cases/transient.json"
+    },
+    {
+      "test": "transient.test.ts > transient states (eventless transitions) > should avoid infinite loops with eventless transitions",
+      "reason": "the a -> b -> c -> a cycle of eventless transitions is stopped only by XState's options.maxIterations (100 here; its default is Infinity, so without it XState never returns from start), and xstate has no such bound by design: a cycle never settles and the caller's fuel is the only bound (doc: #xstate-invariant-8), so its case harness writes unsettled_after where XState writes the start step's error. It would need a maxIterations option in xstate's machine config that fails the macrostep with an error code of its own"
+    },
+    {
+      "test": "transient.test.ts > transient states (eventless transitions) > should avoid infinite loops with raised events",
+      "reason": "same as the eventless cycle: the a -> b (entry raise EVENT) -> c -> a cycle is stopped only by XState's options.maxIterations (100 here, Infinity by default), which xstate does not have (a cycle never settles and the caller's fuel is the only bound, doc: #xstate-invariant-8). It would need a maxIterations option in xstate's machine config that fails the macrostep with an error code of its own"
+    }
+  ]
+}

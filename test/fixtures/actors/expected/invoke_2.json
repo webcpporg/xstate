@@ -1,0 +1,355 @@
+{
+  "source": "invoke.test.ts (lines 415 to 757)",
+  "cases": [
+    {
+      "name": "a child invoked by the root answers the sendTo of the initial state's entry and its parent completes",
+      "steps": [
+        {
+          "actors": {
+            "root/foo-child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "one",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.one"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "NEXT"
+                  },
+                  "snapshot": {
+                    "value": "two",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.two"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "one",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.one"
+                    ],
+                    "children": {
+                      "foo-child": "subMachine"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "NEXT"
+                  },
+                  "snapshot": {
+                    "value": "two",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "parent.two",
+                      "parent"
+                    ],
+                    "children": {
+                      "foo-child": "subMachine"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/foo-child": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child invoked by the initial state answers the sendTo of that state's entry and its parent completes",
+      "steps": [
+        {
+          "actors": {
+            "root/foo-child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "one",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.one"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "NEXT"
+                  },
+                  "snapshot": {
+                    "value": "two",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.two"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "one",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.one"
+                    ],
+                    "children": {
+                      "foo-child": "subMachine"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "NEXT"
+                  },
+                  "snapshot": {
+                    "value": "two",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "parent.two",
+                      "parent"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/foo-child": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child that the entry's sendTo takes to its final state moves its parent on by onDone at start",
+      "steps": [
+        {
+          "actors": {
+            "root/foo-child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "one",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.one"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "NEXT"
+                  },
+                  "snapshot": {
+                    "value": "two",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "child.two",
+                      "child"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "one",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.one"
+                    ],
+                    "children": {
+                      "foo-child": "doneSubMachine"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.done.actor.foo-child",
+                    "actorId": "foo-child"
+                  },
+                  "snapshot": {
+                    "value": "two",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.two"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/foo-child": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child invoked in a region of a parallel root finishes with its output and the guarded onDone completes the root",
+      "steps": [
+        {
+          "actors": {
+            "root/pong": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "pong.active",
+                      "pong"
+                    ],
+                    "output": {
+                      "secret": "pingpong"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "one": "active"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "ping",
+                      "ping.one",
+                      "ping.one.active"
+                    ],
+                    "children": {
+                      "pong": "pongMachine"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.done.actor.pong",
+                    "output": {
+                      "secret": "pingpong"
+                    },
+                    "actorId": "pong"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "one": "success"
+                    },
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "ping.one.success",
+                      "ping.one",
+                      "ping"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/pong": "done"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

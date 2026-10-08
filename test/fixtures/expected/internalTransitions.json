@@ -1,0 +1,2053 @@
+{
+  "source": "internalTransitions.test.ts",
+  "cases": [
+    {
+      "name": "child transition does not re-enter parent",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).foo"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "foo": {
+            "id": "(machine).foo",
+            "key": "foo",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).foo.a"
+              ],
+              "source": "#(machine).foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "a": {
+                "id": "(machine).foo.a",
+                "key": "a",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).foo.a",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [
+                  {
+                    "type": "exitA"
+                  }
+                ],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "b": {
+                "id": "(machine).foo.b",
+                "key": "b",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).foo.b",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [
+                  {
+                    "type": "enterB"
+                  }
+                ],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "CLICK": [
+                {
+                  "target": [
+                    "#(machine).foo.b"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).foo",
+                  "reenter": false,
+                  "eventType": "CLICK"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).foo.b"
+                ],
+                "actions": [],
+                "source": "#(machine).foo",
+                "reenter": false,
+                "eventType": "CLICK"
+              }
+            ],
+            "entry": [
+              {
+                "type": "enterFoo"
+              }
+            ],
+            "exit": [
+              {
+                "type": "exitFoo"
+              }
+            ],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "enterFoo"
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "foo": "a"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo",
+                  "(machine).foo.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "CLICK"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).foo",
+                  "eventType": "CLICK",
+                  "target": [
+                    "#(machine).foo.b"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exitA"
+                },
+                {
+                  "type": "enterB"
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "foo": "b"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo",
+                  "(machine).foo.b"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "query": {
+            "matches": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "reentering transition re-enters parent and child",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).foo"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "foo": {
+            "id": "(machine).foo",
+            "key": "foo",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).foo.left"
+              ],
+              "source": "#(machine).foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "left": {
+                "id": "(machine).foo.left",
+                "key": "left",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).foo.left",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [
+                  {
+                    "type": "exitLeft"
+                  }
+                ],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "right": {
+                "id": "(machine).foo.right",
+                "key": "right",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).foo.right",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [
+                  {
+                    "type": "enterRight"
+                  }
+                ],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "NEXT": [
+                {
+                  "target": [
+                    "#(machine).foo.right"
+                  ],
+                  "reenter": true,
+                  "actions": [],
+                  "source": "#(machine).foo",
+                  "eventType": "NEXT"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).foo.right"
+                ],
+                "reenter": true,
+                "actions": [],
+                "source": "#(machine).foo",
+                "eventType": "NEXT"
+              }
+            ],
+            "entry": [
+              {
+                "type": "enterFoo"
+              }
+            ],
+            "exit": [
+              {
+                "type": "exitFoo"
+              }
+            ],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "enterFoo"
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "foo": "left"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo",
+                  "(machine).foo.left"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "NEXT"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).foo",
+                  "eventType": "NEXT",
+                  "target": [
+                    "#(machine).foo.right"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exitLeft"
+                },
+                {
+                  "type": "exitFoo"
+                },
+                {
+                  "type": "enterFoo"
+                },
+                {
+                  "type": "enterRight"
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "foo": "right"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo",
+                  "(machine).foo.right"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "query": {
+            "matches": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "explicit self-transition re-enters parent",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).foo"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "foo": {
+            "id": "(machine).foo",
+            "key": "foo",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).foo.a"
+              ],
+              "source": "#(machine).foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "a": {
+                "id": "(machine).foo.a",
+                "key": "a",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).foo.a",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#(machine).foo.b"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).foo.a",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).foo.b"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).foo.a",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [
+                  {
+                    "type": "enterA"
+                  }
+                ],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "b": {
+                "id": "(machine).foo.b",
+                "key": "b",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).foo.b",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [
+                  {
+                    "type": "exitB"
+                  }
+                ],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "RESET": [
+                {
+                  "target": [
+                    "#(machine).foo"
+                  ],
+                  "reenter": true,
+                  "actions": [],
+                  "source": "#(machine).foo",
+                  "eventType": "RESET"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).foo"
+                ],
+                "reenter": true,
+                "actions": [],
+                "source": "#(machine).foo",
+                "eventType": "RESET"
+              }
+            ],
+            "entry": [
+              {
+                "type": "enterFoo"
+              }
+            ],
+            "exit": [
+              {
+                "type": "exitFoo"
+              }
+            ],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "enterFoo"
+                },
+                {
+                  "type": "enterA"
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "foo": "a"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo",
+                  "(machine).foo.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "NEXT"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).foo.a",
+                  "eventType": "NEXT",
+                  "target": [
+                    "#(machine).foo.b"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "foo": "b"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo",
+                  "(machine).foo.b"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "RESET"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).foo",
+                  "eventType": "RESET",
+                  "target": [
+                    "#(machine).foo"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exitB"
+                },
+                {
+                  "type": "exitFoo"
+                },
+                {
+                  "type": "enterFoo"
+                },
+                {
+                  "type": "enterA"
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "foo": "a"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo",
+                  "(machine).foo.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "query": {
+            "matches": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "explicit self-transition to child re-enters parent",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).foo"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "foo": {
+            "id": "(machine).foo",
+            "key": "foo",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).foo.a"
+              ],
+              "source": "#(machine).foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "a": {
+                "id": "(machine).foo.a",
+                "key": "a",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).foo.a",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [
+                  {
+                    "type": "exitA"
+                  }
+                ],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "b": {
+                "id": "(machine).foo.b",
+                "key": "b",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).foo.b",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [
+                  {
+                    "type": "enterB"
+                  }
+                ],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "RESET_TO_B": [
+                {
+                  "target": [
+                    "#(machine).foo.b"
+                  ],
+                  "reenter": true,
+                  "actions": [],
+                  "source": "#(machine).foo",
+                  "eventType": "RESET_TO_B"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).foo.b"
+                ],
+                "reenter": true,
+                "actions": [],
+                "source": "#(machine).foo",
+                "eventType": "RESET_TO_B"
+              }
+            ],
+            "entry": [
+              {
+                "type": "enterFoo"
+              }
+            ],
+            "exit": [
+              {
+                "type": "exitFoo"
+              }
+            ],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "enterFoo"
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "foo": "a"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo",
+                  "(machine).foo.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "RESET_TO_B"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).foo",
+                  "eventType": "RESET_TO_B",
+                  "target": [
+                    "#(machine).foo.b"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exitA"
+                },
+                {
+                  "type": "exitFoo"
+                },
+                {
+                  "type": "enterFoo"
+                },
+                {
+                  "type": "enterB"
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "foo": "b"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo",
+                  "(machine).foo.b"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "query": {
+            "matches": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "top-level event targets nested child",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).foo"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "foo": {
+            "id": "(machine).foo",
+            "key": "foo",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "bar": {
+            "id": "(machine).bar",
+            "key": "bar",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).bar",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {
+          "CLICKED": [
+            {
+              "target": [
+                "#(machine).bar"
+              ],
+              "actions": [],
+              "source": "#(machine)",
+              "reenter": false,
+              "eventType": "CLICKED"
+            }
+          ]
+        },
+        "transitions": [
+          {
+            "target": [
+              "#(machine).bar"
+            ],
+            "actions": [],
+            "source": "#(machine)",
+            "reenter": false,
+            "eventType": "CLICKED"
+          }
+        ],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "foo",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "CLICKED"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine)",
+                  "eventType": "CLICKED",
+                  "target": [
+                    "#(machine).bar"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "bar",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).bar"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "query": {
+            "matches": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "targetless transition array still runs actions",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).foo"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "foo": {
+            "id": "(machine).foo",
+            "key": "foo",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TARGETLESS_ARRAY": [
+                {
+                  "actions": [
+                    "spy"
+                  ],
+                  "source": "#(machine).foo",
+                  "reenter": false,
+                  "eventType": "TARGETLESS_ARRAY"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "spy"
+                ],
+                "source": "#(machine).foo",
+                "reenter": false,
+                "eventType": "TARGETLESS_ARRAY"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "foo",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "TARGETLESS_ARRAY"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).foo",
+                  "eventType": "TARGETLESS_ARRAY"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "spy"
+                }
+              ],
+              "snapshot": {
+                "value": "foo",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "targetless transition object still runs actions",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).foo"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "foo": {
+            "id": "(machine).foo",
+            "key": "foo",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TARGETLESS_OBJECT": [
+                {
+                  "actions": [
+                    "spy"
+                  ],
+                  "source": "#(machine).foo",
+                  "reenter": false,
+                  "eventType": "TARGETLESS_OBJECT"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "spy"
+                ],
+                "source": "#(machine).foo",
+                "reenter": false,
+                "eventType": "TARGETLESS_OBJECT"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "foo",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "TARGETLESS_OBJECT"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).foo",
+                  "eventType": "TARGETLESS_OBJECT"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "spy"
+                }
+              ],
+              "snapshot": {
+                "value": "foo",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "parent targetless transition array still runs actions",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).foo"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "foo": {
+            "id": "(machine).foo",
+            "key": "foo",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {
+          "TARGETLESS_ARRAY": [
+            {
+              "actions": [
+                "spy"
+              ],
+              "source": "#(machine)",
+              "reenter": false,
+              "eventType": "TARGETLESS_ARRAY"
+            }
+          ]
+        },
+        "transitions": [
+          {
+            "actions": [
+              "spy"
+            ],
+            "source": "#(machine)",
+            "reenter": false,
+            "eventType": "TARGETLESS_ARRAY"
+          }
+        ],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "foo",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "TARGETLESS_ARRAY"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine)",
+                  "eventType": "TARGETLESS_ARRAY"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "spy"
+                }
+              ],
+              "snapshot": {
+                "value": "foo",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "parent targetless transition object still runs actions",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).foo"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "foo": {
+            "id": "(machine).foo",
+            "key": "foo",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {
+          "TARGETLESS_OBJECT": [
+            {
+              "actions": [
+                "spy"
+              ],
+              "source": "#(machine)",
+              "reenter": false,
+              "eventType": "TARGETLESS_OBJECT"
+            }
+          ]
+        },
+        "transitions": [
+          {
+            "actions": [
+              "spy"
+            ],
+            "source": "#(machine)",
+            "reenter": false,
+            "eventType": "TARGETLESS_OBJECT"
+          }
+        ],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "foo",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "TARGETLESS_OBJECT"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine)",
+                  "eventType": "TARGETLESS_OBJECT"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "spy"
+                }
+              ],
+              "snapshot": {
+                "value": "foo",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "parent targetless transition keeps child state",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).foo"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "foo": {
+            "id": "(machine).foo",
+            "key": "foo",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {
+          "PARENT_EVENT": [
+            {
+              "actions": [
+                "noop"
+              ],
+              "source": "#(machine)",
+              "reenter": false,
+              "eventType": "PARENT_EVENT"
+            }
+          ]
+        },
+        "transitions": [
+          {
+            "actions": [
+              "noop"
+            ],
+            "source": "#(machine)",
+            "reenter": false,
+            "eventType": "PARENT_EVENT"
+          }
+        ],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "foo",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "PARENT_EVENT"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine)",
+                  "eventType": "PARENT_EVENT"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "noop"
+                }
+              ],
+              "snapshot": {
+                "value": "foo",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "query": {
+            "matches": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "reentering a descendant re-enters its ancestors up to the source",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).a1"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a1": {
+            "id": "(machine).a1",
+            "key": "a1",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).a1.a11"
+              ],
+              "source": "#(machine).a1",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "a11": {
+                "id": "(machine).a1.a11",
+                "key": "a11",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).a1.a11.a111"
+                  ],
+                  "source": "#(machine).a1.a11",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "a111": {
+                    "id": "(machine).a1.a11.a111",
+                    "key": "a111",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).a1.a11.a111",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [
+                      {
+                        "type": "increment",
+                        "params": {
+                          "key": "deepDescendantEntries"
+                        }
+                      }
+                    ],
+                    "exit": [],
+                    "order": 3,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "directDescendantEntries"
+                    }
+                  }
+                ],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "REENTER": [
+                {
+                  "target": [
+                    "#(machine).a1.a11.a111"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).a1",
+                  "reenter": false,
+                  "eventType": "REENTER"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).a1.a11.a111"
+                ],
+                "actions": [],
+                "source": "#(machine).a1",
+                "reenter": false,
+                "eventType": "REENTER"
+              }
+            ],
+            "entry": [
+              {
+                "type": "increment",
+                "params": {
+                  "key": "sourceStateEntries"
+                }
+              }
+            ],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "a1": {
+                    "a11": "a111"
+                  }
+                },
+                "context": {
+                  "sourceStateEntries": 1,
+                  "directDescendantEntries": 1,
+                  "deepDescendantEntries": 1
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).a1",
+                  "(machine).a1.a11",
+                  "(machine).a1.a11.a111"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "REENTER"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).a1",
+                  "eventType": "REENTER",
+                  "target": [
+                    "#(machine).a1.a11.a111"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "a1": {
+                    "a11": "a111"
+                  }
+                },
+                "context": {
+                  "sourceStateEntries": 1,
+                  "directDescendantEntries": 2,
+                  "deepDescendantEntries": 2
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).a1",
+                  "(machine).a1.a11",
+                  "(machine).a1.a11.a111"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "query": {
+            "matches": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "reentering a descendant exits its ancestors up to the source",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).a1"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a1": {
+            "id": "(machine).a1",
+            "key": "a1",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).a1.a11"
+              ],
+              "source": "#(machine).a1",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "a11": {
+                "id": "(machine).a1.a11",
+                "key": "a11",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).a1.a11.a111"
+                  ],
+                  "source": "#(machine).a1.a11",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "a111": {
+                    "id": "(machine).a1.a11.a111",
+                    "key": "a111",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).a1.a11.a111",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [
+                      {
+                        "type": "increment",
+                        "params": {
+                          "key": "deepDescendantExits"
+                        }
+                      }
+                    ],
+                    "order": 3,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "directDescendantExits"
+                    }
+                  }
+                ],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "REENTER": [
+                {
+                  "target": [
+                    "#(machine).a1.a11.a111"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).a1",
+                  "reenter": false,
+                  "eventType": "REENTER"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).a1.a11.a111"
+                ],
+                "actions": [],
+                "source": "#(machine).a1",
+                "reenter": false,
+                "eventType": "REENTER"
+              }
+            ],
+            "entry": [],
+            "exit": [
+              {
+                "type": "increment",
+                "params": {
+                  "key": "sourceStateExits"
+                }
+              }
+            ],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "a1": {
+                    "a11": "a111"
+                  }
+                },
+                "context": {
+                  "sourceStateExits": 0,
+                  "directDescendantExits": 0,
+                  "deepDescendantExits": 0
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).a1",
+                  "(machine).a1.a11",
+                  "(machine).a1.a11.a111"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "REENTER"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).a1",
+                  "eventType": "REENTER",
+                  "target": [
+                    "#(machine).a1.a11.a111"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "a1": {
+                    "a11": "a111"
+                  }
+                },
+                "context": {
+                  "sourceStateExits": 0,
+                  "directDescendantExits": 1,
+                  "deepDescendantExits": 1
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).a1",
+                  "(machine).a1.a11",
+                  "(machine).a1.a11.a111"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "query": {
+            "matches": true
+          }
+        }
+      ]
+    }
+  ]
+}

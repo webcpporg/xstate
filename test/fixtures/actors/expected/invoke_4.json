@@ -1,0 +1,130 @@
+{
+  "source": "invoke.test.ts (lines 1366 to 2536)",
+  "cases": [
+    {
+      "name": "a child invoked under a dotted id that reaches its final state completes its parent",
+      "steps": [
+        {
+          "actors": {
+            "root/invoked.child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.start"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "begin",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.begin"
+                    ],
+                    "children": {
+                      "invoked.child": "anotherChildMachine"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/invoked.child": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/invoked.child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "STOP"
+                  },
+                  "snapshot": {
+                    "value": "end",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "child.end",
+                      "child"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "STOPCHILD"
+                  },
+                  "snapshot": {
+                    "value": "begin",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.begin"
+                    ],
+                    "children": {
+                      "invoked.child": "anotherChildMachine"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.done.actor.invoked.child",
+                    "actorId": "invoked.child"
+                  },
+                  "snapshot": {
+                    "value": "completed",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "parent.completed",
+                      "parent"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/invoked.child": "done"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "source": "event.test.ts (the tests that need actors)",
+  "cases": [],
+  "excluded": [
+    {
+      "test": "event.test.ts > events > should be able to respond to sender by sending self",
+      "reason": "the client sends its own self in the event, ({ self }) => ({ type: 'CODE', sender: self }), and the server answers with a delayed sendTo to event.sender; an actor reference as data is not expressible, and no declared send_to reads its target from the event"
+    }
+  ]
+}

@@ -1,0 +1,228 @@
+{
+  "source": "input.test.ts",
+  "cases": [
+    {
+      "name": "an invoked machine's context and initial event carry the invoke's input",
+      "test": "input.test.ts > input > should provide input data to invoked machines",
+      "machine": {
+        "invoke": {
+          "src": "invokedMachine",
+          "input": {
+            "greeting": "hello"
+          }
+        }
+      },
+      "actors": {
+        "invokedMachine": {
+          "kind": "machine",
+          "machine": {
+            "entry": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "input",
+                  "from": "input"
+                }
+              }
+            ]
+          },
+          "context_from_input": {
+            "greeting": "greeting"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a spawned machine's context and initial event carry the spawn's input",
+      "test": "input.test.ts > input > should provide input data to spawned machines (a spawnChild with an id stands for the spawn inside assign; the reference it assigns to the context is not ported)",
+      "machine": {
+        "entry": [
+          "spawnGreeter"
+        ]
+      },
+      "actions": {
+        "spawnGreeter": {
+          "kind": "spawn_child",
+          "src": "spawnedMachine",
+          "id": "spawned",
+          "input": {
+            "greeting": "hello"
+          }
+        }
+      },
+      "actors": {
+        "spawnedMachine": {
+          "kind": "machine",
+          "machine": {
+            "entry": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "input",
+                  "from": "input"
+                }
+              }
+            ]
+          },
+          "context_from_input": {
+            "greeting": "greeting"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a host actor receives its input and is done with the output it is answered",
+      "test": "input.test.ts > input > should create a promise with input (a host actor invoked by a root machine stands for the root promise actor: its pending request shows the input, and the host answers it with that input, which the parent's onDone records as the output)",
+      "machine": {
+        "context": {},
+        "invoke": {
+          "src": "promiseLogic",
+          "id": "promise",
+          "input": {
+            "count": 42
+          },
+          "onDone": {
+            "actions": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "output",
+                  "from": "output"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actors": {
+        "promiseLogic": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "promiseLogic",
+            "output": {
+              "count": 42
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a referenced child receives the invoke's static input",
+      "test": "input.test.ts > input > should provide a static inline input to the referenced actor (the child's entry records the input its initial event carries, the one its context factory receives)",
+      "machine": {
+        "invoke": {
+          "src": "child",
+          "input": 42
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "context": {},
+            "entry": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "input",
+                  "from": "input"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a referenced child receives the invoke's input computed from the context",
+      "test": "input.test.ts > input > should provide a dynamic inline input to the referenced actor (the root's input is the object {count: 42}, whose member its context takes, as context_from_input reads members of an object input where the test's context takes the number itself; the child's entry records the input its initial event carries, the one its context factory receives)",
+      "machine": {
+        "invoke": {
+          "src": "child"
+        }
+      },
+      "context_from_input": {
+        "count": "count"
+      },
+      "inputs": {
+        "0.(machine)": {
+          "$sum": [
+            {
+              "$context": "count"
+            },
+            100
+          ]
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "context": {},
+            "entry": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "input",
+                  "from": "input"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true,
+          "input": {
+            "count": 42
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "input.test.ts > input > should create a transition function actor with input",
+      "reason": "fromTransition is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "input.test.ts > input > should create an observable actor with input",
+      "reason": "fromObservable is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "input.test.ts > input > should create a callback actor with input",
+      "reason": "fromCallback is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "input.test.ts > input > should call the input factory with self when invoking",
+      "reason": "self as data: the invoke's input factory receives self, an actor reference that JSON cannot hold, and the test compares it to the root actor"
+    },
+    {
+      "test": "input.test.ts > input > should call the input factory with self when spawning",
+      "reason": "self as data: the spawnChild's input factory receives self, an actor reference that JSON cannot hold, and the test compares it to the root actor"
+    }
+  ]
+}

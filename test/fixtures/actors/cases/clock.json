@@ -1,0 +1,40 @@
+{
+  "source": "clock.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "an invoked child's after timer runs on the root's clock",
+      "test": "clock.test.ts > clock > system clock should be default clock for actors (invoked from machine)",
+      "machine": {
+        "invoke": {
+          "id": "child",
+          "src": "child"
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "initial": "a",
+            "states": {
+              "a": {
+                "after": {
+                  "10000": "b"
+                }
+              },
+              "b": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 10000
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

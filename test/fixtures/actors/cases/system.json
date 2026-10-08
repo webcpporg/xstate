@@ -1,0 +1,1133 @@
+{
+  "source": "system.test.ts",
+  "cases": [
+    {
+      "name": "an invoked actor's systemId lets a sibling's initial entry reach it",
+      "test": "system.test.ts > system > should register an invoked actor (the receiver is a machine actor in place of the callback, and the sibling's entry action is a sendTo to the systemId in place of a custom action calling system.get)",
+      "machine": {
+        "id": "parent",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": [
+              {
+                "src": "receiver",
+                "systemId": "receiver"
+              },
+              {
+                "src": "childmachine"
+              }
+            ]
+          }
+        }
+      },
+      "actors": {
+        "receiver": {
+          "kind": "machine",
+          "machine": {
+            "id": "receiver",
+            "context": {
+              "log": []
+            },
+            "on": {
+              "HELLO": {
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "log"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "childmachine": {
+          "kind": "machine",
+          "machine": {
+            "id": "childmachine",
+            "context": {
+              "log": []
+            },
+            "entry": [
+              "hello"
+            ],
+            "on": {
+              "HELLO": {
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "log"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "actions": {
+            "hello": {
+              "kind": "send_to",
+              "target": "#system:receiver",
+              "event": {
+                "type": "HELLO"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a spawned actor's systemId lets a machine spawned later reach it from its initial entry",
+      "test": "system.test.ts > system > should register a spawned actor (the receiver is a machine actor in place of the callback, spawned with an id by the root's entry in place of its context function; the child's entry action is a sendTo to the systemId in place of a custom action calling system.get)",
+      "machine": {
+        "id": "parent",
+        "entry": [
+          "spawn_receiver"
+        ],
+        "on": {
+          "toggle": {
+            "actions": [
+              "spawn_childmachine"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawn_receiver": {
+          "kind": "spawn_child",
+          "src": "receiver",
+          "id": "receiver",
+          "systemId": "receiver"
+        },
+        "spawn_childmachine": {
+          "kind": "spawn_child",
+          "src": "childmachine",
+          "id": "childmachine"
+        }
+      },
+      "actors": {
+        "receiver": {
+          "kind": "machine",
+          "machine": {
+            "id": "receiver",
+            "context": {
+              "log": []
+            },
+            "on": {
+              "HELLO": {
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "log"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "childmachine": {
+          "kind": "machine",
+          "machine": {
+            "id": "childmachine",
+            "context": {
+              "log": []
+            },
+            "entry": [
+              "hello"
+            ],
+            "on": {
+              "HELLO": {
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "log"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "actions": {
+            "hello": {
+              "kind": "send_to",
+              "target": "#system:receiver",
+              "event": {
+                "type": "HELLO"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "toggle"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an invoked actor leaves the system when its state is left",
+      "test": "system.test.ts > system > should remove invoked actor from receptionist if stopped (system.get is read by the root's sendTo to the systemId, which reaches the root itself once nothing holds it)",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "initial": "active",
+        "states": {
+          "active": {
+            "invoke": {
+              "src": "child",
+              "systemId": "test"
+            },
+            "on": {
+              "toggle": "inactive"
+            }
+          },
+          "inactive": {}
+        },
+        "on": {
+          "PROBE": {
+            "actions": [
+              "probe"
+            ]
+          },
+          "PING": {
+            "actions": [
+              {
+                "type": "push_event",
+                "params": {
+                  "key": "log"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "probe": {
+          "kind": "send_to",
+          "target": "#system:test",
+          "event": {
+            "type": "PING"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "context": {
+              "log": []
+            },
+            "on": {
+              "PING": {
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "log"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PROBE"
+          }
+        },
+        {
+          "send": {
+            "type": "toggle"
+          }
+        },
+        {
+          "send": {
+            "type": "PROBE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a spawned actor leaves the system when it is stopped",
+      "test": "system.test.ts > system > should remove spawned actor from receptionist if stopped (spawned with an id by the root's entry in place of its context function, and stopped by that id; system.get is read by the root's sendTo to the systemId, which reaches the root itself once nothing holds it)",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "entry": [
+          "spawn_test"
+        ],
+        "on": {
+          "toggle": {
+            "actions": [
+              "stop_test"
+            ]
+          },
+          "PROBE": {
+            "actions": [
+              "probe"
+            ]
+          },
+          "PING": {
+            "actions": [
+              {
+                "type": "push_event",
+                "params": {
+                  "key": "log"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawn_test": {
+          "kind": "spawn_child",
+          "src": "child",
+          "id": "child",
+          "systemId": "test"
+        },
+        "stop_test": {
+          "kind": "stop_child",
+          "id": "child"
+        },
+        "probe": {
+          "kind": "send_to",
+          "target": "#system:test",
+          "event": {
+            "type": "PING"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "context": {
+              "log": []
+            },
+            "on": {
+              "PING": {
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "log"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PROBE"
+          }
+        },
+        {
+          "send": {
+            "type": "toggle"
+          }
+        },
+        {
+          "send": {
+            "type": "PROBE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an actor invoked under a systemId fails when its own invoke claims that systemId",
+      "test": "system.test.ts > system > should throw an error if an actor with the system ID already exists (the test's machine runs as an actor invoked under that systemId by a root that only invokes it: the start step cannot give the root a systemId; the error's message is not recorded)",
+      "machine": {
+        "invoke": {
+          "src": "machine",
+          "id": "machine",
+          "systemId": "test"
+        }
+      },
+      "actors": {
+        "machine": {
+          "kind": "machine",
+          "machine": {
+            "initial": "inactive",
+            "states": {
+              "inactive": {
+                "on": {
+                  "toggle": "active"
+                }
+              },
+              "active": {
+                "invoke": [
+                  {
+                    "src": "first",
+                    "systemId": "test"
+                  },
+                  {
+                    "src": "second",
+                    "systemId": "test"
+                  }
+                ]
+              }
+            }
+          },
+          "actors": {
+            "first": {
+              "kind": "machine",
+              "machine": {}
+            },
+            "second": {
+              "kind": "machine",
+              "machine": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "toggle"
+          },
+          "to": "root/machine"
+        }
+      ]
+    },
+    {
+      "name": "a systemId a stopped child held can be claimed by a child spawned after it",
+      "test": "system.test.ts > system > should cleanup stopped actors (the promises are host actors, spawned with ids, the first by the root's entry in place of its context function; not throwing is the root staying active)",
+      "machine": {
+        "entry": [
+          "spawn_first"
+        ],
+        "on": {
+          "stop": {
+            "actions": [
+              "stop_first"
+            ]
+          },
+          "start": {
+            "actions": [
+              "spawn_second"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawn_first": {
+          "kind": "spawn_child",
+          "src": "task",
+          "id": "first",
+          "systemId": "test"
+        },
+        "stop_first": {
+          "kind": "stop_child",
+          "id": "first"
+        },
+        "spawn_second": {
+          "kind": "spawn_child",
+          "src": "task",
+          "id": "second",
+          "systemId": "test"
+        }
+      },
+      "actors": {
+        "task": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "stop"
+          }
+        },
+        {
+          "send": {
+            "type": "start"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a sendTo from a state's entry finds the actor the root invoked by its systemId",
+      "test": "system.test.ts > system > should be accessible in sendTo actions",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "invoke": {
+          "src": "child",
+          "systemId": "test"
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": [
+              "send_foo"
+            ]
+          }
+        },
+        "on": {
+          "FOO": {
+            "actions": [
+              {
+                "type": "push_event",
+                "params": {
+                  "key": "log"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "send_foo": {
+          "kind": "send_to",
+          "target": "#system:test",
+          "event": {
+            "type": "FOO"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "context": {
+              "log": []
+            },
+            "on": {
+              "FOO": {
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "log"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "an actor invoked beside a promise is in the system once the root has started",
+      "test": "system.test.ts > system > should be accessible in promise logic (the read of system.get after the start only, by the root's sendTo to the systemId; the promise's own read of the system is not ported: a host actor runs no code)",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "invoke": [
+          {
+            "src": "child",
+            "systemId": "test"
+          },
+          {
+            "src": "promise"
+          }
+        ],
+        "on": {
+          "PROBE": {
+            "actions": [
+              "probe"
+            ]
+          },
+          "PING": {
+            "actions": [
+              {
+                "type": "push_event",
+                "params": {
+                  "key": "log"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "probe": {
+          "kind": "send_to",
+          "target": "#system:test",
+          "event": {
+            "type": "PING"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "context": {
+              "log": []
+            },
+            "on": {
+              "PING": {
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "log"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "promise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PROBE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a reentered state's new invoke holds the systemId its old one released",
+      "test": "system.test.ts > system > should gracefully handle re-registration of a `systemId` during a reentering transition (the listener is a machine actor in place of the callback, and the event goes through the root's sendTo to the systemId, where the test sends it from outside through system.get; a first 'a' before RESTART gives the old listener a log the new one does not have, so the last step's log shows which of the two received 'a')",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "initial": "listening",
+        "states": {
+          "listening": {
+            "invoke": {
+              "systemId": "listener",
+              "src": "listener"
+            }
+          }
+        },
+        "on": {
+          "RESTART": {
+            "target": ".listening"
+          },
+          "SEND_A": {
+            "actions": [
+              "send_a"
+            ]
+          },
+          "a": {
+            "actions": [
+              {
+                "type": "push_event",
+                "params": {
+                  "key": "log"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "send_a": {
+          "kind": "send_to",
+          "target": "#system:listener",
+          "event": {
+            "type": "a"
+          }
+        }
+      },
+      "actors": {
+        "listener": {
+          "kind": "machine",
+          "machine": {
+            "id": "listener",
+            "context": {
+              "log": []
+            },
+            "on": {
+              "a": {
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "log"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SEND_A"
+          }
+        },
+        {
+          "send": {
+            "type": "RESTART"
+          }
+        },
+        {
+          "send": {
+            "type": "SEND_A"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a child's initial entry reaches the ancestor registered under a systemId",
+      "test": "system.test.ts > system > should be able to send an event to an ancestor with a registered `systemId` from an initial entry action (the test's machine runs as an actor invoked under that systemId by a root that only invokes it: the start step cannot give the root a systemId)",
+      "machine": {
+        "id": "root",
+        "invoke": {
+          "src": "machine",
+          "id": "machine",
+          "systemId": "myRoot"
+        }
+      },
+      "actors": {
+        "machine": {
+          "kind": "machine",
+          "machine": {
+            "context": {
+              "log": []
+            },
+            "invoke": {
+              "src": "child",
+              "id": "child"
+            },
+            "on": {
+              "EV": {
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "log"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "actors": {
+            "child": {
+              "kind": "machine",
+              "machine": {
+                "context": {
+                  "log": []
+                },
+                "entry": [
+                  "send_ev"
+                ],
+                "on": {
+                  "EV": {
+                    "actions": [
+                      {
+                        "type": "push_event",
+                        "params": {
+                          "key": "log"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "send_ev": {
+                  "kind": "send_to",
+                  "target": "#system:myRoot",
+                  "event": {
+                    "type": "EV"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "the system holds a spawned and an invoked actor until both are stopped",
+      "test": "system.test.ts > system > should give a list of runnings actors (system.getAll is read by the root's sendTo to each systemId, which reaches the root itself once nothing holds it; child1 is spawned with an id and stopped by that id, where the test finds it through system.get)",
+      "machine": {
+        "id": "root",
+        "context": {
+          "log": []
+        },
+        "initial": "happy path",
+        "states": {
+          "happy path": {
+            "entry": [
+              "spawn_child1"
+            ],
+            "invoke": [
+              {
+                "src": "machine",
+                "systemId": "child2"
+              }
+            ],
+            "on": {
+              "stopChild1": "sad path"
+            }
+          },
+          "sad path": {
+            "entry": [
+              "stop_child1"
+            ]
+          }
+        },
+        "on": {
+          "PROBE": {
+            "actions": [
+              "probe_child1",
+              "probe_child2"
+            ]
+          },
+          "PING1": {
+            "actions": [
+              {
+                "type": "push_event",
+                "params": {
+                  "key": "log"
+                }
+              }
+            ]
+          },
+          "PING2": {
+            "actions": [
+              {
+                "type": "push_event",
+                "params": {
+                  "key": "log"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawn_child1": {
+          "kind": "spawn_child",
+          "src": "anonymous",
+          "id": "child1",
+          "systemId": "child1"
+        },
+        "stop_child1": {
+          "kind": "stop_child",
+          "id": "child1"
+        },
+        "probe_child1": {
+          "kind": "send_to",
+          "target": "#system:child1",
+          "event": {
+            "type": "PING1"
+          }
+        },
+        "probe_child2": {
+          "kind": "send_to",
+          "target": "#system:child2",
+          "event": {
+            "type": "PING2"
+          }
+        }
+      },
+      "actors": {
+        "anonymous": {
+          "kind": "machine",
+          "machine": {
+            "context": {
+              "log": []
+            },
+            "on": {
+              "PING1": {
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "log"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "machine": {
+          "kind": "machine",
+          "machine": {
+            "id": "machine",
+            "context": {
+              "log": []
+            },
+            "on": {
+              "PING2": {
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "log"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PROBE"
+          }
+        },
+        {
+          "send": {
+            "type": "stopChild1"
+          }
+        },
+        {
+          "send": {
+            "type": "PROBE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a child stopped and spawned again under its id releases its own child's systemId to the new one",
+      "test": "system.test.ts > system > should unregister nested child systemIds when stopping a parent actor (system.get is read by the root's sendTo to the systemId; not throwing is the root staying active)",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "entry": [
+          "spawn_kid"
+        ],
+        "on": {
+          "restart": {
+            "actions": [
+              "stop_kid",
+              "spawn_kid"
+            ]
+          },
+          "PROBE": {
+            "actions": [
+              "probe"
+            ]
+          },
+          "PING": {
+            "actions": [
+              {
+                "type": "push_event",
+                "params": {
+                  "key": "log"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawn_kid": {
+          "kind": "spawn_child",
+          "src": "child",
+          "id": "childId"
+        },
+        "stop_kid": {
+          "kind": "stop_child",
+          "id": "childId"
+        },
+        "probe": {
+          "kind": "send_to",
+          "target": "#system:subchild",
+          "event": {
+            "type": "PING"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "id": "childSystem",
+            "invoke": {
+              "src": "subchild",
+              "systemId": "subchild"
+            }
+          },
+          "actors": {
+            "subchild": {
+              "kind": "machine",
+              "machine": {
+                "context": {
+                  "log": []
+                },
+                "on": {
+                  "PING": {
+                    "actions": [
+                      {
+                        "type": "push_event",
+                        "params": {
+                          "key": "log"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PROBE"
+          }
+        },
+        {
+          "send": {
+            "type": "restart"
+          }
+        },
+        {
+          "send": {
+            "type": "PROBE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a root given a systemId is the actor the system finds under it",
+      "test": "system.test.ts > system > root actor can be given the systemId",
+      "machine": {
+        "id": "root"
+      },
+      "steps": [
+        {
+          "create": true,
+          "system_id": "test"
+        },
+        {
+          "get": "test"
+        }
+      ]
+    },
+    {
+      "name": "a root's systemId names it before and after its start",
+      "test": "system.test.ts > system > system ID should be accessible on the actor (read through system.get, which shows the same name and actor)",
+      "machine": {
+        "id": "root"
+      },
+      "steps": [
+        {
+          "create": true,
+          "system_id": "test"
+        },
+        {
+          "get": "test"
+        },
+        {
+          "start": true
+        },
+        {
+          "get": "test"
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "system.test.ts > system > system can be immediately accessed outside the actor",
+      "reason": "reads actor.system.get('someChild') on a root created and not started, which the create and get steps now express, and XState finds the invoked child there, as its createActor constructs the root, and so its initial children, at once; xstate constructs the root only on the host's start, so before it the system holds none of the root's children: the difference \"The root is constructed on start\" (doc: #differences-construction). It would need xstate to construct the root when it is created"
+    },
+    {
+      "test": "system.test.ts > system > should be accessible in inline custom actions",
+      "reason": "the assertion is made inside an inline custom action given the system; a custom action is handed to the host's callback, runs no code here and is recorded nowhere, and no declared action can stand in for it: a sendTo to '#system:test' from the root's entry resolves its target before the root's invoke registers the child (a node's entry actions come before its invokes' spawns), where XState runs the custom action deferred, on start, once the child is registered. It would need a vocabulary action that reads system.get when it runs and records what it found"
+    },
+    {
+      "test": "system.test.ts > system > should be accessible in referenced custom actions",
+      "reason": "the assertion is made inside a referenced custom action given the system; a custom action is handed to the host's callback, runs no code here and is recorded nowhere, and no declared action can stand in for it: a sendTo to '#system:test' from the root's entry resolves its target before the root's invoke registers the child (a node's entry actions come before its invokes' spawns), where XState runs the custom action deferred, on start, once the child is registered. It would need a vocabulary action that reads system.get when it runs and records what it found"
+    },
+    {
+      "test": "system.test.ts > system > should be accessible in assign actions",
+      "reason": "the assertion is made inside an assign given the system, and neither an assign of the vocabulary nor a computed value reads system.get: a computed value reads only the context and the event. It would need an assign, or a computed form, that reads the system; the same read from the same state's entry by a sendTo to the systemId is ported as 'should be accessible in sendTo actions'"
+    },
+    {
+      "test": "system.test.ts > system > should be accessible in transition logic",
+      "reason": "fromTransition is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "system.test.ts > system > should be accessible in observable logic",
+      "reason": "fromObservable is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "system.test.ts > system > should be accessible in event observable logic",
+      "reason": "fromEventObservable is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "system.test.ts > system > should be accessible in callback logic",
+      "reason": "fromCallback is not ported (out of scope for the actor layer)"
+    }
+  ]
+}

@@ -1,0 +1,3379 @@
+{
+  "source": "id.test.ts",
+  "cases": [
+    {
+      "name": "from A, NEXT goes to A bar",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#A"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "A": {
+            "id": "A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#A_foo"
+              ],
+              "source": "#A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "foo": {
+                "id": "A_foo",
+                "key": "foo",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#A_foo",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#A_bar"
+                      ],
+                      "actions": [],
+                      "source": "#A_foo",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#A_bar"
+                    ],
+                    "actions": [],
+                    "source": "#A_foo",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "bar": {
+                "id": "A_bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#A_bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#B_foo"
+                      ],
+                      "actions": [],
+                      "source": "#A_bar",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#B_foo"
+                    ],
+                    "actions": [],
+                    "source": "#A_bar",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "NEXT_DOT_RESOLVE": [
+                {
+                  "target": [
+                    "#B_bar"
+                  ],
+                  "actions": [],
+                  "source": "#A",
+                  "reenter": false,
+                  "eventType": "NEXT_DOT_RESOLVE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#B_bar"
+                ],
+                "actions": [],
+                "source": "#A",
+                "reenter": false,
+                "eventType": "NEXT_DOT_RESOLVE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "B": {
+            "id": "B",
+            "key": "B",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#B_foo"
+              ],
+              "source": "#B",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "foo": {
+                "id": "B_foo",
+                "key": "foo",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#B_foo",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#B_bar"
+                      ],
+                      "actions": [],
+                      "source": "#B_foo",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ],
+                  "NEXT_DOT": [
+                    {
+                      "target": [
+                        "#(machine).B.dot"
+                      ],
+                      "actions": [],
+                      "source": "#B_foo",
+                      "reenter": false,
+                      "eventType": "NEXT_DOT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#B_bar"
+                    ],
+                    "actions": [],
+                    "source": "#B_foo",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  },
+                  {
+                    "target": [
+                      "#(machine).B.dot"
+                    ],
+                    "actions": [],
+                    "source": "#B_foo",
+                    "reenter": false,
+                    "eventType": "NEXT_DOT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "bar": {
+                "id": "B_bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#B_bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#A_foo"
+                      ],
+                      "actions": [],
+                      "source": "#B_bar",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#A_foo"
+                    ],
+                    "actions": [],
+                    "source": "#B_bar",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              },
+              "dot": {
+                "id": "(machine).B.dot",
+                "key": "dot",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).B.dot",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 7,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": {
+              "A": "foo"
+            },
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "A",
+              "A_foo"
+            ]
+          }
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "NEXT"
+              },
+              "transitions": [
+                {
+                  "source": "#A_foo",
+                  "eventType": "NEXT",
+                  "target": [
+                    "#A_bar"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "A": "bar"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "A",
+                  "A_bar"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "from A, NEXT_DOT_RESOLVE goes to B bar",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#A"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "A": {
+            "id": "A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#A_foo"
+              ],
+              "source": "#A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "foo": {
+                "id": "A_foo",
+                "key": "foo",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#A_foo",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#A_bar"
+                      ],
+                      "actions": [],
+                      "source": "#A_foo",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#A_bar"
+                    ],
+                    "actions": [],
+                    "source": "#A_foo",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "bar": {
+                "id": "A_bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#A_bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#B_foo"
+                      ],
+                      "actions": [],
+                      "source": "#A_bar",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#B_foo"
+                    ],
+                    "actions": [],
+                    "source": "#A_bar",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "NEXT_DOT_RESOLVE": [
+                {
+                  "target": [
+                    "#B_bar"
+                  ],
+                  "actions": [],
+                  "source": "#A",
+                  "reenter": false,
+                  "eventType": "NEXT_DOT_RESOLVE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#B_bar"
+                ],
+                "actions": [],
+                "source": "#A",
+                "reenter": false,
+                "eventType": "NEXT_DOT_RESOLVE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "B": {
+            "id": "B",
+            "key": "B",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#B_foo"
+              ],
+              "source": "#B",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "foo": {
+                "id": "B_foo",
+                "key": "foo",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#B_foo",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#B_bar"
+                      ],
+                      "actions": [],
+                      "source": "#B_foo",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ],
+                  "NEXT_DOT": [
+                    {
+                      "target": [
+                        "#(machine).B.dot"
+                      ],
+                      "actions": [],
+                      "source": "#B_foo",
+                      "reenter": false,
+                      "eventType": "NEXT_DOT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#B_bar"
+                    ],
+                    "actions": [],
+                    "source": "#B_foo",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  },
+                  {
+                    "target": [
+                      "#(machine).B.dot"
+                    ],
+                    "actions": [],
+                    "source": "#B_foo",
+                    "reenter": false,
+                    "eventType": "NEXT_DOT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "bar": {
+                "id": "B_bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#B_bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#A_foo"
+                      ],
+                      "actions": [],
+                      "source": "#B_bar",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#A_foo"
+                    ],
+                    "actions": [],
+                    "source": "#B_bar",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              },
+              "dot": {
+                "id": "(machine).B.dot",
+                "key": "dot",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).B.dot",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 7,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": {
+              "A": "foo"
+            },
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "A",
+              "A_foo"
+            ]
+          }
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "NEXT_DOT_RESOLVE"
+              },
+              "transitions": [
+                {
+                  "source": "#A",
+                  "eventType": "NEXT_DOT_RESOLVE",
+                  "target": [
+                    "#B_bar"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "B": "bar"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "B",
+                  "B_bar"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "from A.foo, NEXT goes to A bar",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#A"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "A": {
+            "id": "A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#A_foo"
+              ],
+              "source": "#A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "foo": {
+                "id": "A_foo",
+                "key": "foo",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#A_foo",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#A_bar"
+                      ],
+                      "actions": [],
+                      "source": "#A_foo",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#A_bar"
+                    ],
+                    "actions": [],
+                    "source": "#A_foo",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "bar": {
+                "id": "A_bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#A_bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#B_foo"
+                      ],
+                      "actions": [],
+                      "source": "#A_bar",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#B_foo"
+                    ],
+                    "actions": [],
+                    "source": "#A_bar",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "NEXT_DOT_RESOLVE": [
+                {
+                  "target": [
+                    "#B_bar"
+                  ],
+                  "actions": [],
+                  "source": "#A",
+                  "reenter": false,
+                  "eventType": "NEXT_DOT_RESOLVE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#B_bar"
+                ],
+                "actions": [],
+                "source": "#A",
+                "reenter": false,
+                "eventType": "NEXT_DOT_RESOLVE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "B": {
+            "id": "B",
+            "key": "B",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#B_foo"
+              ],
+              "source": "#B",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "foo": {
+                "id": "B_foo",
+                "key": "foo",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#B_foo",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#B_bar"
+                      ],
+                      "actions": [],
+                      "source": "#B_foo",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ],
+                  "NEXT_DOT": [
+                    {
+                      "target": [
+                        "#(machine).B.dot"
+                      ],
+                      "actions": [],
+                      "source": "#B_foo",
+                      "reenter": false,
+                      "eventType": "NEXT_DOT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#B_bar"
+                    ],
+                    "actions": [],
+                    "source": "#B_foo",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  },
+                  {
+                    "target": [
+                      "#(machine).B.dot"
+                    ],
+                    "actions": [],
+                    "source": "#B_foo",
+                    "reenter": false,
+                    "eventType": "NEXT_DOT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "bar": {
+                "id": "B_bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#B_bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#A_foo"
+                      ],
+                      "actions": [],
+                      "source": "#B_bar",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#A_foo"
+                    ],
+                    "actions": [],
+                    "source": "#B_bar",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              },
+              "dot": {
+                "id": "(machine).B.dot",
+                "key": "dot",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).B.dot",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 7,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": {
+              "A": "foo"
+            },
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "A",
+              "A_foo"
+            ]
+          }
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "NEXT"
+              },
+              "transitions": [
+                {
+                  "source": "#A_foo",
+                  "eventType": "NEXT",
+                  "target": [
+                    "#A_bar"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "A": "bar"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "A",
+                  "A_bar"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "from A.bar, NEXT goes to B foo",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#A"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "A": {
+            "id": "A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#A_foo"
+              ],
+              "source": "#A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "foo": {
+                "id": "A_foo",
+                "key": "foo",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#A_foo",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#A_bar"
+                      ],
+                      "actions": [],
+                      "source": "#A_foo",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#A_bar"
+                    ],
+                    "actions": [],
+                    "source": "#A_foo",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "bar": {
+                "id": "A_bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#A_bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#B_foo"
+                      ],
+                      "actions": [],
+                      "source": "#A_bar",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#B_foo"
+                    ],
+                    "actions": [],
+                    "source": "#A_bar",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "NEXT_DOT_RESOLVE": [
+                {
+                  "target": [
+                    "#B_bar"
+                  ],
+                  "actions": [],
+                  "source": "#A",
+                  "reenter": false,
+                  "eventType": "NEXT_DOT_RESOLVE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#B_bar"
+                ],
+                "actions": [],
+                "source": "#A",
+                "reenter": false,
+                "eventType": "NEXT_DOT_RESOLVE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "B": {
+            "id": "B",
+            "key": "B",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#B_foo"
+              ],
+              "source": "#B",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "foo": {
+                "id": "B_foo",
+                "key": "foo",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#B_foo",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#B_bar"
+                      ],
+                      "actions": [],
+                      "source": "#B_foo",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ],
+                  "NEXT_DOT": [
+                    {
+                      "target": [
+                        "#(machine).B.dot"
+                      ],
+                      "actions": [],
+                      "source": "#B_foo",
+                      "reenter": false,
+                      "eventType": "NEXT_DOT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#B_bar"
+                    ],
+                    "actions": [],
+                    "source": "#B_foo",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  },
+                  {
+                    "target": [
+                      "#(machine).B.dot"
+                    ],
+                    "actions": [],
+                    "source": "#B_foo",
+                    "reenter": false,
+                    "eventType": "NEXT_DOT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "bar": {
+                "id": "B_bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#B_bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#A_foo"
+                      ],
+                      "actions": [],
+                      "source": "#B_bar",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#A_foo"
+                    ],
+                    "actions": [],
+                    "source": "#B_bar",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              },
+              "dot": {
+                "id": "(machine).B.dot",
+                "key": "dot",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).B.dot",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 7,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": {
+              "A": "bar"
+            },
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "A",
+              "A_bar"
+            ]
+          }
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "NEXT"
+              },
+              "transitions": [
+                {
+                  "source": "#A_bar",
+                  "eventType": "NEXT",
+                  "target": [
+                    "#B_foo"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "B": "foo"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "B",
+                  "B_foo"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "from B.foo, NEXT then NEXT goes to A foo",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#A"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "A": {
+            "id": "A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#A_foo"
+              ],
+              "source": "#A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "foo": {
+                "id": "A_foo",
+                "key": "foo",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#A_foo",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#A_bar"
+                      ],
+                      "actions": [],
+                      "source": "#A_foo",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#A_bar"
+                    ],
+                    "actions": [],
+                    "source": "#A_foo",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "bar": {
+                "id": "A_bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#A_bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#B_foo"
+                      ],
+                      "actions": [],
+                      "source": "#A_bar",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#B_foo"
+                    ],
+                    "actions": [],
+                    "source": "#A_bar",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "NEXT_DOT_RESOLVE": [
+                {
+                  "target": [
+                    "#B_bar"
+                  ],
+                  "actions": [],
+                  "source": "#A",
+                  "reenter": false,
+                  "eventType": "NEXT_DOT_RESOLVE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#B_bar"
+                ],
+                "actions": [],
+                "source": "#A",
+                "reenter": false,
+                "eventType": "NEXT_DOT_RESOLVE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "B": {
+            "id": "B",
+            "key": "B",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#B_foo"
+              ],
+              "source": "#B",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "foo": {
+                "id": "B_foo",
+                "key": "foo",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#B_foo",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#B_bar"
+                      ],
+                      "actions": [],
+                      "source": "#B_foo",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ],
+                  "NEXT_DOT": [
+                    {
+                      "target": [
+                        "#(machine).B.dot"
+                      ],
+                      "actions": [],
+                      "source": "#B_foo",
+                      "reenter": false,
+                      "eventType": "NEXT_DOT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#B_bar"
+                    ],
+                    "actions": [],
+                    "source": "#B_foo",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  },
+                  {
+                    "target": [
+                      "#(machine).B.dot"
+                    ],
+                    "actions": [],
+                    "source": "#B_foo",
+                    "reenter": false,
+                    "eventType": "NEXT_DOT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "bar": {
+                "id": "B_bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#B_bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#A_foo"
+                      ],
+                      "actions": [],
+                      "source": "#B_bar",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#A_foo"
+                    ],
+                    "actions": [],
+                    "source": "#B_bar",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              },
+              "dot": {
+                "id": "(machine).B.dot",
+                "key": "dot",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).B.dot",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 7,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": {
+              "B": "foo"
+            },
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "B",
+              "B_foo"
+            ]
+          }
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "NEXT"
+              },
+              "transitions": [
+                {
+                  "source": "#B_foo",
+                  "eventType": "NEXT",
+                  "target": [
+                    "#B_bar"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "B": "bar"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "B",
+                  "B_bar"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "NEXT"
+              },
+              "transitions": [
+                {
+                  "source": "#B_bar",
+                  "eventType": "NEXT",
+                  "target": [
+                    "#A_foo"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "A": "foo"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "A",
+                  "A_foo"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "from B.foo, NEXT_DOT goes to B dot",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#A"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "A": {
+            "id": "A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#A_foo"
+              ],
+              "source": "#A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "foo": {
+                "id": "A_foo",
+                "key": "foo",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#A_foo",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#A_bar"
+                      ],
+                      "actions": [],
+                      "source": "#A_foo",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#A_bar"
+                    ],
+                    "actions": [],
+                    "source": "#A_foo",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "bar": {
+                "id": "A_bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#A_bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#B_foo"
+                      ],
+                      "actions": [],
+                      "source": "#A_bar",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#B_foo"
+                    ],
+                    "actions": [],
+                    "source": "#A_bar",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "NEXT_DOT_RESOLVE": [
+                {
+                  "target": [
+                    "#B_bar"
+                  ],
+                  "actions": [],
+                  "source": "#A",
+                  "reenter": false,
+                  "eventType": "NEXT_DOT_RESOLVE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#B_bar"
+                ],
+                "actions": [],
+                "source": "#A",
+                "reenter": false,
+                "eventType": "NEXT_DOT_RESOLVE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "B": {
+            "id": "B",
+            "key": "B",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#B_foo"
+              ],
+              "source": "#B",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "foo": {
+                "id": "B_foo",
+                "key": "foo",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#B_foo",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#B_bar"
+                      ],
+                      "actions": [],
+                      "source": "#B_foo",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ],
+                  "NEXT_DOT": [
+                    {
+                      "target": [
+                        "#(machine).B.dot"
+                      ],
+                      "actions": [],
+                      "source": "#B_foo",
+                      "reenter": false,
+                      "eventType": "NEXT_DOT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#B_bar"
+                    ],
+                    "actions": [],
+                    "source": "#B_foo",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  },
+                  {
+                    "target": [
+                      "#(machine).B.dot"
+                    ],
+                    "actions": [],
+                    "source": "#B_foo",
+                    "reenter": false,
+                    "eventType": "NEXT_DOT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "bar": {
+                "id": "B_bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#B_bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#A_foo"
+                      ],
+                      "actions": [],
+                      "source": "#B_bar",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#A_foo"
+                    ],
+                    "actions": [],
+                    "source": "#B_bar",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              },
+              "dot": {
+                "id": "(machine).B.dot",
+                "key": "dot",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).B.dot",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 7,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": {
+              "B": "foo"
+            },
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "B",
+              "B_foo"
+            ]
+          }
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "NEXT_DOT"
+              },
+              "transitions": [
+                {
+                  "source": "#B_foo",
+                  "eventType": "NEXT_DOT",
+                  "target": [
+                    "#(machine).B.dot"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "B": "dot"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "B",
+                  "(machine).B.dot"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "works with an ID plus a relative path",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#foo"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "foo": {
+            "id": "foo",
+            "key": "foo",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "bar": {
+            "id": "bar",
+            "key": "bar",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).bar.baz"
+              ],
+              "source": "#bar",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "baz": {
+                "id": "(machine).bar.baz",
+                "key": "baz",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).bar.baz",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              },
+              "qux": {
+                "id": "(machine).bar.qux",
+                "key": "qux",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "##bar.qux.quux"
+                  ],
+                  "source": "#(machine).bar.qux",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "quux": {
+                    "id": "#bar.qux.quux",
+                    "key": "quux",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "##bar.qux.quux",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 5,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {
+          "ACTION": [
+            {
+              "target": [
+                "##bar.qux.quux"
+              ],
+              "actions": [],
+              "source": "#(machine)",
+              "reenter": false,
+              "eventType": "ACTION"
+            }
+          ]
+        },
+        "transitions": [
+          {
+            "target": [
+              "##bar.qux.quux"
+            ],
+            "actions": [],
+            "source": "#(machine)",
+            "reenter": false,
+            "eventType": "ACTION"
+          }
+        ],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "foo",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "foo"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "ACTION"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine)",
+                  "eventType": "ACTION",
+                  "target": [
+                    "##bar.qux.quux"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "bar": {
+                    "qux": "quux"
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "bar",
+                  "(machine).bar.qux",
+                  "#bar.qux.quux"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "escaped period in a target key reaches the literal sibling key",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).start"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "start": {
+            "id": "(machine).start",
+            "key": "start",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).start",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "escaped": [
+                {
+                  "target": [
+                    "#(machine).foo.bar"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).start",
+                  "reenter": false,
+                  "eventType": "escaped"
+                }
+              ],
+              "unescaped": [
+                {
+                  "target": [
+                    "#(machine).foo.bar"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).start",
+                  "reenter": false,
+                  "eventType": "unescaped"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).foo.bar"
+                ],
+                "actions": [],
+                "source": "#(machine).start",
+                "reenter": false,
+                "eventType": "escaped"
+              },
+              {
+                "target": [
+                  "#(machine).foo.bar"
+                ],
+                "actions": [],
+                "source": "#(machine).start",
+                "reenter": false,
+                "eventType": "unescaped"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "foo.bar": {
+            "id": "(machine).foo.bar",
+            "key": "foo.bar",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).foo.bar",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "foo": {
+            "id": "(machine).foo",
+            "key": "foo",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).foo.bar"
+              ],
+              "source": "#(machine).foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "bar": {
+                "id": "(machine).foo.bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).foo.bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "start",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).start"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "escaped"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).start",
+                  "eventType": "escaped",
+                  "target": [
+                    "#(machine).foo.bar"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "foo.bar",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo.bar"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "unescaped period in a target key is read as a path",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).start"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "start": {
+            "id": "(machine).start",
+            "key": "start",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).start",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "escaped": [
+                {
+                  "target": [
+                    "#(machine).foo.bar"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).start",
+                  "reenter": false,
+                  "eventType": "escaped"
+                }
+              ],
+              "unescaped": [
+                {
+                  "target": [
+                    "#(machine).foo.bar"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).start",
+                  "reenter": false,
+                  "eventType": "unescaped"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).foo.bar"
+                ],
+                "actions": [],
+                "source": "#(machine).start",
+                "reenter": false,
+                "eventType": "escaped"
+              },
+              {
+                "target": [
+                  "#(machine).foo.bar"
+                ],
+                "actions": [],
+                "source": "#(machine).start",
+                "reenter": false,
+                "eventType": "unescaped"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "foo.bar": {
+            "id": "(machine).foo.bar",
+            "key": "foo.bar",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).foo.bar",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "foo": {
+            "id": "(machine).foo",
+            "key": "foo",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).foo.bar"
+              ],
+              "source": "#(machine).foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "bar": {
+                "id": "(machine).foo.bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).foo.bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "start",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).start"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "unescaped"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).start",
+                  "eventType": "unescaped",
+                  "target": [
+                    "#(machine).foo.bar"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "foo": "bar"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo",
+                  "(machine).foo.bar"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "escaped period in an ID selector reaches the literal id",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).start"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "start": {
+            "id": "(machine).start",
+            "key": "start",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).start",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "escaped": [
+                {
+                  "target": [
+                    "#foo.bar"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).start",
+                  "reenter": false,
+                  "eventType": "escaped"
+                }
+              ],
+              "unescaped": [
+                {
+                  "target": [
+                    "#(machine).foo.bar"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).start",
+                  "reenter": false,
+                  "eventType": "unescaped"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#foo.bar"
+                ],
+                "actions": [],
+                "source": "#(machine).start",
+                "reenter": false,
+                "eventType": "escaped"
+              },
+              {
+                "target": [
+                  "#(machine).foo.bar"
+                ],
+                "actions": [],
+                "source": "#(machine).start",
+                "reenter": false,
+                "eventType": "unescaped"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "stateWithDot": {
+            "id": "foo.bar",
+            "key": "stateWithDot",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#foo.bar",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "foo": {
+            "id": "foo",
+            "key": "foo",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).foo.bar"
+              ],
+              "source": "#foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "bar": {
+                "id": "(machine).foo.bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).foo.bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "start",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).start"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "escaped"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).start",
+                  "eventType": "escaped",
+                  "target": [
+                    "#foo.bar"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "stateWithDot",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "foo.bar"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "unescaped period in an ID selector is read as a path",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).start"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "start": {
+            "id": "(machine).start",
+            "key": "start",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).start",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "escaped": [
+                {
+                  "target": [
+                    "#foo.bar"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).start",
+                  "reenter": false,
+                  "eventType": "escaped"
+                }
+              ],
+              "unescaped": [
+                {
+                  "target": [
+                    "#(machine).foo.bar"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).start",
+                  "reenter": false,
+                  "eventType": "unescaped"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#foo.bar"
+                ],
+                "actions": [],
+                "source": "#(machine).start",
+                "reenter": false,
+                "eventType": "escaped"
+              },
+              {
+                "target": [
+                  "#(machine).foo.bar"
+                ],
+                "actions": [],
+                "source": "#(machine).start",
+                "reenter": false,
+                "eventType": "unescaped"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "stateWithDot": {
+            "id": "foo.bar",
+            "key": "stateWithDot",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#foo.bar",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "foo": {
+            "id": "foo",
+            "key": "foo",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).foo.bar"
+              ],
+              "source": "#foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "bar": {
+                "id": "(machine).foo.bar",
+                "key": "bar",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).foo.bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "start",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).start"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "unescaped"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).start",
+                  "eventType": "unescaped",
+                  "target": [
+                    "#(machine).foo.bar"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "foo": "bar"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "foo",
+                  "(machine).foo.bar"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an escaped backslash is not treated as the period's escape",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).start"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "start": {
+            "id": "(machine).start",
+            "key": "start",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).start",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "EV": [
+                {
+                  "target": [
+                    "#(machine).bar.thing"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).start",
+                  "reenter": false,
+                  "eventType": "EV"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).bar.thing"
+                ],
+                "actions": [],
+                "source": "#(machine).start",
+                "reenter": false,
+                "eventType": "EV"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "foo": {
+            "id": "some\\.thing",
+            "key": "foo",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#some\\.thing",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "bar": {
+            "id": "some\\",
+            "key": "bar",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).bar.baz"
+              ],
+              "source": "#some\\",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "baz": {
+                "id": "(machine).bar.baz",
+                "key": "baz",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).bar.baz",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              },
+              "thing": {
+                "id": "(machine).bar.thing",
+                "key": "thing",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).bar.thing",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "start",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).start"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "EV"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).start",
+                  "eventType": "EV",
+                  "target": [
+                    "#(machine).bar.thing"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "bar": "thing"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "some\\",
+                  "(machine).bar.thing"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

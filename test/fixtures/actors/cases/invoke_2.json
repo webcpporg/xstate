@@ -1,0 +1,274 @@
+{
+  "source": "invoke.test.ts (lines 415 to 757)",
+  "cases": [
+    {
+      "name": "a child invoked by the root answers the sendTo of the initial state's entry and its parent completes",
+      "test": "invoke.test.ts > invoke > parent to child > should communicate with the child machine (invoke on machine)",
+      "machine": {
+        "id": "parent",
+        "initial": "one",
+        "invoke": {
+          "id": "foo-child",
+          "src": "subMachine"
+        },
+        "states": {
+          "one": {
+            "entry": [
+              "send_next"
+            ],
+            "on": {
+              "NEXT": "two"
+            }
+          },
+          "two": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "send_next": {
+          "kind": "send_to",
+          "target": "foo-child",
+          "event": {
+            "type": "NEXT"
+          }
+        }
+      },
+      "actors": {
+        "subMachine": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "initial": "one",
+            "states": {
+              "one": {
+                "on": {
+                  "NEXT": "two"
+                }
+              },
+              "two": {
+                "entry": [
+                  "send_next"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "send_next": {
+              "kind": "send_parent",
+              "event": {
+                "type": "NEXT"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a child invoked by the initial state answers the sendTo of that state's entry and its parent completes",
+      "test": "invoke.test.ts > invoke > parent to child > should communicate with the child machine (invoke on state)",
+      "machine": {
+        "id": "parent",
+        "initial": "one",
+        "states": {
+          "one": {
+            "invoke": {
+              "id": "foo-child",
+              "src": "subMachine"
+            },
+            "entry": [
+              "send_next"
+            ],
+            "on": {
+              "NEXT": "two"
+            }
+          },
+          "two": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "send_next": {
+          "kind": "send_to",
+          "target": "foo-child",
+          "event": {
+            "type": "NEXT"
+          }
+        }
+      },
+      "actors": {
+        "subMachine": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "initial": "one",
+            "states": {
+              "one": {
+                "on": {
+                  "NEXT": "two"
+                }
+              },
+              "two": {
+                "entry": [
+                  "send_next"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "send_next": {
+              "kind": "send_parent",
+              "event": {
+                "type": "NEXT"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a child that the entry's sendTo takes to its final state moves its parent on by onDone at start",
+      "test": "invoke.test.ts > invoke > parent to child > should transition correctly if child invocation causes it to directly go to final state",
+      "machine": {
+        "id": "parent",
+        "initial": "one",
+        "states": {
+          "one": {
+            "invoke": {
+              "id": "foo-child",
+              "src": "doneSubMachine",
+              "onDone": "two"
+            },
+            "entry": [
+              "send_next"
+            ]
+          },
+          "two": {
+            "on": {
+              "NEXT": "three"
+            }
+          },
+          "three": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "send_next": {
+          "kind": "send_to",
+          "target": "foo-child",
+          "event": {
+            "type": "NEXT"
+          }
+        }
+      },
+      "actors": {
+        "doneSubMachine": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "initial": "one",
+            "states": {
+              "one": {
+                "on": {
+                  "NEXT": "two"
+                }
+              },
+              "two": {
+                "type": "final"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a child invoked in a region of a parallel root finishes with its output and the guarded onDone completes the root",
+      "test": "invoke.test.ts > invoke > parent to child > should work with invocations defined in orthogonal state nodes (the onDone guard on output.secret as the whole output)",
+      "machine": {
+        "id": "ping",
+        "type": "parallel",
+        "states": {
+          "one": {
+            "initial": "active",
+            "states": {
+              "active": {
+                "invoke": {
+                  "id": "pong",
+                  "src": "pongMachine",
+                  "onDone": {
+                    "target": "success",
+                    "guard": {
+                      "type": "event_equals",
+                      "params": {
+                        "key": "output",
+                        "value": {
+                          "secret": "pingpong"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "success": {
+                "type": "final"
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "pongMachine": {
+          "kind": "machine",
+          "machine": {
+            "id": "pong",
+            "initial": "active",
+            "states": {
+              "active": {
+                "type": "final"
+              }
+            },
+            "output": {
+              "secret": "pingpong"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "invoke.test.ts > invoke > parent to child > should not reinvoke root-level invocations on root non-reentering transitions",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the root invokes a callback that counts its starts and its disposals, and those counts are the test's point; the entry and action counters alone, without the invoke, would not show that the invocation is not restarted"
+    },
+    {
+      "test": "invoke.test.ts > invoke > parent to child > should stop a child actor when reaching a final state",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the test spies on the disposal function the callback returns"
+    },
+    {
+      "test": "invoke.test.ts > invoke > parent to child > child should not invoke an actor when it transitions to an invoking state when it gets stopped by its parent",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the idle state's callback sendBacks STARTED on a real setTimeout and the active state's sendBacks STOPPED when it starts. The assertion, invokeCount 1 read in the parent's complete observer, is also the order between two actors, which the record does not hold: XState runs the parent's final macrostep nested in the child's forwardTo, before the child's next deferred effect, and the child then still starts its re-entered idle state's callback (a probe on xstate 5.33.2 counts 2 invocations once the step settles, the second throwing; with child machines standing in for the callbacks the oracle records that second start); xactor queues the forward, so the start follows the parent's stop instead (doc: #differences-interleaving)"
+    }
+  ]
+}

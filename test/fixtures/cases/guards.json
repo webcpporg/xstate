@@ -1,0 +1,1748 @@
+{
+  "source": "guards.test.ts",
+  "cases": [
+    {
+      "name": "condition met stays green",
+      "test": "guards.test.ts > guard conditions > should transition only if condition is met",
+      "machine": {
+        "initial": "green",
+        "context": {
+          "elapsed": 50
+        },
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": [
+                {
+                  "target": "green",
+                  "guard": {
+                    "type": "xstate.not",
+                    "guards": [
+                      {
+                        "type": "context_at_least",
+                        "params": {
+                          "key": "elapsed",
+                          "value": 100
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "target": "yellow",
+                  "guard": {
+                    "type": "xstate.and",
+                    "guards": [
+                      {
+                        "type": "context_at_least",
+                        "params": {
+                          "key": "elapsed",
+                          "value": 100
+                        }
+                      },
+                      {
+                        "type": "xstate.not",
+                        "guards": [
+                          {
+                            "type": "context_at_least",
+                            "params": {
+                              "key": "elapsed",
+                              "value": 200
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "yellow": {},
+          "red": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "condition met reaches yellow",
+      "test": "guards.test.ts > guard conditions > should transition only if condition is met",
+      "machine": {
+        "initial": "green",
+        "context": {
+          "elapsed": 120
+        },
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": [
+                {
+                  "target": "green",
+                  "guard": {
+                    "type": "xstate.not",
+                    "guards": [
+                      {
+                        "type": "context_at_least",
+                        "params": {
+                          "key": "elapsed",
+                          "value": 100
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "target": "yellow",
+                  "guard": {
+                    "type": "xstate.and",
+                    "guards": [
+                      {
+                        "type": "context_at_least",
+                        "params": {
+                          "key": "elapsed",
+                          "value": 100
+                        }
+                      },
+                      {
+                        "type": "xstate.not",
+                        "guards": [
+                          {
+                            "type": "context_at_least",
+                            "params": {
+                              "key": "elapsed",
+                              "value": 200
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "yellow": {},
+          "red": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "event condition met transitions",
+      "test": "guards.test.ts > guard conditions > should transition if condition based on event is met",
+      "machine": {
+        "initial": "green",
+        "context": {
+          "elapsed": 0
+        },
+        "states": {
+          "green": {
+            "on": {
+              "EMERGENCY": {
+                "target": "red",
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "isEmergency",
+                    "value": true
+                  }
+                }
+              }
+            }
+          },
+          "red": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EMERGENCY",
+            "isEmergency": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "event condition unmet stays",
+      "test": "guards.test.ts > guard conditions > should not transition if condition based on event is not met",
+      "machine": {
+        "initial": "green",
+        "context": {
+          "elapsed": 0
+        },
+        "states": {
+          "green": {
+            "on": {
+              "EMERGENCY": {
+                "target": "red",
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "isEmergency",
+                    "value": true
+                  }
+                }
+              }
+            }
+          },
+          "red": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EMERGENCY"
+          }
+        }
+      ]
+    },
+    {
+      "name": "string guard chain to red",
+      "test": "guards.test.ts > guard conditions > should work with defined string transitions",
+      "machine": {
+        "initial": "green",
+        "context": {
+          "elapsed": 120
+        },
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": [
+                {
+                  "target": "green",
+                  "guard": {
+                    "type": "xstate.not",
+                    "guards": [
+                      {
+                        "type": "context_at_least",
+                        "params": {
+                          "key": "elapsed",
+                          "value": 100
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "target": "yellow",
+                  "guard": {
+                    "type": "xstate.and",
+                    "guards": [
+                      {
+                        "type": "context_at_least",
+                        "params": {
+                          "key": "elapsed",
+                          "value": 100
+                        }
+                      },
+                      {
+                        "type": "xstate.not",
+                        "guards": [
+                          {
+                            "type": "context_at_least",
+                            "params": {
+                              "key": "elapsed",
+                              "value": 200
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "yellow": {
+            "on": {
+              "TIMER": {
+                "target": "red",
+                "guard": {
+                  "type": "xstate.and",
+                  "guards": [
+                    {
+                      "type": "context_at_least",
+                      "params": {
+                        "key": "elapsed",
+                        "value": 100
+                      }
+                    },
+                    {
+                      "type": "xstate.not",
+                      "guards": [
+                        {
+                          "type": "context_at_least",
+                          "params": {
+                            "key": "elapsed",
+                            "value": 200
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "red": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "guard object chain to red",
+      "test": "guards.test.ts > guard conditions > should work with guard objects",
+      "machine": {
+        "initial": "green",
+        "context": {
+          "elapsed": 150
+        },
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": [
+                {
+                  "target": "green",
+                  "guard": {
+                    "type": "xstate.not",
+                    "guards": [
+                      {
+                        "type": "context_at_least",
+                        "params": {
+                          "key": "elapsed",
+                          "value": 100
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "target": "yellow",
+                  "guard": {
+                    "type": "xstate.and",
+                    "guards": [
+                      {
+                        "type": "context_at_least",
+                        "params": {
+                          "key": "elapsed",
+                          "value": 100
+                        }
+                      },
+                      {
+                        "type": "xstate.not",
+                        "guards": [
+                          {
+                            "type": "context_at_least",
+                            "params": {
+                              "key": "elapsed",
+                              "value": 200
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "yellow": {
+            "on": {
+              "TIMER": {
+                "target": "red",
+                "guard": {
+                  "type": "xstate.and",
+                  "guards": [
+                    {
+                      "type": "context_at_least",
+                      "params": {
+                        "key": "elapsed",
+                        "value": 100
+                      }
+                    },
+                    {
+                      "type": "xstate.not",
+                      "guards": [
+                        {
+                          "type": "context_at_least",
+                          "params": {
+                            "key": "elapsed",
+                            "value": 200
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              "TIMER_COND_OBJ": {
+                "target": "red",
+                "guard": {
+                  "type": "xstate.and",
+                  "guards": [
+                    {
+                      "type": "context_at_least",
+                      "params": {
+                        "key": "elapsed",
+                        "value": 100
+                      }
+                    },
+                    {
+                      "type": "xstate.not",
+                      "guards": [
+                        {
+                          "type": "context_at_least",
+                          "params": {
+                            "key": "elapsed",
+                            "value": 200
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "red": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        },
+        {
+          "send": {
+            "type": "TIMER_COND_OBJ"
+          }
+        }
+      ]
+    },
+    {
+      "name": "string guard condition not met",
+      "test": "guards.test.ts > guard conditions > should work with defined string transitions (condition not met)",
+      "machine": {
+        "initial": "yellow",
+        "context": {
+          "elapsed": 10
+        },
+        "states": {
+          "yellow": {
+            "on": {
+              "TIMER": {
+                "target": "red",
+                "guard": {
+                  "type": "xstate.and",
+                  "guards": [
+                    {
+                      "type": "context_at_least",
+                      "params": {
+                        "key": "elapsed",
+                        "value": 100
+                      }
+                    },
+                    {
+                      "type": "xstate.not",
+                      "guards": [
+                        {
+                          "type": "context_at_least",
+                          "params": {
+                            "key": "elapsed",
+                            "value": 200
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "red": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "undefined guard throws",
+      "test": "guards.test.ts > guard conditions > should throw if string transition is not defined",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "on": {
+              "BAD_COND": {
+                "guard": "doesNotExist"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "BAD_COND"
+          }
+        }
+      ],
+      "xstate_refuses": "unknown_guard"
+    },
+    {
+      "name": "guard against transition when all false",
+      "test": "guards.test.ts > guard conditions > should guard against transition",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "A": {
+            "initial": "A2",
+            "states": {
+              "A0": {},
+              "A2": {}
+            }
+          },
+          "B": {
+            "initial": "B0",
+            "states": {
+              "B0": {
+                "always": [
+                  {
+                    "target": "B4",
+                    "guard": {
+                      "type": "xstate.or",
+                      "guards": []
+                    }
+                  }
+                ],
+                "on": {
+                  "T1": [
+                    {
+                      "target": "B1",
+                      "guard": {
+                        "type": "xstate.or",
+                        "guards": []
+                      }
+                    }
+                  ]
+                }
+              },
+              "B1": {},
+              "B4": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "T1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "stateIn allows matching transition",
+      "test": "guards.test.ts > guard conditions > should allow a matching transition",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "A": {
+            "initial": "A2",
+            "states": {
+              "A0": {},
+              "A2": {}
+            }
+          },
+          "B": {
+            "initial": "B0",
+            "states": {
+              "B0": {
+                "always": [
+                  {
+                    "target": "B4",
+                    "guard": {
+                      "type": "xstate.or",
+                      "guards": []
+                    }
+                  }
+                ],
+                "on": {
+                  "T2": [
+                    {
+                      "target": "B2",
+                      "guard": {
+                        "type": "xstate.stateIn",
+                        "stateValue": "A.A2"
+                      }
+                    }
+                  ]
+                }
+              },
+              "B1": {},
+              "B2": {},
+              "B4": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "T2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "stateIn checked through interim states",
+      "test": "guards.test.ts > guard conditions > should check guards with interim states",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "A": {
+            "initial": "A2",
+            "states": {
+              "A2": {
+                "on": {
+                  "A": "A3"
+                }
+              },
+              "A3": {
+                "always": "A4"
+              },
+              "A4": {
+                "always": "A5"
+              },
+              "A5": {}
+            }
+          },
+          "B": {
+            "initial": "B0",
+            "states": {
+              "B0": {
+                "always": [
+                  {
+                    "target": "B4",
+                    "guard": {
+                      "type": "xstate.stateIn",
+                      "stateValue": "A.A4"
+                    }
+                  }
+                ]
+              },
+              "B4": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "A"
+          }
+        }
+      ]
+    },
+    {
+      "name": "missing predicate guard throws",
+      "test": "guards.test.ts > referencing guards > should throw for guards with missing predicates",
+      "machine": {
+        "id": "invalid-predicate",
+        "initial": "active",
+        "states": {
+          "active": {
+            "on": {
+              "EVENT": {
+                "target": "inactive",
+                "guard": "missing-predicate"
+              }
+            }
+          },
+          "inactive": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        }
+      ],
+      "xstate_refuses": "unknown_guard"
+    },
+    {
+      "name": "referenced composite guard with inline predicates",
+      "test": "guards.test.ts > referencing guards > should be possible to reference a composite guard that only uses inline predicates",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.not",
+                  "guards": [
+                    {
+                      "type": "xstate.or",
+                      "guards": []
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "referenced composite guard recursive or and not",
+      "test": "guards.test.ts > referencing guards > should be possible to reference a composite guard that references other guards recursively",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.or",
+                  "guards": [
+                    {
+                      "type": "xstate.or",
+                      "guards": []
+                    },
+                    {
+                      "type": "xstate.not",
+                      "guards": [
+                        {
+                          "type": "xstate.and",
+                          "guards": []
+                        }
+                      ]
+                    },
+                    {
+                      "type": "xstate.and",
+                      "guards": [
+                        {
+                          "type": "xstate.not",
+                          "guards": [
+                            {
+                              "type": "xstate.or",
+                              "guards": []
+                            }
+                          ]
+                        },
+                        {
+                          "type": "xstate.and",
+                          "guards": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "recursively resolved guard reference",
+      "test": "guards.test.ts > referencing guards > should be possible to resolve referenced guards recursively",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.and",
+                  "guards": []
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "fallback target when guard false",
+      "test": "guards.test.ts > guards - other > should allow for a fallback target to be a simple string",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": [
+                {
+                  "target": "b",
+                  "guard": {
+                    "type": "xstate.or",
+                    "guards": []
+                  }
+                },
+                "c"
+              ]
+            }
+          },
+          "b": {},
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "not guard over false constant",
+      "test": "guards.test.ts > not() guard > should guard with inline function",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.not",
+                  "guards": [
+                    {
+                      "type": "xstate.or",
+                      "guards": []
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "not guard over named false constant",
+      "test": "guards.test.ts > not() guard > should guard with string",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.not",
+                  "guards": [
+                    {
+                      "type": "xstate.or",
+                      "guards": []
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "not guard over object form threshold",
+      "test": "guards.test.ts > not() guard > should guard with object",
+      "machine": {
+        "context": {
+          "n": 5
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.not",
+                  "guards": [
+                    {
+                      "type": "context_at_least",
+                      "params": {
+                        "key": "n",
+                        "value": 11
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "not guard over nested and not",
+      "test": "guards.test.ts > not() guard > should guard with nested built-in guards",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.not",
+                  "guards": [
+                    {
+                      "type": "xstate.and",
+                      "guards": [
+                        {
+                          "type": "xstate.not",
+                          "guards": [
+                            {
+                              "type": "xstate.and",
+                              "guards": []
+                            }
+                          ]
+                        },
+                        {
+                          "type": "xstate.and",
+                          "guards": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "and guard over two true constants",
+      "test": "guards.test.ts > and() guard > should guard with inline function",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.and",
+                  "guards": [
+                    {
+                      "type": "xstate.and",
+                      "guards": []
+                    },
+                    {
+                      "type": "xstate.and",
+                      "guards": []
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "and guard over named true constants",
+      "test": "guards.test.ts > and() guard > should guard with string",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.and",
+                  "guards": [
+                    {
+                      "type": "xstate.and",
+                      "guards": []
+                    },
+                    {
+                      "type": "xstate.and",
+                      "guards": []
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "and guard over object form thresholds",
+      "test": "guards.test.ts > and() guard > should guard with object",
+      "machine": {
+        "context": {
+          "n": 50
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.and",
+                  "guards": [
+                    {
+                      "type": "context_at_least",
+                      "params": {
+                        "key": "n",
+                        "value": 11
+                      }
+                    },
+                    {
+                      "type": "context_at_least",
+                      "params": {
+                        "key": "n",
+                        "value": 50
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "and guard with nested not and and",
+      "test": "guards.test.ts > and() guard > should guard with nested built-in guards",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.and",
+                  "guards": [
+                    {
+                      "type": "xstate.and",
+                      "guards": []
+                    },
+                    {
+                      "type": "xstate.not",
+                      "guards": [
+                        {
+                          "type": "xstate.or",
+                          "guards": []
+                        }
+                      ]
+                    },
+                    {
+                      "type": "xstate.and",
+                      "guards": [
+                        {
+                          "type": "xstate.not",
+                          "guards": [
+                            {
+                              "type": "xstate.or",
+                              "guards": []
+                            }
+                          ]
+                        },
+                        {
+                          "type": "xstate.and",
+                          "guards": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "or guard over false and true constants",
+      "test": "guards.test.ts > or() guard > should guard with inline function",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.or",
+                  "guards": [
+                    {
+                      "type": "xstate.or",
+                      "guards": []
+                    },
+                    {
+                      "type": "xstate.and",
+                      "guards": []
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "or guard over named false and true constants",
+      "test": "guards.test.ts > or() guard > should guard with string",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.or",
+                  "guards": [
+                    {
+                      "type": "xstate.or",
+                      "guards": []
+                    },
+                    {
+                      "type": "xstate.and",
+                      "guards": []
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "or guard over object form thresholds",
+      "test": "guards.test.ts > or() guard > should guard with object",
+      "machine": {
+        "context": {
+          "n": 50
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.or",
+                  "guards": [
+                    {
+                      "type": "context_at_least",
+                      "params": {
+                        "key": "n",
+                        "value": 1000
+                      }
+                    },
+                    {
+                      "type": "context_at_least",
+                      "params": {
+                        "key": "n",
+                        "value": 50
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "or guard with nested not and and",
+      "test": "guards.test.ts > or() guard > should guard with nested built-in guards",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "guard": {
+                  "type": "xstate.or",
+                  "guards": [
+                    {
+                      "type": "xstate.or",
+                      "guards": []
+                    },
+                    {
+                      "type": "xstate.not",
+                      "guards": [
+                        {
+                          "type": "xstate.and",
+                          "guards": []
+                        }
+                      ]
+                    },
+                    {
+                      "type": "xstate.and",
+                      "guards": [
+                        {
+                          "type": "xstate.not",
+                          "guards": [
+                            {
+                              "type": "xstate.or",
+                              "guards": []
+                            }
+                          ]
+                        },
+                        {
+                          "type": "xstate.and",
+                          "guards": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "event elapsed meets no threshold stays",
+      "test": "guards.test.ts > guard conditions > should not transition if no condition is met",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "TIMER": [
+                {
+                  "target": "b",
+                  "guard": {
+                    "type": "compare",
+                    "params": {
+                      "left": {
+                        "$event": "elapsed"
+                      },
+                      "op": ">",
+                      "right": 200
+                    }
+                  }
+                },
+                {
+                  "target": "c",
+                  "guard": {
+                    "type": "compare",
+                    "params": {
+                      "left": {
+                        "$event": "elapsed"
+                      },
+                      "op": ">",
+                      "right": 100
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "b": {},
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER",
+            "elapsed": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "custom sum guard above threshold reaches active",
+      "test": "guards.test.ts > custom guards > should evaluate custom guards",
+      "machine": {
+        "initial": "inactive",
+        "context": {
+          "count": 0
+        },
+        "states": {
+          "inactive": {
+            "on": {
+              "EVENT": {
+                "target": "active",
+                "guard": {
+                  "type": "compare",
+                  "params": {
+                    "left": {
+                      "$sum": [
+                        {
+                          "$context": "count"
+                        },
+                        {
+                          "$event": "value"
+                        }
+                      ]
+                    },
+                    "op": ">",
+                    "right": 3
+                  }
+                }
+              }
+            }
+          },
+          "active": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT",
+            "value": 4
+          }
+        }
+      ]
+    },
+    {
+      "name": "custom sum guard at threshold stays inactive",
+      "test": "guards.test.ts > custom guards > should evaluate custom guards",
+      "machine": {
+        "initial": "inactive",
+        "context": {
+          "count": 0
+        },
+        "states": {
+          "inactive": {
+            "on": {
+              "EVENT": {
+                "target": "active",
+                "guard": {
+                  "type": "compare",
+                  "params": {
+                    "left": {
+                      "$sum": [
+                        {
+                          "$context": "count"
+                        },
+                        {
+                          "$event": "value"
+                        }
+                      ]
+                    },
+                    "op": ">",
+                    "right": 3
+                  }
+                }
+              }
+            }
+          },
+          "active": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT",
+            "value": 3
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "guards.test.ts > custom guards > should provide the undefined params if a guard was configured using a string",
+      "reason": "the only assertion is a spy's call argument, the params a guard named by a string receives (undefined); the oracle records no guard's call or params, no guard of the vocabulary named by a string can be evaluated without failing (every entry but fail needs params), and none tells undefined params apart from other params lacking its members. It would need a guard entry that answers whether its params are undefined, or a record of each guard's params"
+    },
+    {
+      "test": "guards.test.ts > custom guards > should provide the guard with resolved params when they are dynamic",
+      "reason": "the guard's params are a function (() => ({ stuff: 100 })) that XState resolves before calling the guard; a case's guard params are JSON handed to the guard as they are, with no computed form that becomes XState's params function, and the assertion reads the spy's call argument, while the oracle records no guard's call or params. It would need computed guard params (resolved by XState as the params function, and by xstate likewise) and a guard entry that exposes the params it received"
+    },
+    {
+      "test": "guards.test.ts > custom guards > should resolve dynamic params using context value",
+      "reason": "the guard's params are a function of the context (({ context }) => ({ secret: context.secret })) that XState resolves before calling the guard; a case's guard params are JSON handed to the guard as they are, with no computed form that becomes XState's params function, and the assertion reads the spy's call argument, while the oracle records no guard's call or params. It would need computed guard params (resolved by XState as the params function, and by xstate likewise) and a guard entry that exposes the params it received"
+    },
+    {
+      "test": "guards.test.ts > custom guards > should resolve dynamic params using event value",
+      "reason": "the guard's params are a function of the event (({ event }) => ({ secret: event.secret })) that XState resolves before calling the guard; a case's guard params are JSON handed to the guard as they are, with no computed form that becomes XState's params function, and the assertion reads the spy's call argument, while the oracle records no guard's call or params. It would need computed guard params (resolved by XState as the params function, and by xstate likewise) and a guard entry that exposes the params it received"
+    },
+    {
+      "test": "guards.test.ts > custom guards > should call a referenced `not` guard that embeds an inline function guard with undefined params",
+      "reason": "myGuard is a named not(inlineGuard) referenced with params 'foo', and the assertion is the inline guard's call argument (undefined, not 'foo'); a case cannot name a composite guard (the guards are a fixed table, and a case declares actions, never guards), and the oracle records no guard's call or params. It would need guards declared by the case (a named not, and or or over vocabulary guards) and a guard entry that exposes the params it received"
+    },
+    {
+      "test": "guards.test.ts > custom guards > should call a string guard referenced by referenced `not` with undefined params",
+      "reason": "myGuard is a named not('other') referenced with params 'foo', and the assertion is the call argument of 'other' (undefined, not 'foo'); a case cannot name a composite guard (the guards are a fixed table, and a case declares actions, never guards), and the oracle records no guard's call or params. It would need guards declared by the case (a named not, and or or over vocabulary guards) and a guard entry that exposes the params it received"
+    },
+    {
+      "test": "guards.test.ts > custom guards > should call an object guard referenced by referenced `not` with its own params",
+      "reason": "myGuard is a named not({ type: 'other', params: 42 }) referenced with params 'foo', and the assertion is the call argument of 'other' (42, its own, not 'foo'); a case cannot name a composite guard (the guards are a fixed table, and a case declares actions, never guards), and the oracle records no guard's call or params. It would need guards declared by the case (a named not, and or or over vocabulary guards) and a guard entry that exposes the params it received"
+    },
+    {
+      "test": "guards.test.ts > custom guards > should call an inline function guard embedded in referenced `and` with undefined params",
+      "reason": "myGuard is a named and(['other', inlineGuard]) referenced with params 'foo', and the assertion is the inline guard's call argument (undefined, not 'foo'); a case cannot name a composite guard (the guards are a fixed table, and a case declares actions, never guards), and the oracle records no guard's call or params. It would need guards declared by the case (a named not, and or or over vocabulary guards) and a guard entry that exposes the params it received"
+    },
+    {
+      "test": "guards.test.ts > custom guards > should call a string guard referenced by referenced `and` with undefined params",
+      "reason": "myGuard is a named and(['other', inlineGuard]) referenced with params 'foo', and the only assertion is the call argument of 'other' (undefined, not 'foo'); a case cannot name a composite guard (the guards are a fixed table, and a case declares actions, never guards), the oracle records no guard's call or params, and no guard of the vocabulary named by a string can be evaluated without failing (every entry but fail needs params), so none tells undefined params apart from 'foo'. It would need guards declared by the case (a named not, and or or over vocabulary guards) and a guard entry that exposes the params it received"
+    },
+    {
+      "test": "guards.test.ts > custom guards > should call an object guard referenced by referenced `and` with its own params",
+      "reason": "myGuard is a named and([{ type: 'other', params: 42 }, inlineGuard]) referenced with params 'foo', and the only assertion is the call argument of 'other' (42, its own, not 'foo'); a case cannot name a composite guard (the guards are a fixed table, and a case declares actions, never guards), and the oracle records no guard's call or params. It would need guards declared by the case (a named not, and or or over vocabulary guards) and a guard entry that exposes the params it received"
+    },
+    {
+      "test": "guards.test.ts > referencing guards > guard should be checked when referenced by a string",
+      "reason": "the assertions are the spy's call count (not called after start, called once after EV), with a spy that returns undefined, so the actor stays active; the oracle records no guard's calls, and a guard named by a string receives undefined params, with which every vocabulary guard but fail fails, while fail makes XState fail on EV (the oracle writes \"error\": true), which the test does not assert; the part before EV alone resolves no reference, so it shows nothing of this test. It would need a guard entry that succeeds without params and a record of each guard call (its name and params) in the oracle's output, and in xstate's"
+    },
+    {
+      "test": "guards.test.ts > referencing guards > guard should be checked when referenced by a parametrized guard object",
+      "reason": "the assertions are the spy's call count (not called after start, called once after EV), with a spy that returns undefined, so the actor stays active; the oracle records no guard's calls, and a guard named by an object without params receives undefined params, with which every vocabulary guard but fail fails, while fail makes XState fail on EV (the oracle writes \"error\": true), which the test does not assert; the part before EV alone resolves no reference, so it shows nothing of this test. It would need a guard entry that succeeds without params and a record of each guard call (its name and params) in the oracle's output, and in xstate's"
+    },
+    {
+      "test": "guards.test.ts > guards - other > inline function guard should not leak into provided guards object",
+      "reason": "the only assertion is that the guards object the test hands createMachine is still {} after the inline function guard () => false was evaluated (XState must not register the inline guard in it); a case hands XState no implementations object of its own (the guards are the vocabulary's fixed table, and an inline function guard is not JSON), and the oracle records neither the implementations nor any change to them, while xstate's create_machine takes its implementations by value, so a caller's copy has nothing to observe. It would need a guards table supplied by the case that the oracle writes out after the run"
+    },
+    {
+      "test": "guards.test.ts > guards - other > inline builtin guard should not leak into provided guards object",
+      "reason": "the only assertion is that the guards object the test hands createMachine is still {} after the inline builtin guard not(() => false) was evaluated (XState must not register the inline guard in it); a case hands XState no implementations object of its own (the guards are the vocabulary's fixed table, and an inline function guard is not JSON), and the oracle records neither the implementations nor any change to them, while xstate's create_machine takes its implementations by value, so a caller's copy has nothing to observe. It would need a guards table supplied by the case that the oracle writes out after the run"
+    },
+    {
+      "test": "guards.test.ts > not() guard > should evaluate dynamic params of the referenced guard",
+      "reason": "the referenced guard myGuard is called inside not(...) with params that are a function of the event (({ event }) => ({ secret: event.secret })), which XState resolves before calling the guard, and the only assertion is the spy's call arguments ([[{ secret: 42 }]]); a case's guard params are JSON handed to the guard as they are, with no computed form that becomes XState's params function (a compare over {\"$event\": \"secret\"} reads the event inside the guard, which is not this resolution), and the oracle records no guard's call or params. It would need computed guard params (resolved by XState as the params function, and by xstate likewise) and a guard entry that exposes the params it received"
+    },
+    {
+      "test": "guards.test.ts > and() guard > should evaluate dynamic params of the referenced guard",
+      "reason": "the referenced guard myGuard is called inside and([..., () => true]) with params that are a function of the event (({ event }) => ({ secret: event.secret })), which XState resolves before calling the guard, and the only assertion is the spy's call arguments ([[{ secret: 42 }]]); a case's guard params are JSON handed to the guard as they are, with no computed form that becomes XState's params function (a compare over {\"$event\": \"secret\"} reads the event inside the guard, which is not this resolution), and the oracle records no guard's call or params. It would need computed guard params (resolved by XState as the params function, and by xstate likewise) and a guard entry that exposes the params it received"
+    },
+    {
+      "test": "guards.test.ts > or() guard > should evaluate dynamic params of the referenced guard",
+      "reason": "the referenced guard myGuard is called inside or([..., () => true]) with params that are a function of the event (({ event }) => ({ secret: event.secret })), which XState resolves before calling the guard, and the only assertion is the spy's call arguments ([[{ secret: 42 }]]); a case's guard params are JSON handed to the guard as they are, with no computed form that becomes XState's params function (a compare over {\"$event\": \"secret\"} reads the event inside the guard, which is not this resolution), and the oracle records no guard's call or params. It would need computed guard params (resolved by XState as the params function, and by xstate likewise) and a guard entry that exposes the params it received"
+    }
+  ]
+}

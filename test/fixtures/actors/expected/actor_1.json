@@ -1,0 +1,478 @@
+{
+  "source": "actor.test.ts (lines 1 to 850)",
+  "cases": [
+    {
+      "name": "a todo spawned on ADD and completed on SET_COMPLETE tells its parent, which completes",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "todos",
+                      "todos.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/todo-42": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "incomplete",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "todo",
+                      "todo.incomplete"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "ADD",
+                    "id": 42
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "todos",
+                      "todos.active"
+                    ],
+                    "children": {
+                      "todo-42": "todo"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/todo-42": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/todo-42": {
+              "events": [
+                {
+                  "event": {
+                    "type": "SET_COMPLETE"
+                  },
+                  "snapshot": {
+                    "value": "complete",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "todo",
+                      "todo.complete"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "SET_COMPLETE",
+                    "id": 42
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "todos",
+                      "todos.active"
+                    ],
+                    "children": {
+                      "todo-42": "todo"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "TODO_COMPLETED"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "todos.success",
+                      "todos"
+                    ],
+                    "children": {
+                      "todo-42": "todo"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/todo-42": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a referenced child spawned on entry tells its parent at once, which reaches success on start",
+      "steps": [
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "waiting",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).waiting"
+                    ],
+                    "children": {
+                      "child": "child"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "DONE"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).success",
+                      "(machine)"
+                    ],
+                    "children": {
+                      "child": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/child": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a client pings the server it spawned, the server pongs back and the client completes",
+      "steps": [
+        {
+          "actors": {
+            "root/server": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "waitPing",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "server",
+                      "server.waitPing"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "PING"
+                  },
+                  "snapshot": {
+                    "value": "waitPing",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "server",
+                      "server.waitPing"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "waitPong",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "client",
+                      "client.waitPong"
+                    ],
+                    "children": {
+                      "server": "server"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "PONG"
+                  },
+                  "snapshot": {
+                    "value": "complete",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "client.complete",
+                      "client"
+                    ],
+                    "children": {
+                      "server": "server"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/server": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a promise spawned on entry resolves with the awaited output and its parent completes",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "promise",
+                      "promise.idle"
+                    ],
+                    "children": {
+                      "my-promise": "inlinePromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/my-promise": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/my-promise",
+              "src": "inlinePromise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.my-promise",
+                    "output": "response",
+                    "actorId": "my-promise"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "promise.success",
+                      "promise"
+                    ],
+                    "children": {
+                      "my-promise": "inlinePromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/my-promise": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a referenced promise spawned on entry resolves with the awaited output and its parent completes",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "promise",
+                      "promise.idle"
+                    ],
+                    "children": {
+                      "my-promise": "somePromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/my-promise": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/my-promise",
+              "src": "somePromise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.my-promise",
+                    "output": "response",
+                    "actorId": "my-promise"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "promise.success",
+                      "promise"
+                    ],
+                    "children": {
+                      "my-promise": "somePromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/my-promise": "done"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

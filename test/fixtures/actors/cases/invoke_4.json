@@ -1,0 +1,176 @@
+{
+  "source": "invoke.test.ts (lines 1366 to 2536)",
+  "cases": [
+    {
+      "name": "a child invoked under a dotted id that reaches its final state completes its parent",
+      "test": "invoke.test.ts > invoke > with callbacks > sub invoke race condition ends on the completed state",
+      "machine": {
+        "id": "parent",
+        "initial": "begin",
+        "states": {
+          "begin": {
+            "invoke": {
+              "src": "anotherChildMachine",
+              "id": "invoked.child",
+              "onDone": "completed"
+            },
+            "on": {
+              "STOPCHILD": {
+                "actions": [
+                  "stop_child_machine"
+                ]
+              }
+            }
+          },
+          "completed": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "stop_child_machine": {
+          "kind": "send_to",
+          "target": "invoked.child",
+          "event": {
+            "type": "STOP"
+          }
+        }
+      },
+      "actors": {
+        "anotherChildMachine": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "initial": "start",
+            "states": {
+              "start": {
+                "on": {
+                  "STOP": "end"
+                }
+              },
+              "end": {
+                "type": "final"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "STOPCHILD"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "invoke.test.ts > invoke > with callbacks > should be able to specify a callback as a service",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback sendBacks three CALLBACK events at start, its input is computed from the context and the event by a function, and the guard reads event.data"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with callbacks > should transition correctly if callback function sends an event",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback sendBacks CALLBACK to its parent when it starts"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with callbacks > should transition correctly if callback function invoked from start and sends an event",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback sendBacks CALLBACK to its parent when it starts"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with callbacks > should transition correctly if transient transition happens before current state invokes callback function and sends an event",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback sendBacks CALLBACK to its parent when it starts"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with callbacks > should treat a callback source as an event stream",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback sendBacks INC on a real setInterval and returns its disposal"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with callbacks > should dispose of the callback (if disposal function provided)",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the test spies on the disposal function the callback returns"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with callbacks > callback should be able to receive messages from parent",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback answers PING with sendBack through receive"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with callbacks > should call onError upon error (sync)",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback throws when it starts, and the guard checks that the error is an Error instance"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with callbacks > should transition correctly upon error (sync)",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback throws when it starts"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with callbacks > should call onError only on the state which has invoked failed service",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): one region's callback throws when it starts, the other's returns a disposal"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with callbacks > should be able to be stringified",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test asserts only that JSON.stringify of the snapshot does not throw"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with callbacks > should result in an error notification if callback actor throws when it starts and the error stays unhandled by the machine",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback throws when it starts, and the test spies on the error observer's Error"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with callbacks > should work with input",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback asserts on its input, which a function computes from the context"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with observables > should work with an infinite observable",
+      "reason": "fromObservable is not ported (out of scope for the actor layer): an rxjs interval on a real timer, read through onSnapshot, which is not ported either"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with observables > should work with a finite observable",
+      "reason": "fromObservable is not ported (out of scope for the actor layer): an rxjs interval on a real timer, read through onSnapshot, which is not ported either"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with observables > should receive an emitted error",
+      "reason": "fromObservable is not ported (out of scope for the actor layer): an rxjs interval on a real timer that errors, read through onSnapshot, which is not ported either"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with observables > should work with input",
+      "reason": "fromObservable is not ported (out of scope for the actor layer): an rxjs of(input), read through onSnapshot, which is not ported either"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with event observables > should work with an infinite event observable",
+      "reason": "fromEventObservable is not ported (out of scope for the actor layer): the invoked logic is an rxjs interval(10) on a real timer whose values reach the parent as COUNT {value} events, until an eventless transition guarded by count === 5 completes the machine; a host actor settles once and sends its parent nothing else. It would need an event observable logic whose events reach its parent as it produces them"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with event observables > should work with a finite event observable",
+      "reason": "fromEventObservable is not ported (out of scope for the actor layer): the invoked logic is an rxjs interval(10).pipe(take(5)) on a real timer that sends its parent COUNT 0 to 4 and then completes, and the invoke's onDone, guarded by count === 4, follows those events; a host actor settles once and sends its parent nothing before its done event. It would need an event observable logic whose events reach its parent and whose completion is its done event"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with event observables > should receive an emitted error",
+      "reason": "fromEventObservable is not ported (out of scope for the actor layer): the invoked logic is an rxjs interval(10) on a real timer that sends its parent COUNT 0 to 4 and throws Error('some error') at its sixth value, and the onError guard reads count === 4 and event.error.message; a host actor rejects once and sends its parent nothing before its error event. It would need an event observable logic whose events reach its parent and whose failure is its error event"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with event observables > should work with input",
+      "reason": "fromEventObservable is not ported (out of scope for the actor layer): the invoked logic is an rxjs of({type: 'obs.event', value: input}) that sends its parent, when it starts, one event built from its input 42, and a custom action asserts event.value === 42; a host actor only settles, with a done or an error event. It would need an event observable logic that sends its parent an event computed from its input"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with logic > should work with actor logic",
+      "reason": "a custom ActorLogic object (transition, getInitialSnapshot, getPersistedSnapshot) is not ported (out of scope for the actor layer: only machines and host actors are actor logic); the test also reads the child's snapshot through the actor reference in state.children"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with logic > logic should have reference to the parent",
+      "reason": "a custom ActorLogic object (transition, getInitialSnapshot, getPersistedSnapshot) is not ported (out of scope for the actor layer: only machines and host actors are actor logic); the logic answers through self._parent.send"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with transition functions > should work with a transition function",
+      "reason": "fromTransition is not ported (out of scope for the actor layer); the test also reads the child's snapshot through the actor reference in state.children"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with transition functions > should schedule events in a FIFO queue",
+      "reason": "fromTransition is not ported (out of scope for the actor layer): the reducer sends to itself through self.send; the test also reads the child's snapshot through the actor reference in state.children"
+    },
+    {
+      "test": "invoke.test.ts > invoke > with transition functions > should emit onSnapshot",
+      "reason": "fromTransition is not ported (out of scope for the actor layer), nor is onSnapshot, which the test observes"
+    }
+  ]
+}

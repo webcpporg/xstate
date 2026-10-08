@@ -1,0 +1,878 @@
+{
+  "source": "smoke",
+  "cases": [
+    {
+      "name": "a parent invokes a child machine and a host actor",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "loading",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "app",
+                      "app.loading"
+                    ],
+                    "children": {
+                      "fetch": "fetchUser"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/fetch": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/fetch",
+              "src": "fetchUser",
+              "input": {
+                "userId": 42
+              }
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root/counter": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "counting",
+                    "context": {
+                      "count": 0
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "counter",
+                      "counter.counting"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.fetch",
+                    "output": {
+                      "name": "ana"
+                    },
+                    "actorId": "fetch"
+                  },
+                  "snapshot": {
+                    "value": "ready",
+                    "context": {
+                      "user": {
+                        "name": "ana"
+                      }
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "app",
+                      "app.ready"
+                    ],
+                    "children": {
+                      "counter": "counter"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/fetch": "done",
+            "root/counter": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/counter": {
+              "events": [
+                {
+                  "event": {
+                    "type": "TICK"
+                  },
+                  "snapshot": {
+                    "value": "counting",
+                    "context": {
+                      "count": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "counter",
+                      "counter.counting"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/fetch": "done",
+            "root/counter": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/counter": {
+              "events": [
+                {
+                  "event": {
+                    "type": "TICK"
+                  },
+                  "snapshot": {
+                    "value": "counting",
+                    "context": {
+                      "count": 2
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "counter",
+                      "counter.counting"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/fetch": "done",
+            "root/counter": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.counter",
+                    "output": {
+                      "done": true
+                    },
+                    "actorId": "counter"
+                  },
+                  "snapshot": {
+                    "value": "finished",
+                    "context": {
+                      "user": {
+                        "name": "ana"
+                      },
+                      "counted": {
+                        "done": true
+                      }
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "app.finished",
+                      "app"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/counter": {
+              "events": [
+                {
+                  "event": {
+                    "type": "STOP"
+                  },
+                  "snapshot": {
+                    "value": "stopped",
+                    "context": {
+                      "count": 2
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "counter.stopped",
+                      "counter"
+                    ],
+                    "output": {
+                      "done": true
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/fetch": "done",
+            "root/counter": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child's after timer and its done event",
+      "steps": [
+        {
+          "actors": {
+            "root/sleeper": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "asleep",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "sleeper",
+                      "sleeper.asleep"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "waiting",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.waiting"
+                    ],
+                    "children": {
+                      "sleeper": "sleeper"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/sleeper": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "active",
+            "root/sleeper": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.sleeper",
+                    "actorId": "sleeper"
+                  },
+                  "snapshot": {
+                    "value": "woken",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.woken"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/sleeper": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.100.sleeper.asleep"
+                  },
+                  "snapshot": {
+                    "value": "awake",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "sleeper.awake",
+                      "sleeper"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/sleeper": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a rejected host request takes onError",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "loading",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "app",
+                      "app.loading"
+                    ],
+                    "children": {
+                      "fetch": "fetchUser"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/fetch": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/fetch",
+              "src": "fetchUser"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.fetch",
+                    "error": {
+                      "message": "boom"
+                    },
+                    "actorId": "fetch"
+                  },
+                  "snapshot": {
+                    "value": "failed",
+                    "context": {
+                      "reason": {
+                        "message": "boom"
+                      }
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "app",
+                      "app.failed"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/fetch": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a host request answered after its state was left changes nothing",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "loading",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "app",
+                      "app.loading"
+                    ],
+                    "children": {
+                      "fetch": "fetchUser"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/fetch": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/fetch",
+              "src": "fetchUser"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "CANCEL"
+                  },
+                  "snapshot": {
+                    "value": "cancelled",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "app",
+                      "app.cancelled"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/fetch": "stopped"
+          },
+          "requests": []
+        },
+        {
+          "refused": true,
+          "actors": {},
+          "statuses": {
+            "root": "active",
+            "root/fetch": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child emits and answers its parent",
+      "steps": [
+        {
+          "actors": {
+            "root/echo": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "echo"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.a"
+                    ],
+                    "children": {
+                      "echo": "echo"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/echo": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/echo": {
+              "events": [
+                {
+                  "event": {
+                    "type": "PING",
+                    "n": 1
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "echo"
+                    ]
+                  }
+                }
+              ],
+              "emitted": [
+                {
+                  "type": "HEARD"
+                }
+              ]
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "GO"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.a"
+                    ],
+                    "children": {
+                      "echo": "echo"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "PONG"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.b"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/echo": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "stopping the root stops its children and their timers",
+      "steps": [
+        {
+          "actors": {
+            "root/sleeper": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "asleep",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "sleeper",
+                      "sleeper.asleep"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.a"
+                    ],
+                    "children": {
+                      "sleeper": "sleeper"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/sleeper": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped",
+            "root/sleeper": "stopped"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped",
+            "root/sleeper": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a sendTo by systemId reaches the actor registered under it",
+      "steps": [
+        {
+          "actors": {
+            "root/kid": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "listener",
+                      "listener.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.a"
+                    ],
+                    "children": {
+                      "kid": "listener"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/kid": {
+              "events": [
+                {
+                  "event": {
+                    "type": "NOTE"
+                  },
+                  "snapshot": {
+                    "value": "noted",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "listener",
+                      "listener.noted"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "GO"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.a"
+                    ],
+                    "children": {
+                      "kid": "listener"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "NOBODY"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.a"
+                    ],
+                    "children": {
+                      "kid": "listener"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "TO_SELF"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {
+                      "self": true
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.a"
+                    ],
+                    "children": {
+                      "kid": "listener"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "active"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,392 @@
+{
+  "source": "errors.test.ts",
+  "cases": [
+    {
+      "name": "a machine stays active and handles a later event",
+      "test": "errors.test.ts > error handling > doesn't crash the actor when an error is thrown in subscribe (the status and the action of the later event only; the subscriber that throws and the global report are not ported)",
+      "machine": {
+        "id": "machine",
+        "initial": "initial",
+        "context": {
+          "count": 0,
+          "log": []
+        },
+        "states": {
+          "initial": {
+            "on": {
+              "activate": "active"
+            }
+          },
+          "active": {
+            "on": {
+              "do": {
+                "actions": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "log",
+                      "value": "spy"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "activate"
+          }
+        },
+        {
+          "send": {
+            "type": "do"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a machine that reaches its state does not fail",
+      "test": "errors.test.ts > error handling > doesn't notify error listener when an error is thrown in subscribe (the status only, which keeps the error listener silent; the subscriber that throws and the global report are not ported)",
+      "machine": {
+        "id": "machine",
+        "initial": "initial",
+        "context": {
+          "count": 0
+        },
+        "states": {
+          "initial": {
+            "on": {
+              "activate": "active"
+            }
+          },
+          "active": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "activate"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an unhandled rejection of an invoked promise fails the root",
+      "test": "errors.test.ts > error handling > unhandled rejection of a promise actor should be reported globally in absence of error listener (the root's failure with the rejection's error only; the global report is not recorded)",
+      "machine": {
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "invoke": {
+              "src": "rejectingPromise",
+              "onDone": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "rejectingPromise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "reject": {
+            "src": "rejectingPromise",
+            "error": {
+              "message": "unhandled_rejection_in_promise_actor_without_error_listener"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "an unhandled rejection of an invoked promise reaches the parent's error",
+      "test": "errors.test.ts > error handling > unhandled rejection of a promise actor should be reported to the existing error listener of its parent",
+      "machine": {
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "invoke": {
+              "src": "rejectingPromise",
+              "onDone": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "rejectingPromise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "reject": {
+            "src": "rejectingPromise",
+            "error": {
+              "message": "unhandled_rejection_in_promise_actor_with_parent_listener"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "an unhandled rejection of a grandchild promise climbs to the root's error",
+      "test": "errors.test.ts > error handling > unhandled rejection of a promise actor should be reported to the existing error listener of its grandparent",
+      "machine": {
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "invoke": {
+              "src": "child",
+              "onDone": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "initial": "pending",
+            "states": {
+              "pending": {
+                "invoke": {
+                  "src": "rejectingPromise",
+                  "onDone": "success"
+                }
+              },
+              "success": {
+                "type": "final"
+              }
+            }
+          },
+          "actors": {
+            "rejectingPromise": {
+              "kind": "host"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "reject": {
+            "src": "rejectingPromise",
+            "error": {
+              "message": "unhandled_rejection_in_promise_actor_with_grandparent_listener"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a failing initial assign fails the actor",
+      "test": "errors.test.ts > error handling > error thrown when resolving initial builtin entry action should error the actor immediately (the status after the start only: the snapshot before the start is not recorded, and a failed start records no snapshot, so the error does not show)",
+      "machine": {
+        "entry": [
+          {
+            "type": "fail"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a failing entry action of a transition's target fails the actor",
+      "test": "errors.test.ts > error handling > error thrown by a custom entry action when transitioning should error the actor (the status only: the vocabulary's failing assign stands for the custom action that throws, which a case cannot run, and a failed transition records no snapshot, so the error does not show)",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              "fail"
+            ]
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a guard that fails while transitioning fails the actor",
+      "test": "errors.test.ts > error handling > should error when a guard throws when transitioning (the status only: the vocabulary's failing guard stands for the guard that throws, and a failed transition records no snapshot, so the error does not show)",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": {
+                "guard": {
+                  "type": "fail"
+                },
+                "target": "b"
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an actor emits on every event and stays active",
+      "test": "errors.test.ts > error handling > actor continues to work normally after emit callback errors (the emitted events and the status only; the actor.on listener that throws is not ported)",
+      "machine": {
+        "on": {
+          "someEvent": {
+            "actions": [
+              "emitFoo"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "emitFoo": {
+          "kind": "emit",
+          "event": {
+            "type": "emitted",
+            "foo": "bar"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "someEvent"
+          }
+        },
+        {
+          "send": {
+            "type": "someEvent"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "errors.test.ts > error handling > does not cause an infinite loop when an error is thrown in subscribe",
+      "reason": "asserts only how a subscriber that throws is treated (called once, its error reported globally); the format has no subscribe step, and the record holds neither a subscriber's calls nor the global error report. The machine's own part, an actor that reaches active and does not fail, is already the case 'a machine that reaches its state does not fail'. It would need a subscribe step with a subscriber that throws, and a record of a subscriber's calls and of the global error report"
+    },
+    {
+      "test": "errors.test.ts > error handling > unhandled sync errors thrown when starting a child actor should be reported globally",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test also asserts the global error report, which the record does not hold"
+    },
+    {
+      "test": "errors.test.ts > error handling > handled sync errors thrown when starting a child actor should not be reported globally",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test also asserts the absence of a global error report"
+    },
+    {
+      "test": "errors.test.ts > error handling > handled sync errors thrown when starting a child actor should be reported globally when not all of its own observers come with an error listener",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test also subscribes to the child before its start and asserts the global error report"
+    },
+    {
+      "test": "errors.test.ts > error handling > handled sync errors thrown when starting a child actor should not be reported globally when all of its own observers come with an error listener",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test also subscribes to the child before its start and asserts the absence of a global error report"
+    },
+    {
+      "test": "errors.test.ts > error handling > unhandled sync errors thrown when starting a child actor should be reported twice globally when not all of its own observers come with an error listener and when the root has no error listener of its own",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test also subscribes to the child before its start and asserts the global error report"
+    },
+    {
+      "test": "errors.test.ts > error handling > handled sync errors shouldn't notify the error listener",
+      "reason": "fromCallback is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "errors.test.ts > error handling > unhandled sync errors should notify the root error listener",
+      "reason": "fromCallback is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "errors.test.ts > error handling > unhandled sync errors should not notify the global listener when the root error listener is present",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test also asserts the global error report"
+    },
+    {
+      "test": "errors.test.ts > error handling > handled sync errors thrown when starting an actor shouldn't crash the parent",
+      "reason": "fromCallback is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "errors.test.ts > error handling > unhandled sync errors thrown when starting an actor should crash the parent",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test also asserts the global error report"
+    },
+    {
+      "test": "errors.test.ts > error handling > error thrown by the error listener should be reported globally",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test also needs an error listener that throws and asserts the global error report"
+    },
+    {
+      "test": "errors.test.ts > error handling > error should be reported globally if not every observer comes with an error listener",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test also needs two subscribers and asserts the global error report"
+    },
+    {
+      "test": "errors.test.ts > error handling > uncaught error and an error thrown by the error listener should both be reported globally when not every observer comes with an error listener",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test also needs an error listener that throws and asserts the global error report"
+    },
+    {
+      "test": "errors.test.ts > error handling > error thrown in initial custom entry action should error the actor",
+      "reason": "needs a custom action that throws when it is executed, which is out of scope: custom actions are handed to on_action, not run as functions (doc: #differences-custom), so none can fail its actor. XState defers an initial custom action to start(), runs it there, fails the actor and still publishes the xstate.init snapshot, active, before the failed status. No built-in action stands for it, since XState's update() notes that no built-in deferred throws, and the vocabulary's failing assign throws while createActor resolves the initial state, before the start, which is the path of 'error thrown when resolving initial builtin entry action should error the actor immediately', ported as 'a failing initial assign fails the actor'"
+    },
+    {
+      "test": "errors.test.ts > error handling > shouldn't execute deferred initial actions that come after an action that errors",
+      "reason": "needs a custom action that throws when it is executed, which is out of scope: custom actions are handed to on_action, not run as functions (doc: #differences-custom). The test asserts that when an initial custom action throws at start(), XState clears the initial actions deferred after it, so the spy never runs; no built-in action throws in a deferred, and the vocabulary's failing assign throws while createActor resolves the initial state, so nothing after it is ever deferred and the spy's absence would hold whatever the deferral does"
+    },
+    {
+      "test": "errors.test.ts > error handling > should error the parent on errored initial state of a child",
+      "reason": "fromTransition is not ported (out of scope for the actor layer); the test replaces its getInitialSnapshot to start the child errored"
+    }
+  ]
+}

@@ -1,0 +1,674 @@
+{
+  "source": "eventDescriptors.test.ts",
+  "cases": [
+    {
+      "name": "wildcard fallback when no exact match",
+      "test": "eventDescriptors.test.ts > event descriptors > should fallback to using wildcard transition definition (if specified)",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "on": {
+              "FOO": "B",
+              "*": "C"
+            }
+          },
+          "B": {},
+          "C": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "BAR"
+          }
+        },
+        {
+          "query": {
+            "matches": "C"
+          }
+        }
+      ]
+    },
+    {
+      "name": "explicit descriptor over leading wildcard",
+      "test": "eventDescriptors.test.ts > event descriptors > should prioritize explicit descriptor even if wildcard comes first",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "on": {
+              "*": "fail",
+              "NEXT": "pass"
+            }
+          },
+          "fail": {},
+          "pass": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "query": {
+            "matches": "pass"
+          }
+        }
+      ]
+    },
+    {
+      "name": "explicit descriptor over leading partial wildcard",
+      "test": "eventDescriptors.test.ts > event descriptors > should prioritize explicit descriptor even if a partial one comes first",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "on": {
+              "foo.*": "fail",
+              "foo.bar": "pass"
+            }
+          },
+          "fail": {},
+          "pass": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "foo.bar"
+          }
+        },
+        {
+          "query": {
+            "matches": "pass"
+          }
+        }
+      ]
+    },
+    {
+      "name": "longer descriptor over leading shorter one",
+      "test": "eventDescriptors.test.ts > event descriptors > should prioritize a longer descriptor even if the shorter one comes first",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "on": {
+              "foo.*": "fail",
+              "foo.bar.*": "pass"
+            }
+          },
+          "fail": {},
+          "pass": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "foo.bar.baz"
+          }
+        },
+        {
+          "query": {
+            "matches": "pass"
+          }
+        }
+      ]
+    },
+    {
+      "name": "shorter descriptor when longer one fails its guard",
+      "test": "eventDescriptors.test.ts > event descriptors > should use a shorter descriptor if the longer one doesn't match",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "on": {
+              "foo.bar.*": {
+                "target": "fail",
+                "guard": {
+                  "type": "context_equals",
+                  "params": {
+                    "key": "__never__",
+                    "value": "__false__"
+                  }
+                }
+              },
+              "foo.*": "pass"
+            }
+          },
+          "fail": {},
+          "pass": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "foo.bar.baz"
+          }
+        },
+        {
+          "query": {
+            "matches": "pass"
+          }
+        }
+      ]
+    },
+    {
+      "name": "wildcard fallback when exact descriptor guard fails",
+      "test": "eventDescriptors.test.ts > event descriptors > should fall back to wildcard descriptor when exact descriptor guard fails",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "on": {
+              "foo.bar": {
+                "guard": {
+                  "type": "context_equals",
+                  "params": {
+                    "key": "__never__",
+                    "value": "__false__"
+                  }
+                },
+                "target": "fail"
+              },
+              "foo.*": "pass"
+            }
+          },
+          "fail": {},
+          "pass": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "foo.bar"
+          }
+        },
+        {
+          "query": {
+            "matches": "pass"
+          }
+        }
+      ]
+    },
+    {
+      "name": "non-tokenized wildcard does not match exact event",
+      "test": "eventDescriptors.test.ts > event descriptors > should NOT support non-tokenized wildcards",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "event*": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "event"
+          }
+        },
+        {
+          "query": {
+            "matches": "success"
+          }
+        }
+      ]
+    },
+    {
+      "name": "non-tokenized wildcard does not match longer event",
+      "test": "eventDescriptors.test.ts > event descriptors > should NOT support non-tokenized wildcards",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "event*": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "eventually"
+          }
+        },
+        {
+          "query": {
+            "matches": "success"
+          }
+        }
+      ]
+    },
+    {
+      "name": "prefix wildcard matches exact event (+0)",
+      "test": "eventDescriptors.test.ts > event descriptors > should support prefix matching with wildcards (+0)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "event.*": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "event"
+          }
+        },
+        {
+          "query": {
+            "matches": "success"
+          }
+        }
+      ]
+    },
+    {
+      "name": "prefix wildcard rejects different event type (+0)",
+      "test": "eventDescriptors.test.ts > event descriptors > should support prefix matching with wildcards (+0)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "event.*": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "eventually"
+          }
+        },
+        {
+          "query": {
+            "matches": "success"
+          }
+        }
+      ]
+    },
+    {
+      "name": "prefix wildcard matches one extra token (+1)",
+      "test": "eventDescriptors.test.ts > event descriptors > should support prefix matching with wildcards (+1)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "event.*": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "event.whatever"
+          }
+        },
+        {
+          "query": {
+            "matches": "success"
+          }
+        }
+      ]
+    },
+    {
+      "name": "prefix wildcard rejects unrelated event (+1)",
+      "test": "eventDescriptors.test.ts > event descriptors > should support prefix matching with wildcards (+1)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "event.*": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "eventually"
+          }
+        },
+        {
+          "query": {
+            "matches": "success"
+          }
+        }
+      ]
+    },
+    {
+      "name": "prefix wildcard rejects reordered tokens (+1)",
+      "test": "eventDescriptors.test.ts > event descriptors > should support prefix matching with wildcards (+1)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "event.*": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "eventually.event"
+          }
+        },
+        {
+          "query": {
+            "matches": "success"
+          }
+        }
+      ]
+    },
+    {
+      "name": "prefix wildcard matches many extra tokens (+n)",
+      "test": "eventDescriptors.test.ts > event descriptors > should support prefix matching with wildcards (+n)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "event.*": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "event.first.second"
+          }
+        },
+        {
+          "query": {
+            "matches": "success"
+          }
+        }
+      ]
+    },
+    {
+      "name": "multi-token prefix wildcard matches deep event",
+      "test": "eventDescriptors.test.ts > event descriptors > should support prefix matching with wildcards (+n, multi-prefix)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "event.foo.bar.*": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "event.foo.bar.first.second"
+          }
+        },
+        {
+          "query": {
+            "matches": "success"
+          }
+        }
+      ]
+    },
+    {
+      "name": "partial descriptor action fires for every matching event type",
+      "test": "eventDescriptors.test.ts > event descriptors > should allow assertEvent to use partial descriptors",
+      "machine": {
+        "initial": "listening",
+        "states": {
+          "listening": {
+            "on": {
+              "FEEDBACK.*": {
+                "actions": "handleEvent"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FEEDBACK.MESSAGE",
+            "message": "hello"
+          }
+        },
+        {
+          "send": {
+            "type": "FEEDBACK.RATE",
+            "rate": 5
+          }
+        }
+      ]
+    },
+    {
+      "name": "infix wildcards do not match event.foo.bar.first.second",
+      "test": "eventDescriptors.test.ts > event descriptors > should not match infix wildcards (the state only; the console.warn spy on XState's development warnings is not ported)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "event.*.bar.*": "success",
+              "*.event.*": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "event.foo.bar.first.second"
+          }
+        },
+        {
+          "query": {
+            "matches": "success"
+          }
+        }
+      ]
+    },
+    {
+      "name": "infix wildcards do not match whatever.event",
+      "test": "eventDescriptors.test.ts > event descriptors > should not match infix wildcards (the state only; the console.warn spy on XState's development warnings is not ported)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "event.*.bar.*": "success",
+              "*.event.*": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "whatever.event"
+          }
+        },
+        {
+          "query": {
+            "matches": "success"
+          }
+        }
+      ]
+    },
+    {
+      "name": "wildcards inside a token do not match eventually.bar.baz",
+      "test": "eventDescriptors.test.ts > event descriptors > should not match wildcards as part of tokens (the state only; the console.warn spy on XState's development warnings is not ported)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "event*.bar.*": "success",
+              "*event.*": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "eventually.bar.baz"
+          }
+        },
+        {
+          "query": {
+            "matches": "success"
+          }
+        }
+      ]
+    },
+    {
+      "name": "wildcards inside a token do not match prevent.whatever",
+      "test": "eventDescriptors.test.ts > event descriptors > should not match wildcards as part of tokens (the state only; the console.warn spy on XState's development warnings is not ported)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "event*.bar.*": "success",
+              "*event.*": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "prevent.whatever"
+          }
+        },
+        {
+          "query": {
+            "matches": "success"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "eventDescriptors.test.ts > event descriptors > should throw if assertEvent partial descriptor does not match",
+      "reason": "calls assertEvent directly on an event object, outside any machine or actor, and asserts the error it throws; no case runs assertEvent, and no vocabulary entry asserts an event against a descriptor. It would need an assertEvent entry (an action or guard that fails when the event does not match a descriptor) in both vocabularies, and even then a case would show only a failed status, not the message the test snapshots"
+    }
+  ]
+}

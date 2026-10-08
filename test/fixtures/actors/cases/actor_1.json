@@ -1,0 +1,393 @@
+{
+  "source": "actor.test.ts (lines 1 to 850)",
+  "cases": [
+    {
+      "name": "a todo spawned on ADD and completed on SET_COMPLETE tells its parent, which completes",
+      "test": "actor.test.ts > spawning machines > should spawn machines",
+      "machine": {
+        "id": "todos",
+        "initial": "active",
+        "states": {
+          "active": {
+            "on": {
+              "TODO_COMPLETED": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        },
+        "on": {
+          "ADD": {
+            "actions": [
+              "spawn_todo"
+            ]
+          },
+          "SET_COMPLETE": {
+            "actions": [
+              "complete_todo"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawn_todo": {
+          "kind": "spawn_child",
+          "src": "todo",
+          "id": "todo-42"
+        },
+        "complete_todo": {
+          "kind": "send_to",
+          "target": "todo-42",
+          "event": {
+            "type": "SET_COMPLETE"
+          }
+        }
+      },
+      "actors": {
+        "todo": {
+          "kind": "machine",
+          "machine": {
+            "id": "todo",
+            "initial": "incomplete",
+            "states": {
+              "incomplete": {
+                "on": {
+                  "SET_COMPLETE": "complete"
+                }
+              },
+              "complete": {
+                "entry": [
+                  "todo_completed"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "todo_completed": {
+              "kind": "send_parent",
+              "event": {
+                "type": "TODO_COMPLETED"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "ADD",
+            "id": 42
+          }
+        },
+        {
+          "send": {
+            "type": "SET_COMPLETE",
+            "id": 42
+          }
+        }
+      ]
+    },
+    {
+      "name": "a referenced child spawned on entry tells its parent at once, which reaches success on start",
+      "test": "actor.test.ts > spawning machines > should spawn referenced machines",
+      "machine": {
+        "initial": "waiting",
+        "states": {
+          "waiting": {
+            "entry": [
+              "spawn_referenced"
+            ],
+            "on": {
+              "DONE": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "spawn_referenced": {
+          "kind": "spawn_child",
+          "src": "child",
+          "id": "child"
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "entry": [
+              "done"
+            ]
+          },
+          "actions": {
+            "done": {
+              "kind": "send_parent",
+              "event": {
+                "type": "DONE"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a client pings the server it spawned, the server pongs back and the client completes",
+      "test": "actor.test.ts > spawning machines > should allow bidirectional communication between parent/child actors",
+      "machine": {
+        "id": "client",
+        "initial": "init",
+        "states": {
+          "init": {
+            "entry": [
+              "spawn_server",
+              "raise_success"
+            ],
+            "on": {
+              "SUCCESS": "sendPing"
+            }
+          },
+          "sendPing": {
+            "entry": [
+              "ping_server",
+              "raise_success"
+            ],
+            "on": {
+              "SUCCESS": "waitPong"
+            }
+          },
+          "waitPong": {
+            "on": {
+              "PONG": "complete"
+            }
+          },
+          "complete": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "spawn_server": {
+          "kind": "spawn_child",
+          "src": "server",
+          "id": "server"
+        },
+        "ping_server": {
+          "kind": "send_to",
+          "target": "server",
+          "event": {
+            "type": "PING"
+          }
+        },
+        "raise_success": {
+          "kind": "raise",
+          "event": {
+            "type": "SUCCESS"
+          }
+        }
+      },
+      "actors": {
+        "server": {
+          "kind": "machine",
+          "machine": {
+            "id": "server",
+            "initial": "waitPing",
+            "states": {
+              "waitPing": {
+                "on": {
+                  "PING": "sendPong"
+                }
+              },
+              "sendPong": {
+                "entry": [
+                  "pong",
+                  "raise_success"
+                ],
+                "on": {
+                  "SUCCESS": "waitPing"
+                }
+              }
+            }
+          },
+          "actions": {
+            "pong": {
+              "kind": "send_parent",
+              "event": {
+                "type": "PONG"
+              }
+            },
+            "raise_success": {
+              "kind": "raise",
+              "event": {
+                "type": "SUCCESS"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a promise spawned on entry resolves with the awaited output and its parent completes",
+      "test": "actor.test.ts > spawning promises > should be able to spawn a promise",
+      "machine": {
+        "id": "promise",
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "entry": [
+              "spawn_promise"
+            ],
+            "on": {
+              "xstate.done.actor.my-promise": {
+                "target": "success",
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "output",
+                    "value": "response"
+                  }
+                }
+              }
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "spawn_promise": {
+          "kind": "spawn_child",
+          "src": "inlinePromise",
+          "id": "my-promise"
+        }
+      },
+      "actors": {
+        "inlinePromise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "inlinePromise",
+            "output": "response"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a referenced promise spawned on entry resolves with the awaited output and its parent completes",
+      "test": "actor.test.ts > spawning promises > should be able to spawn a referenced promise",
+      "machine": {
+        "id": "promise",
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "entry": [
+              "spawn_promise"
+            ],
+            "on": {
+              "xstate.done.actor.my-promise": {
+                "target": "success",
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "output",
+                    "value": "response"
+                  }
+                }
+              }
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "spawn_promise": {
+          "kind": "spawn_child",
+          "src": "somePromise",
+          "id": "my-promise"
+        }
+      },
+      "actors": {
+        "somePromise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "somePromise",
+            "output": "response"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "actor.test.ts > spawning callbacks > should be able to spawn an actor from a callback",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the callback's receive and its sendBack on a real timer are the test"
+    },
+    {
+      "test": "actor.test.ts > spawning callbacks > should not deliver events sent to the parent after the callback actor gets stopped",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test calls the stopped callback's sendBack from outside the machine and spies on a custom action"
+    },
+    {
+      "test": "actor.test.ts > spawning observables > should spawn an observable",
+      "reason": "fromObservable is not ported (out of scope for the actor layer); the guard also reads the snapshot carried by xstate.snapshot.int, which spawn's syncSnapshot option sends"
+    },
+    {
+      "test": "actor.test.ts > spawning observables > should spawn a referenced observable",
+      "reason": "fromObservable is not ported (out of scope for the actor layer); the guard also reads the snapshot carried by xstate.snapshot.int, which spawn's syncSnapshot option sends"
+    },
+    {
+      "test": "actor.test.ts > spawning observables > should read the latest snapshot of the event's origin while handling that event",
+      "reason": "fromObservable is not ported (out of scope for the actor layer); the guard also reads a child's snapshot through the actor reference held in the context (an actor reference as data)"
+    },
+    {
+      "test": "actor.test.ts > spawning observables > should notify direct child listeners with final snapshot before it gets stopped",
+      "reason": "fromObservable is not ported (out of scope for the actor layer); the test also needs waitFor, a host subscription to a child's snapshots, and onSnapshot"
+    },
+    {
+      "test": "actor.test.ts > spawning observables > should not notify direct child listeners after it gets stopped",
+      "reason": "fromObservable is not ported (out of scope for the actor layer); the test also needs waitFor, a host subscription to a child's snapshots, onSnapshot and a real-time sleep"
+    },
+    {
+      "test": "actor.test.ts > spawning event observables > should spawn an event observable",
+      "reason": "fromEventObservable is not ported (out of scope for the actor layer): the entry's assign spawns, under the id int, an rxjs interval(10) on a real timer whose values reach the parent as COUNT {val} events, and the guard val === 5 takes the parent to its final state; a host actor settles once and sends its parent nothing else. It would need an event observable logic whose events reach its parent as it produces them"
+    },
+    {
+      "test": "actor.test.ts > spawning event observables > should spawn a referenced event observable",
+      "reason": "fromEventObservable is not ported (out of scope for the actor layer): the entry's assign spawns the logic named interval under the id int, an rxjs interval(10) on a real timer whose values reach the parent as COUNT {val} events, and the guard val === 5 takes the parent to its final state; a host actor settles once and sends its parent nothing else. It would need an event observable logic whose events reach its parent as it produces them"
+    },
+    {
+      "test": "actor.test.ts > communicating with spawned actors > should treat an interpreter as an actor",
+      "reason": "an actor reference as data: the parent keeps in its context an actor created outside it, a second root, and sends it an event whose member origin is the parent's self, to which that actor replies; the format has one root and no step that creates another, and an event or a sendTo target cannot hold an actor reference"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "source": "history.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "reentering through a history state invokes the state's actor again",
+      "test": "history.test.ts > history states > should invoke an actor when reentering the stored configuration through the history state (the callback, whose only work is the spy on its own start, as a machine with no states, whose start shows as its xstate.init)",
+      "machine": {
+        "initial": "running",
+        "states": {
+          "running": {
+            "on": {
+              "PING": {
+                "target": "refresh"
+              }
+            },
+            "invoke": {
+              "src": "callback"
+            }
+          },
+          "refresh": {
+            "type": "history"
+          }
+        }
+      },
+      "actors": {
+        "callback": {
+          "kind": "machine",
+          "machine": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PING"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

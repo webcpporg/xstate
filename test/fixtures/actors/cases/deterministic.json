@@ -1,0 +1,47 @@
+{
+  "source": "deterministic.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "a state that invokes and targets its own key stays in it without restarting its child",
+      "test": "deterministic.test.ts > deterministic machine > state key names > should work with substate nodes that have the same key (the callback, which does nothing, as a machine with no states; the pure getInitialSnapshot and transition as the actor's start and send)",
+      "machine": {
+        "initial": "test",
+        "states": {
+          "test": {
+            "invoke": [
+              {
+                "src": "activity"
+              }
+            ],
+            "entry": [
+              "onEntry"
+            ],
+            "on": {
+              "NEXT": "test"
+            },
+            "exit": [
+              "onExit"
+            ]
+          }
+        }
+      },
+      "actors": {
+        "activity": {
+          "kind": "machine",
+          "machine": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

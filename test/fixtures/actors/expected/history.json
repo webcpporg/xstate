@@ -1,0 +1,113 @@
+{
+  "source": "history.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "reentering through a history state invokes the state's actor again",
+      "steps": [
+        {
+          "actors": {
+            "root/0.(machine).running": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "running",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).running"
+                    ],
+                    "children": {
+                      "0.(machine).running": "callback"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).running": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/0.(machine).running#2": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "PING"
+                  },
+                  "snapshot": {
+                    "value": "running",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).running"
+                    ],
+                    "children": {
+                      "0.(machine).running": "callback"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).running": "active",
+            "root/0.(machine).running#2": "active"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

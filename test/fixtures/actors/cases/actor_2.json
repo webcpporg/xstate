@@ -1,0 +1,568 @@
+{
+  "source": "actor.test.ts (lines 851 to 1840)",
+  "cases": [
+    {
+      "name": "an initial entry that spawns four promises runs once, through the start and each promise's done",
+      "test": "actor.test.ts > actors > should only spawn actors defined on initial state once (the counter is the context's count, incremented by the entry that spawns; each spawn is a spawnChild of a host actor under an id of its own, the references array having no JSON form)",
+      "machine": {
+        "id": "start",
+        "initial": "start",
+        "context": {
+          "items": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "count": 0
+        },
+        "states": {
+          "start": {
+            "entry": [
+              {
+                "type": "increment",
+                "params": {
+                  "key": "count"
+                }
+              },
+              "spawn_item_0",
+              "spawn_item_1",
+              "spawn_item_2",
+              "spawn_item_3"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawn_item_0": {
+          "kind": "spawn_child",
+          "src": "item",
+          "id": "item0",
+          "input": 0
+        },
+        "spawn_item_1": {
+          "kind": "spawn_child",
+          "src": "item",
+          "id": "item1",
+          "input": 1
+        },
+        "spawn_item_2": {
+          "kind": "spawn_child",
+          "src": "item",
+          "id": "item2",
+          "input": 2
+        },
+        "spawn_item_3": {
+          "kind": "spawn_child",
+          "src": "item",
+          "id": "item3",
+          "input": 3
+        }
+      },
+      "actors": {
+        "item": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "item",
+            "output": 0
+          }
+        },
+        {
+          "resolve": {
+            "src": "item",
+            "output": 1
+          }
+        },
+        {
+          "resolve": {
+            "src": "item",
+            "output": 2
+          }
+        },
+        {
+          "resolve": {
+            "src": "item",
+            "output": 3
+          }
+        }
+      ]
+    },
+    {
+      "name": "a child invoked in the parent's initial state spawns its promise once when the parent starts",
+      "test": "actor.test.ts > actors > should spawn an actor in an initial state of a child that gets invoked in the initial state of a parent when the parent gets started (the spawn counter is the one pending request of the child's promise)",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "invoke": {
+              "src": "child",
+              "onDone": "end"
+            }
+          },
+          "end": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "initial": "bar",
+            "context": {},
+            "states": {
+              "bar": {
+                "entry": [
+                  "spawn_promise"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "spawn_promise": {
+              "kind": "spawn_child",
+              "src": "answer",
+              "id": "promise"
+            }
+          },
+          "actors": {
+            "answer": {
+              "kind": "host"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "answer",
+            "output": "answer"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a machine spawned on start that pings its parent from its entry takes the parent to done",
+      "test": "actor.test.ts > actors > should only spawn an initial actor once when it synchronously responds with an event (the context factory's spawn is a spawnChild in the root's entry, which runs in the same initial macrostep; the factory's call counter is the context's count, incremented by that entry)",
+      "machine": {
+        "initial": "testing",
+        "context": {
+          "count": 0
+        },
+        "entry": [
+          {
+            "type": "increment",
+            "params": {
+              "key": "count"
+            }
+          },
+          "spawn_another"
+        ],
+        "states": {
+          "testing": {
+            "on": {
+              "ping": {
+                "target": "done"
+              }
+            }
+          },
+          "done": {}
+        }
+      },
+      "actions": {
+        "spawn_another": {
+          "kind": "spawn_child",
+          "src": "anotherMachine",
+          "id": "another"
+        }
+      },
+      "actors": {
+        "anotherMachine": {
+          "kind": "machine",
+          "machine": {
+            "initial": "hello",
+            "states": {
+              "hello": {
+                "entry": [
+                  "ping"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "ping": {
+              "kind": "send_parent",
+              "event": {
+                "type": "ping"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a promise spawned by the root's entry fulfills with 42 and its done event completes the parent",
+      "test": "actor.test.ts > actors > with actor logic > should work with a promise logic (fulfill) (the guard event.output === 42 is event_equals on output)",
+      "machine": {
+        "context": {},
+        "entry": [
+          "spawn_test"
+        ],
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "on": {
+              "xstate.done.actor.test": {
+                "target": "success",
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "output",
+                    "value": 42
+                  }
+                }
+              }
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "spawn_test": {
+          "kind": "spawn_child",
+          "src": "countPromise",
+          "id": "test"
+        }
+      },
+      "actors": {
+        "countPromise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "countPromise",
+            "output": 42
+          }
+        }
+      ]
+    },
+    {
+      "name": "a promise spawned on start rejects and its error event completes the parent",
+      "test": "actor.test.ts > actors > with actor logic > should work with a promise logic (reject) (the context factory's spawn is a spawnChild in the root's entry; the guard event.error === errorMessage is event_equals on error)",
+      "machine": {
+        "context": {},
+        "entry": [
+          "spawn_test"
+        ],
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "on": {
+              "xstate.error.actor.test": {
+                "target": "success",
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "error",
+                    "value": "An error occurred"
+                  }
+                }
+              }
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "spawn_test": {
+          "kind": "spawn_child",
+          "src": "countPromise",
+          "id": "test"
+        }
+      },
+      "actors": {
+        "countPromise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "reject": {
+            "src": "countPromise",
+            "error": "An error occurred"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a machine spawned on start sends TEST to its parent from its entry and the parent completes",
+      "test": "actor.test.ts > actors > should be able to spawn machines in (lazy) initial context (the context factory's spawn is a spawnChild in the root's entry, which runs in the same initial macrostep)",
+      "machine": {
+        "context": {},
+        "entry": [
+          "spawn_child_machine"
+        ],
+        "initial": "waiting",
+        "states": {
+          "waiting": {
+            "on": {
+              "TEST": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "spawn_child_machine": {
+          "kind": "spawn_child",
+          "src": "childMachine",
+          "id": "child"
+        }
+      },
+      "actors": {
+        "childMachine": {
+          "kind": "machine",
+          "machine": {
+            "entry": [
+              "test"
+            ]
+          },
+          "actions": {
+            "test": {
+              "kind": "send_parent",
+              "event": {
+                "type": "TEST"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a child spawned by the root's entry that is done at once leaves its parent active",
+      "test": "actor.test.ts > actors > should not crash on child machine sync completion during self-initialization (not throwing is the root's status active)",
+      "machine": {
+        "context": {
+          "child": null
+        },
+        "entry": [
+          "setup"
+        ]
+      },
+      "actions": {
+        "setup": {
+          "kind": "spawn_child",
+          "src": "childMachine",
+          "id": "child"
+        }
+      },
+      "actors": {
+        "childMachine": {
+          "kind": "machine",
+          "machine": {
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "always": [
+                  {
+                    "target": "stopped"
+                  }
+                ]
+              },
+              "stopped": {
+                "type": "final"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a promise spawned on an event rejects and its unhandled error fails the parent with that error",
+      "test": "actor.test.ts > actors > catches errors from spawned promise actors (the thrown Error('uh oh') is the rejection {message: 'uh oh'}; the error observer's argument is the root's status error and its snapshot's error)",
+      "machine": {
+        "on": {
+          "event": {
+            "actions": [
+              "spawn_failing"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawn_failing": {
+          "kind": "spawn_child",
+          "src": "failing",
+          "id": "promise"
+        }
+      },
+      "actors": {
+        "failing": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "event"
+          }
+        },
+        {
+          "reject": {
+            "src": "failing",
+            "error": {
+              "message": "uh oh"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a promise spawned by the root's entry that settles with null right after start leaves its parent active",
+      "test": "actor.test.ts > actors > should not crash on child promise-like sync completion during self-initialization (not throwing is the root's status active, after the start and after the child's done event; the thenable that calls back at once settles in a microtask after start returns, as fromPromise wraps it in Promise.resolve, which is the resolve step with null that follows the start; a spawnChild with the id child stands for the spawn inside the entry's assign, whose child XState keys by its session id (x:1); the reference assign keeps in the context, an actor reference as data, is not ported)",
+      "machine": {
+        "context": {
+          "child": null
+        },
+        "entry": [
+          "spawn_promise"
+        ]
+      },
+      "actions": {
+        "spawn_promise": {
+          "kind": "spawn_child",
+          "src": "promiseLogic",
+          "id": "child"
+        }
+      },
+      "actors": {
+        "promiseLogic": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "promiseLogic",
+            "output": null
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "actor.test.ts > actors > should spawn null actors if not used within a service",
+      "reason": "an actor reference as data: the test reads the send method of the reference the context holds, on an actor that is never started; the format's first step starts the root, and the record holds no reference"
+    },
+    {
+      "test": "actor.test.ts > actors > should stop multiple inline spawned actors that have no explicit ids",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the test spies on each callback's cleanup; the two spawns have no id, the divergence of a spawnChild without an id"
+    },
+    {
+      "test": "actor.test.ts > actors > should stop multiple referenced spawned actors that have no explicit ids",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the test spies on each callback's cleanup; the two spawns have no id, the divergence of a spawnChild without an id"
+    },
+    {
+      "test": "actor.test.ts > actors > with actor logic > should work with a transition function logic",
+      "reason": "fromTransition is not ported (out of scope for the actor layer); the forwardTo target is the reference the context holds (an actor reference as data), and the test reads the child's snapshot through it"
+    },
+    {
+      "test": "actor.test.ts > actors > with actor logic > actor logic should have reference to the parent",
+      "reason": "a custom ActorLogic object (transition, getInitialSnapshot, getPersistedSnapshot) is not ported (out of scope for the actor layer: only machines and host actors are actor logic); the logic answers through self._parent.send, and the entry's sendTo target is the reference the context holds (an actor reference as data)"
+    },
+    {
+      "test": "actor.test.ts > actors > should be able to spawn callback actors in (lazy) initial context",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback sendBacks TEST to its parent when it starts"
+    },
+    {
+      "test": "actor.test.ts > actors > should not crash on child observable sync completion during self-initialization",
+      "reason": "fromObservable is not ported (out of scope for the actor layer): an observable that completes when subscribed; the test asserts only that start does not throw"
+    },
+    {
+      "test": "actor.test.ts > actors > should receive done event from an immediately completed observable when self-initializing",
+      "reason": "fromObservable is not ported (out of scope for the actor layer): rxjs EMPTY completes when subscribed, inside the parent's start"
+    },
+    {
+      "test": "actor.test.ts > actors > should not restart a completed observable",
+      "reason": "fromObservable is not ported (out of scope for the actor layer); the test also restores an actor from getPersistedSnapshot, and counts subscriptions"
+    },
+    {
+      "test": "actor.test.ts > actors > should not restart a completed event observable",
+      "reason": "fromEventObservable is not ported (out of scope for the actor layer); the test also restores an actor from getPersistedSnapshot, and counts subscriptions"
+    },
+    {
+      "test": "actor.test.ts > actors > should be able to restart a spawned actor within a single macrostep",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the children are callback actors whose start and cleanup record the order ['stop 1', 'start 2'], which the record cannot show (the order between two actors); stopChild names the reference the context holds (an actor reference as data)"
+    },
+    {
+      "test": "actor.test.ts > actors > should be able to restart a named spawned actor within a single macrostep when stopping by a ref",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the children are callback actors whose start and cleanup record the order ['stop 1', 'start 2'], which the record cannot show (the order between two actors); stopChild names the reference the context holds (an actor reference as data)"
+    },
+    {
+      "test": "actor.test.ts > actors > should be able to restart a named spawned actor within a single macrostep when stopping by static name",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the children are callback actors whose start and cleanup record the order ['stop 1', 'start 2'], which the record cannot show (the order between two actors)"
+    },
+    {
+      "test": "actor.test.ts > actors > should be able to restart a named spawned actor within a single macrostep when stopping by resolved name",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the children are callback actors whose start and cleanup record the order ['stop 1', 'start 2'], which the record cannot show (the order between two actors); stopChild's id is computed by () => 'my_name', a dynamic function JSON cannot hold"
+    },
+    {
+      "test": "actor.test.ts > actors > should be possible to pass `self` as input to a child machine from within the context factory",
+      "reason": "self as data: the parent passes its own reference as the child's input, the child keeps it in its context and its entry's sendTo targets it; the test spies on a custom action"
+    },
+    {
+      "test": "actor.test.ts > actors > same-position invokes should not leak between machines",
+      "reason": "the test's subject is a leak between two machines created with one shared implementations object, each invoking an inline fromPromise at the same position (0.(machine)); a case has no inline src, by the divergence \"An invoke's src\" (every src names an actor of the case's own \"actors\"), each machine declares its own actors, and a case creates one root, so no second machine can share or overwrite what the first resolves. What would remain, an onDone receiving its promise's output 'foo' once, is an ordinary invoke and not the leak. It would need inline actor logic in a config and two machines built over one implementations object"
+    },
+    {
+      "test": "actor.test.ts > actors > inline invokes should not leak into provided actors object",
+      "reason": "the test asserts that the implementations object handed to createMachine is still {} after the actor starts, which no snapshot, event or status records; and a case has no inline src, by the divergence \"An invoke's src\" (every src names an actor of the case's own \"actors\"), so nothing inline could leak. It would need inline actor logic in a config and a record of the implementations object the machine was given"
+    }
+  ]
+}

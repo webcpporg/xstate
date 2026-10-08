@@ -1,0 +1,1088 @@
+{
+  "source": "interpreter.test.ts (lines 1 to 931)",
+  "cases": [
+    {
+      "name": "an actor starts in its machine's initial state",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "foo",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).foo"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an actor spawned by the initial state's entry is spawned once, when the actor starts",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).idle"
+                    ],
+                    "children": {
+                      "promise": "neverSettles"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/promise": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/promise",
+              "src": "neverSettles"
+            }
+          ]
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "active",
+            "root/promise": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/promise",
+              "src": "neverSettles"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a delayed raise in the initial entry fires once its delay has passed",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "foo",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).foo"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "TIMER"
+                  },
+                  "snapshot": {
+                    "value": "bar",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).bar"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a delayed raise entered by a transition finishes the machine only after its delay",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {
+                      "initialDelay": 100
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "delayExpr",
+                      "delayExpr.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "ACTIVATE",
+                    "wait": 50
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {
+                      "initialDelay": 100
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "delayExpr",
+                      "delayExpr.pending"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "FINISH"
+                  },
+                  "snapshot": {
+                    "value": "finished",
+                    "context": {
+                      "initialDelay": 100
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "delayExpr.finished",
+                      "delayExpr"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a delayed raise armed by ACTIVATE leaves the machine pending at 101 ms and finishes it at 151 ms",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {
+                      "initialDelay": 100
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "delayExpr",
+                      "delayExpr.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "ACTIVATE",
+                    "wait": 50
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {
+                      "initialDelay": 100
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "delayExpr",
+                      "delayExpr.pending"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "FINISH"
+                  },
+                  "snapshot": {
+                    "value": "finished",
+                    "context": {
+                      "initialDelay": 100
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "delayExpr.finished",
+                      "delayExpr"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "named after delays and a delayed raise walk the machine to its final state",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {
+                      "delay": 100
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "letter",
+                      "letter.a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.delayA.letter.a"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {
+                      "delay": 100
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "letter",
+                      "letter.b"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.someDelay.letter.b"
+                  },
+                  "snapshot": {
+                    "value": "c",
+                    "context": {
+                      "delay": 100
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "letter",
+                      "letter.c"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "FIRE_DELAY",
+                    "value": 200
+                  },
+                  "snapshot": {
+                    "value": "d",
+                    "context": {
+                      "delay": 100
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "letter",
+                      "letter.d"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.delayD.letter.d"
+                  },
+                  "snapshot": {
+                    "value": "e",
+                    "context": {
+                      "delay": 100
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "letter",
+                      "letter.e"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.someDelay.letter.e"
+                  },
+                  "snapshot": {
+                    "value": "f",
+                    "context": {
+                      "delay": 100
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "letter.f",
+                      "letter"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a cancelled delayed raise never fires",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "green",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "light",
+                      "light.green"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "KEEP_GOING"
+                  },
+                  "snapshot": {
+                    "value": "green",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "light",
+                      "light.green"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an entry cancels its own delayed raise and the other one fires",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "first",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).first"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "BAR"
+                  },
+                  "snapshot": {
+                    "value": "pass",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).pass",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a stopped actor processes no further event",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "green",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "light",
+                      "light.green"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "TIMER"
+                  },
+                  "snapshot": {
+                    "value": "yellow",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "light",
+                      "light.yellow"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "each action sees the event of its own microstep, the raised one after the external one",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "foo",
+                    "context": {
+                      "logs": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).foo"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "EXTERNAL_EVENT"
+                  },
+                  "snapshot": {
+                    "value": "foo",
+                    "context": {
+                      "logs": [
+                        "EXTERNAL_EVENT",
+                        "RAISED_EVENT"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).foo"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a raised event with a payload passes its guard and finishes the machine",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "finish",
+                    "context": {
+                      "password": "foo"
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "sendexpr.finish",
+                      "sendexpr"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child given its context by input sends its parent an event that finishes it",
+      "steps": [
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": {
+                      "password": "foo"
+                    }
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {
+                      "password": "foo"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.start"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.start"
+                    ],
+                    "children": {
+                      "child": "child"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "NEXT",
+                    "password": "foo"
+                  },
+                  "snapshot": {
+                    "value": "finish",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "parent.finish",
+                      "parent"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/child": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "events sent to a root created and not started wait for its start",
+      "steps": [
+        {
+          "actors": {},
+          "statuses": {},
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {},
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {},
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "defer",
+                      "defer.a"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "NEXT_A"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "defer",
+                      "defer.b"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "NEXT_B"
+                  },
+                  "snapshot": {
+                    "value": "c",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "defer.c",
+                      "defer"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a send to a root created and not started does not fail",
+      "steps": [
+        {
+          "actors": {},
+          "statuses": {},
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {},
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "green",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "light",
+                      "light.green"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "SOME_EVENT"
+                  },
+                  "snapshot": {
+                    "value": "green",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "light",
+                      "light.green"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

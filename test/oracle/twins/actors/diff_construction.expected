@@ -1,0 +1,2 @@
+before start: "running", worker registered
+after start: "running", worker registered

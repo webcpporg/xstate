@@ -1,0 +1,880 @@
+{
+  "source": "the final review of the actor layer, findings 5 and 7, and XState's resolution of spawnChild, stopChild and sendTo (stateUtils.ts resolveActionsAndContext)",
+  "cases": [
+    {
+      "name": "a stop frees a systemId a later invoke of the same macrostep claims, and a send to that invoke reaches it after its start",
+      "test": "review of the actor layer, finding 5: XState unregisters a stopped child's systemId while it resolves the stop, before the invoke after it registers the same name",
+      "machine": {
+        "id": "root",
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": [
+              "spawn_y"
+            ],
+            "on": {
+              "GO": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              "ping_n",
+              "stop_y"
+            ],
+            "invoke": {
+              "id": "n",
+              "src": "worker",
+              "systemId": "svc"
+            }
+          }
+        }
+      },
+      "actions": {
+        "spawn_y": {
+          "kind": "spawn_child",
+          "src": "worker",
+          "id": "y",
+          "systemId": "svc"
+        },
+        "ping_n": {
+          "kind": "send_to",
+          "target": "n",
+          "event": {
+            "type": "PING"
+          }
+        },
+        "stop_y": {
+          "kind": "stop_child",
+          "id": "y"
+        }
+      },
+      "actors": {
+        "worker": {
+          "kind": "machine",
+          "machine": {
+            "id": "worker",
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "PING": "heard"
+                }
+              },
+              "heard": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a send to a systemId reaches the grandchild a child spawned earlier in the same macrostep constructed",
+      "test": "review of the actor layer, finding 7: XState constructs a child, its own initial children included, while it resolves the spawn",
+      "machine": {
+        "id": "root",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "b"
+            }
+          },
+          "b": {
+            "invoke": {
+              "id": "c",
+              "src": "middle"
+            },
+            "initial": "b1",
+            "states": {
+              "b1": {
+                "entry": [
+                  "hello_g"
+                ],
+                "on": {
+                  "HELLO": "b2"
+                }
+              },
+              "b2": {}
+            }
+          }
+        }
+      },
+      "actions": {
+        "hello_g": {
+          "kind": "send_to",
+          "target": "#system:g",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "actors": {
+        "middle": {
+          "kind": "machine",
+          "machine": {
+            "id": "middle",
+            "invoke": {
+              "id": "g",
+              "src": "grand",
+              "systemId": "g"
+            }
+          },
+          "actors": {
+            "grand": {
+              "kind": "machine",
+              "machine": {
+                "id": "grand",
+                "initial": "idle",
+                "states": {
+                  "idle": {
+                    "on": {
+                      "HELLO": "heard"
+                    }
+                  },
+                  "heard": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a claim of a systemId the grandchild of a child spawned earlier in the same macrostep holds fails the actor",
+      "test": "review of the actor layer, finding 7: the systemId of a constructed grandchild is registered before the macrostep's next spawn claims it",
+      "machine": {
+        "id": "root",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "b"
+            }
+          },
+          "b": {
+            "invoke": {
+              "id": "c",
+              "src": "middle"
+            },
+            "initial": "b1",
+            "states": {
+              "b1": {
+                "invoke": {
+                  "id": "other",
+                  "src": "grand",
+                  "systemId": "g"
+                }
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "middle": {
+          "kind": "machine",
+          "machine": {
+            "id": "middle",
+            "invoke": {
+              "id": "g",
+              "src": "grand",
+              "systemId": "g"
+            }
+          },
+          "actors": {
+            "grand": {
+              "kind": "machine",
+              "machine": {
+                "id": "grand",
+                "initial": "idle",
+                "states": {
+                  "idle": {
+                    "on": {
+                      "HELLO": "heard"
+                    }
+                  },
+                  "heard": {}
+                }
+              }
+            }
+          }
+        },
+        "grand": {
+          "kind": "machine",
+          "machine": {
+            "id": "grand",
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "HELLO": "heard"
+                }
+              },
+              "heard": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a root's initial send to a systemId reaches the grandchild its initial macrostep constructed",
+      "test": "review of the actor layer, finding 7, in the initial macrostep",
+      "machine": {
+        "id": "root",
+        "invoke": {
+          "id": "c",
+          "src": "middle"
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": [
+              "hello_g"
+            ],
+            "on": {
+              "HELLO": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actions": {
+        "hello_g": {
+          "kind": "send_to",
+          "target": "#system:g",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "actors": {
+        "middle": {
+          "kind": "machine",
+          "machine": {
+            "id": "middle",
+            "invoke": {
+              "id": "g",
+              "src": "grand",
+              "systemId": "g"
+            }
+          },
+          "actors": {
+            "grand": {
+              "kind": "machine",
+              "machine": {
+                "id": "grand",
+                "initial": "idle",
+                "states": {
+                  "idle": {
+                    "on": {
+                      "HELLO": "heard"
+                    }
+                  },
+                  "heard": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a child spawned and stopped in one macrostep never starts, and the systemId of its grandchild is free again",
+      "test": "XState's executeStop unregisters a child's descendants and stops at once a child that has not started",
+      "machine": {
+        "id": "root",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "b"
+            }
+          },
+          "b": {
+            "invoke": {
+              "id": "c",
+              "src": "middle"
+            },
+            "always": "x"
+          },
+          "x": {
+            "invoke": {
+              "id": "other",
+              "src": "grand",
+              "systemId": "g"
+            }
+          }
+        }
+      },
+      "actors": {
+        "middle": {
+          "kind": "machine",
+          "machine": {
+            "id": "middle",
+            "invoke": {
+              "id": "g",
+              "src": "grand",
+              "systemId": "g"
+            }
+          },
+          "actors": {
+            "grand": {
+              "kind": "machine",
+              "machine": {
+                "id": "grand",
+                "initial": "idle",
+                "states": {
+                  "idle": {
+                    "on": {
+                      "HELLO": "heard"
+                    }
+                  },
+                  "heard": {}
+                }
+              }
+            }
+          }
+        },
+        "grand": {
+          "kind": "machine",
+          "machine": {
+            "id": "grand",
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "HELLO": "heard"
+                }
+              },
+              "heard": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        },
+        {
+          "send": {
+            "type": "HELLO"
+          },
+          "to": "root/other"
+        }
+      ]
+    },
+    {
+      "name": "a send to a systemId a stop of the same macrostep released goes to the actor itself",
+      "test": "XState's stopChild unregisters while it resolves, and sendTo(({system}) => system.get(id)) resolves after it",
+      "machine": {
+        "id": "root",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "id": "y",
+              "src": "worker",
+              "systemId": "svc"
+            },
+            "on": {
+              "GO": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              "ping_svc"
+            ],
+            "on": {
+              "PING": "c"
+            }
+          },
+          "c": {}
+        }
+      },
+      "actions": {
+        "ping_svc": {
+          "kind": "send_to",
+          "target": "#system:svc",
+          "event": {
+            "type": "PING"
+          }
+        }
+      },
+      "actors": {
+        "worker": {
+          "kind": "machine",
+          "machine": {
+            "id": "worker",
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "PING": "heard"
+                }
+              },
+              "heard": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a send to an invoke of the state being entered reaches the new invoke, not an older child under the same id",
+      "test": "review of the resolution model: XState binds a sendTo to an invoke of the entered state at the end of that state's actions (stateUtils.ts enterStates, send.ts retryResolveSendTo)",
+      "machine": {
+        "id": "root",
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": [
+              "spawn_old"
+            ],
+            "on": {
+              "GO": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              "ping_n"
+            ],
+            "invoke": {
+              "id": "n",
+              "src": "worker",
+              "input": {
+                "tag": "new"
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "spawn_old": {
+          "kind": "spawn_child",
+          "src": "worker",
+          "id": "n",
+          "input": {
+            "tag": "old"
+          }
+        },
+        "ping_n": {
+          "kind": "send_to",
+          "target": "n",
+          "event": {
+            "type": "PING"
+          }
+        }
+      },
+      "actors": {
+        "worker": {
+          "kind": "machine",
+          "context_from_input": {
+            "tag": "tag"
+          },
+          "machine": {
+            "id": "worker",
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "PING": "heard"
+                }
+              },
+              "heard": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a send to an invoke a child state's entry stops in the same microstep is dropped, and the actor stays active",
+      "test": "review of the resolution model: XState binds a sendTo to an invoke of the entered state at the end of that state's actions (stateUtils.ts enterStates, send.ts retryResolveSendTo)",
+      "machine": {
+        "id": "root",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              "ping_n"
+            ],
+            "invoke": {
+              "id": "n",
+              "src": "worker"
+            },
+            "initial": "b1",
+            "states": {
+              "b1": {
+                "entry": [
+                  "stop_n"
+                ],
+                "on": {
+                  "NEXT": "b2"
+                }
+              },
+              "b2": {}
+            }
+          }
+        }
+      },
+      "actions": {
+        "ping_n": {
+          "kind": "send_to",
+          "target": "n",
+          "event": {
+            "type": "PING"
+          }
+        },
+        "stop_n": {
+          "kind": "stop_child",
+          "id": "n"
+        }
+      },
+      "actors": {
+        "worker": {
+          "kind": "machine",
+          "machine": {
+            "id": "worker",
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "PING": "heard"
+                }
+              },
+              "heard": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a send to an invoke a child state's entry stops in the initial macrostep is dropped, and the actor stays active",
+      "test": "review of the resolution model: XState binds a sendTo to an invoke of the entered state at the end of that state's actions (stateUtils.ts enterStates, send.ts retryResolveSendTo)",
+      "machine": {
+        "id": "root",
+        "initial": "b",
+        "states": {
+          "b": {
+            "entry": [
+              "ping_n"
+            ],
+            "invoke": {
+              "id": "n",
+              "src": "worker"
+            },
+            "initial": "b1",
+            "states": {
+              "b1": {
+                "entry": [
+                  "stop_n"
+                ],
+                "on": {
+                  "NEXT": "b2"
+                }
+              },
+              "b2": {}
+            }
+          }
+        }
+      },
+      "actions": {
+        "ping_n": {
+          "kind": "send_to",
+          "target": "n",
+          "event": {
+            "type": "PING"
+          }
+        },
+        "stop_n": {
+          "kind": "stop_child",
+          "id": "n"
+        }
+      },
+      "actors": {
+        "worker": {
+          "kind": "machine",
+          "machine": {
+            "id": "worker",
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "PING": "heard"
+                }
+              },
+              "heard": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a send to an invoke reaches it even when a child state's spawn replaces it under the same id in the same microstep",
+      "test": "review of the resolution model: XState binds a sendTo to an invoke of the entered state at the end of that state's actions (stateUtils.ts enterStates, send.ts retryResolveSendTo)",
+      "machine": {
+        "id": "root",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              "ping_n"
+            ],
+            "invoke": {
+              "id": "n",
+              "src": "worker",
+              "input": {
+                "tag": "outer"
+              }
+            },
+            "initial": "b1",
+            "states": {
+              "b1": {
+                "entry": [
+                  "spawn_inner"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "ping_n": {
+          "kind": "send_to",
+          "target": "n",
+          "event": {
+            "type": "PING"
+          }
+        },
+        "spawn_inner": {
+          "kind": "spawn_child",
+          "src": "worker",
+          "id": "n",
+          "input": {
+            "tag": "inner"
+          }
+        }
+      },
+      "actors": {
+        "worker": {
+          "kind": "machine",
+          "context_from_input": {
+            "tag": "tag"
+          },
+          "machine": {
+            "id": "worker",
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "PING": "heard"
+                }
+              },
+              "heard": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a send to #_<id> reaches the child that id names",
+      "test": "send.ts resolveSendTo: a '#_' target names snapshot.children[id] (review of the actor layer, finding 35)",
+      "machine": {
+        "id": "root",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "id": "kid",
+              "src": "worker"
+            },
+            "on": {
+              "GO": {
+                "actions": [
+                  "ping_kid"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "ping_kid": {
+          "kind": "send_to",
+          "target": "#_kid",
+          "event": {
+            "type": "PING"
+          }
+        }
+      },
+      "actors": {
+        "worker": {
+          "kind": "machine",
+          "machine": {
+            "id": "worker",
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "PING": "heard"
+                }
+              },
+              "heard": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a child born done holds its systemId only while it starts",
+      "test": "createActor.ts start(): system._set re-claims the systemId the constructor released for a snapshot that is not active, and throws when another actor holds it, which fails the parent running the start as a deferred effect",
+      "machine": {
+        "context": {},
+        "entry": [
+          "spawn_done"
+        ]
+      },
+      "actions": {
+        "spawn_done": {
+          "kind": "spawn_child",
+          "src": "finished",
+          "id": "a",
+          "systemId": "x"
+        }
+      },
+      "actors": {
+        "finished": {
+          "kind": "machine",
+          "machine": {
+            "initial": "f",
+            "states": {
+              "f": {
+                "type": "final"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "get": "x"
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

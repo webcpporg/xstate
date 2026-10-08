@@ -1,0 +1,95 @@
+{
+  "source": "event.test.ts",
+  "cases": [
+    {
+      "name": "the innermost transition for an event is taken over its parent's",
+      "test": "event.test.ts > nested transitions > only take the transition of the most inner matching event (assignPassword is the assign set_from_event of the event's password, and the guard event.password.length >= 10 a compare)",
+      "machine": {
+        "context": {
+          "email": "",
+          "password": ""
+        },
+        "initial": "passwordField",
+        "states": {
+          "passwordField": {
+            "initial": "hidden",
+            "states": {
+              "hidden": {
+                "on": {
+                  "changePassword": {
+                    "actions": [
+                      {
+                        "type": "set_from_event",
+                        "params": {
+                          "key": "password",
+                          "from": "password"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              "valid": {},
+              "invalid": {}
+            },
+            "on": {
+              "changePassword": [
+                {
+                  "guard": {
+                    "type": "compare",
+                    "params": {
+                      "left": {
+                        "$event": "password.length"
+                      },
+                      "op": ">=",
+                      "right": 10
+                    }
+                  },
+                  "target": ".invalid",
+                  "actions": [
+                    {
+                      "type": "set_from_event",
+                      "params": {
+                        "key": "password",
+                        "from": "password"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "target": ".valid",
+                  "actions": [
+                    {
+                      "type": "set_from_event",
+                      "params": {
+                        "key": "password",
+                        "from": "password"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "changePassword",
+            "password": "xstate123"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "event.test.ts > events > should be able to respond to sender by sending self",
+      "reason": "self as data: the client's entry sends the invoked server an event that carries the client's own self (sendTo('auth-server', ({ self }) => ({ type: 'CODE', sender: self }))), and the server answers with a delayed sendTo whose target is event.sender (sendTo(({ event }) => event.sender, { type: 'TOKEN' }, { delay: 10 })). An actor reference as data is out of scope, and no declared send_to reads its target from the event. fixtures/actors/cases/event.json excludes it for the same reason, and core cases start no invoked child."
+    }
+  ]
+}

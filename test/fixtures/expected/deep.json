@@ -1,0 +1,2707 @@
+{
+  "source": "deep.test.ts",
+  "cases": [
+    {
+      "name": "exit all substates when superstate exits",
+      "definition": {
+        "id": "root",
+        "key": "root",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#root.A"
+          ],
+          "source": "#root",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "DONE": {
+            "id": "root.DONE",
+            "key": "DONE",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#root.DONE",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "enter: DONE"
+              }
+            ],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "FAIL": {
+            "id": "root.FAIL",
+            "key": "FAIL",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#root.FAIL",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "A": {
+            "id": "root.A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#root.A.B"
+              ],
+              "source": "#root.A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "B": {
+                "id": "root.A.B",
+                "key": "B",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#root.A.B.C"
+                  ],
+                  "source": "#root.A.B",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "C": {
+                    "id": "root.A.B.C",
+                    "key": "C",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#root.A.B.C.D"
+                      ],
+                      "source": "#root.A.B.C",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "D": {
+                        "id": "root.A.B.C.D",
+                        "key": "D",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#root.A.B.C.D",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [
+                          {
+                            "type": "exit: A.B.C.D"
+                          }
+                        ],
+                        "order": 6,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [
+                      {
+                        "type": "exit: A.B.C"
+                      }
+                    ],
+                    "order": 5,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [
+                  {
+                    "type": "exit: A.B"
+                  }
+                ],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "A_EVENT": [
+                {
+                  "target": [
+                    "#root.DONE"
+                  ],
+                  "actions": [],
+                  "source": "#root.A",
+                  "reenter": false,
+                  "eventType": "A_EVENT"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#root.DONE"
+                ],
+                "actions": [],
+                "source": "#root.A",
+                "reenter": false,
+                "eventType": "A_EVENT"
+              }
+            ],
+            "entry": [],
+            "exit": [
+              {
+                "type": "exit: A"
+              }
+            ],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "A": {
+                    "B": {
+                      "C": "D"
+                    }
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "root",
+                  "root.A",
+                  "root.A.B",
+                  "root.A.B.C",
+                  "root.A.B.C.D"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "A_EVENT"
+              },
+              "transitions": [
+                {
+                  "source": "#root.A",
+                  "eventType": "A_EVENT",
+                  "target": [
+                    "#root.DONE"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exit: A.B.C.D"
+                },
+                {
+                  "type": "exit: A.B.C"
+                },
+                {
+                  "type": "exit: A.B"
+                },
+                {
+                  "type": "exit: A"
+                },
+                {
+                  "type": "enter: DONE"
+                }
+              ],
+              "snapshot": {
+                "value": "DONE",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "root",
+                  "root.DONE"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "exit substates and superstates on B_EVENT",
+      "definition": {
+        "id": "root",
+        "key": "root",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#root.A"
+          ],
+          "source": "#root",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "DONE": {
+            "id": "root.DONE",
+            "key": "DONE",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#root.DONE",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "enter: DONE"
+              }
+            ],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "A": {
+            "id": "root.A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#root.A.B"
+              ],
+              "source": "#root.A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "B": {
+                "id": "root.A.B",
+                "key": "B",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#root.A.B.C"
+                  ],
+                  "source": "#root.A.B",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "C": {
+                    "id": "root.A.B.C",
+                    "key": "C",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#root.A.B.C.D"
+                      ],
+                      "source": "#root.A.B.C",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "D": {
+                        "id": "root.A.B.C.D",
+                        "key": "D",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#root.A.B.C.D",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [
+                          {
+                            "type": "exit: A.B.C.D"
+                          }
+                        ],
+                        "order": 5,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [
+                      {
+                        "type": "exit: A.B.C"
+                      }
+                    ],
+                    "order": 4,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {
+                  "B_EVENT": [
+                    {
+                      "target": [
+                        "#root.DONE"
+                      ],
+                      "actions": [],
+                      "source": "#root.A.B",
+                      "reenter": false,
+                      "eventType": "B_EVENT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#root.DONE"
+                    ],
+                    "actions": [],
+                    "source": "#root.A.B",
+                    "reenter": false,
+                    "eventType": "B_EVENT"
+                  }
+                ],
+                "entry": [],
+                "exit": [
+                  {
+                    "type": "exit: A.B"
+                  }
+                ],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [
+              {
+                "type": "exit: A"
+              }
+            ],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "A": {
+                    "B": {
+                      "C": "D"
+                    }
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "root",
+                  "root.A",
+                  "root.A.B",
+                  "root.A.B.C",
+                  "root.A.B.C.D"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "B_EVENT"
+              },
+              "transitions": [
+                {
+                  "source": "#root.A.B",
+                  "eventType": "B_EVENT",
+                  "target": [
+                    "#root.DONE"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exit: A.B.C.D"
+                },
+                {
+                  "type": "exit: A.B.C"
+                },
+                {
+                  "type": "exit: A.B"
+                },
+                {
+                  "type": "exit: A"
+                },
+                {
+                  "type": "enter: DONE"
+                }
+              ],
+              "snapshot": {
+                "value": "DONE",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "root",
+                  "root.DONE"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "exit substates and superstates on C_EVENT",
+      "definition": {
+        "id": "root",
+        "key": "root",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#root.A"
+          ],
+          "source": "#root",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "DONE": {
+            "id": "root.DONE",
+            "key": "DONE",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#root.DONE",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "enter: DONE"
+              }
+            ],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "A": {
+            "id": "root.A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#root.A.B"
+              ],
+              "source": "#root.A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "B": {
+                "id": "root.A.B",
+                "key": "B",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#root.A.B.C"
+                  ],
+                  "source": "#root.A.B",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "C": {
+                    "id": "root.A.B.C",
+                    "key": "C",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#root.A.B.C.D"
+                      ],
+                      "source": "#root.A.B.C",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "D": {
+                        "id": "root.A.B.C.D",
+                        "key": "D",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#root.A.B.C.D",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [
+                          {
+                            "type": "exit: A.B.C.D"
+                          }
+                        ],
+                        "order": 5,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {
+                      "C_EVENT": [
+                        {
+                          "target": [
+                            "#root.DONE"
+                          ],
+                          "actions": [],
+                          "source": "#root.A.B.C",
+                          "reenter": false,
+                          "eventType": "C_EVENT"
+                        }
+                      ]
+                    },
+                    "transitions": [
+                      {
+                        "target": [
+                          "#root.DONE"
+                        ],
+                        "actions": [],
+                        "source": "#root.A.B.C",
+                        "reenter": false,
+                        "eventType": "C_EVENT"
+                      }
+                    ],
+                    "entry": [],
+                    "exit": [
+                      {
+                        "type": "exit: A.B.C"
+                      }
+                    ],
+                    "order": 4,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [
+                  {
+                    "type": "exit: A.B"
+                  }
+                ],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [
+              {
+                "type": "exit: A"
+              }
+            ],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "A": {
+                    "B": {
+                      "C": "D"
+                    }
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "root",
+                  "root.A",
+                  "root.A.B",
+                  "root.A.B.C",
+                  "root.A.B.C.D"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "C_EVENT"
+              },
+              "transitions": [
+                {
+                  "source": "#root.A.B.C",
+                  "eventType": "C_EVENT",
+                  "target": [
+                    "#root.DONE"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exit: A.B.C.D"
+                },
+                {
+                  "type": "exit: A.B.C"
+                },
+                {
+                  "type": "exit: A.B"
+                },
+                {
+                  "type": "exit: A"
+                },
+                {
+                  "type": "enter: DONE"
+                }
+              ],
+              "snapshot": {
+                "value": "DONE",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "root",
+                  "root.DONE"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "exit superstates on D_EVENT",
+      "definition": {
+        "id": "root",
+        "key": "root",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#root.A"
+          ],
+          "source": "#root",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "DONE": {
+            "id": "root.DONE",
+            "key": "DONE",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#root.DONE",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "enter: DONE"
+              }
+            ],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "A": {
+            "id": "root.A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#root.A.B"
+              ],
+              "source": "#root.A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "B": {
+                "id": "root.A.B",
+                "key": "B",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#root.A.B.C"
+                  ],
+                  "source": "#root.A.B",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "C": {
+                    "id": "root.A.B.C",
+                    "key": "C",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#root.A.B.C.D"
+                      ],
+                      "source": "#root.A.B.C",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "D": {
+                        "id": "root.A.B.C.D",
+                        "key": "D",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#root.A.B.C.D",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {
+                          "D_EVENT": [
+                            {
+                              "target": [
+                                "#root.DONE"
+                              ],
+                              "actions": [],
+                              "source": "#root.A.B.C.D",
+                              "reenter": false,
+                              "eventType": "D_EVENT"
+                            }
+                          ]
+                        },
+                        "transitions": [
+                          {
+                            "target": [
+                              "#root.DONE"
+                            ],
+                            "actions": [],
+                            "source": "#root.A.B.C.D",
+                            "reenter": false,
+                            "eventType": "D_EVENT"
+                          }
+                        ],
+                        "entry": [],
+                        "exit": [
+                          {
+                            "type": "exit: A.B.C.D"
+                          }
+                        ],
+                        "order": 5,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [
+                      {
+                        "type": "exit: A.B.C"
+                      }
+                    ],
+                    "order": 4,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [
+                  {
+                    "type": "exit: A.B"
+                  }
+                ],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [
+              {
+                "type": "exit: A"
+              }
+            ],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "A": {
+                    "B": {
+                      "C": "D"
+                    }
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "root",
+                  "root.A",
+                  "root.A.B",
+                  "root.A.B.C",
+                  "root.A.B.C.D"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "D_EVENT"
+              },
+              "transitions": [
+                {
+                  "source": "#root.A.B.C.D",
+                  "eventType": "D_EVENT",
+                  "target": [
+                    "#root.DONE"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exit: A.B.C.D"
+                },
+                {
+                  "type": "exit: A.B.C"
+                },
+                {
+                  "type": "exit: A.B"
+                },
+                {
+                  "type": "exit: A"
+                },
+                {
+                  "type": "enter: DONE"
+                }
+              ],
+              "snapshot": {
+                "value": "DONE",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "root",
+                  "root.DONE"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "exit substate on machine-level event",
+      "definition": {
+        "id": "deep",
+        "key": "deep",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#deep.A"
+          ],
+          "source": "#deep",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "DONE": {
+            "id": "deep.DONE",
+            "key": "DONE",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#deep.DONE",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "enter: DONE"
+              }
+            ],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "A": {
+            "id": "deep.A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#deep.A.B"
+              ],
+              "source": "#deep.A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "B": {
+                "id": "deep.A.B",
+                "key": "B",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#deep.A.B.C"
+                  ],
+                  "source": "#deep.A.B",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "C": {
+                    "id": "deep.A.B.C",
+                    "key": "C",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#deep.A.B.C.D"
+                      ],
+                      "source": "#deep.A.B.C",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "D": {
+                        "id": "deep.A.B.C.D",
+                        "key": "D",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#deep.A.B.C.D",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [
+                          {
+                            "type": "exit: A.B.C.D"
+                          }
+                        ],
+                        "order": 5,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [
+                      {
+                        "type": "exit: A.B.C"
+                      }
+                    ],
+                    "order": 4,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [
+                  {
+                    "type": "exit: A.B"
+                  }
+                ],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [
+              {
+                "type": "exit: A"
+              }
+            ],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {
+          "MACHINE_EVENT": [
+            {
+              "target": [
+                "#deep.DONE"
+              ],
+              "actions": [],
+              "source": "#deep",
+              "reenter": false,
+              "eventType": "MACHINE_EVENT"
+            }
+          ]
+        },
+        "transitions": [
+          {
+            "target": [
+              "#deep.DONE"
+            ],
+            "actions": [],
+            "source": "#deep",
+            "reenter": false,
+            "eventType": "MACHINE_EVENT"
+          }
+        ],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "A": {
+                    "B": {
+                      "C": "D"
+                    }
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "deep",
+                  "deep.A",
+                  "deep.A.B",
+                  "deep.A.B.C",
+                  "deep.A.B.C.D"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "MACHINE_EVENT"
+              },
+              "transitions": [
+                {
+                  "source": "#deep",
+                  "eventType": "MACHINE_EVENT",
+                  "target": [
+                    "#deep.DONE"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exit: A.B.C.D"
+                },
+                {
+                  "type": "exit: A.B.C"
+                },
+                {
+                  "type": "exit: A.B"
+                },
+                {
+                  "type": "exit: A"
+                },
+                {
+                  "type": "enter: DONE"
+                }
+              ],
+              "snapshot": {
+                "value": "DONE",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "deep",
+                  "deep.DONE"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "exit deep and enter deep on A_S",
+      "definition": {
+        "id": "root",
+        "key": "root",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#root.A"
+          ],
+          "source": "#root",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "A": {
+            "id": "root.A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#root.A.B"
+              ],
+              "source": "#root.A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "B": {
+                "id": "root.A.B",
+                "key": "B",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#root.A.B.C"
+                  ],
+                  "source": "#root.A.B",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "C": {
+                    "id": "root.A.B.C",
+                    "key": "C",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#root.A.B.C.D"
+                      ],
+                      "source": "#root.A.B.C",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "D": {
+                        "id": "root.A.B.C.D",
+                        "key": "D",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#root.A.B.C.D",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [
+                          {
+                            "type": "exit: A.B.C.D"
+                          }
+                        ],
+                        "order": 4,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [
+                      {
+                        "type": "exit: A.B.C"
+                      }
+                    ],
+                    "order": 3,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [
+                  {
+                    "type": "exit: A.B"
+                  }
+                ],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "A_S": [
+                {
+                  "target": [
+                    "#root.P.Q.R.S"
+                  ],
+                  "actions": [],
+                  "source": "#root.A",
+                  "reenter": false,
+                  "eventType": "A_S"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#root.P.Q.R.S"
+                ],
+                "actions": [],
+                "source": "#root.A",
+                "reenter": false,
+                "eventType": "A_S"
+              }
+            ],
+            "entry": [],
+            "exit": [
+              {
+                "type": "exit: A"
+              }
+            ],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "P": {
+            "id": "root.P",
+            "key": "P",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#root.P.Q"
+              ],
+              "source": "#root.P",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "Q": {
+                "id": "root.P.Q",
+                "key": "Q",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#root.P.Q.R"
+                  ],
+                  "source": "#root.P.Q",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "R": {
+                    "id": "root.P.Q.R",
+                    "key": "R",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#root.P.Q.R.S"
+                      ],
+                      "source": "#root.P.Q.R",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "S": {
+                        "id": "root.P.Q.R.S",
+                        "key": "S",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#root.P.Q.R.S",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [
+                          {
+                            "type": "enter: P.Q.R.S"
+                          }
+                        ],
+                        "exit": [],
+                        "order": 8,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [
+                      {
+                        "type": "enter: P.Q.R"
+                      }
+                    ],
+                    "exit": [],
+                    "order": 7,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [
+                  {
+                    "type": "enter: P.Q"
+                  }
+                ],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "enter: P"
+              }
+            ],
+            "exit": [],
+            "order": 5,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "A": {
+                    "B": {
+                      "C": "D"
+                    }
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "root",
+                  "root.A",
+                  "root.A.B",
+                  "root.A.B.C",
+                  "root.A.B.C.D"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "A_S"
+              },
+              "transitions": [
+                {
+                  "source": "#root.A",
+                  "eventType": "A_S",
+                  "target": [
+                    "#root.P.Q.R.S"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exit: A.B.C.D"
+                },
+                {
+                  "type": "exit: A.B.C"
+                },
+                {
+                  "type": "exit: A.B"
+                },
+                {
+                  "type": "exit: A"
+                },
+                {
+                  "type": "enter: P"
+                },
+                {
+                  "type": "enter: P.Q"
+                },
+                {
+                  "type": "enter: P.Q.R"
+                },
+                {
+                  "type": "enter: P.Q.R.S"
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "P": {
+                    "Q": {
+                      "R": "S"
+                    }
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "root",
+                  "root.P",
+                  "root.P.Q",
+                  "root.P.Q.R",
+                  "root.P.Q.R.S"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "exit deep and enter deep on D_P",
+      "definition": {
+        "id": "deep",
+        "key": "deep",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#deep.A"
+          ],
+          "source": "#deep",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "A": {
+            "id": "deep.A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#deep.A.B"
+              ],
+              "source": "#deep.A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "B": {
+                "id": "deep.A.B",
+                "key": "B",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#deep.A.B.C"
+                  ],
+                  "source": "#deep.A.B",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "C": {
+                    "id": "deep.A.B.C",
+                    "key": "C",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#deep.A.B.C.D"
+                      ],
+                      "source": "#deep.A.B.C",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "D": {
+                        "id": "deep.A.B.C.D",
+                        "key": "D",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#deep.A.B.C.D",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {
+                          "D_P": [
+                            {
+                              "target": [
+                                "#deep.P"
+                              ],
+                              "actions": [],
+                              "source": "#deep.A.B.C.D",
+                              "reenter": false,
+                              "eventType": "D_P"
+                            }
+                          ]
+                        },
+                        "transitions": [
+                          {
+                            "target": [
+                              "#deep.P"
+                            ],
+                            "actions": [],
+                            "source": "#deep.A.B.C.D",
+                            "reenter": false,
+                            "eventType": "D_P"
+                          }
+                        ],
+                        "entry": [],
+                        "exit": [
+                          {
+                            "type": "exit: A.B.C.D"
+                          }
+                        ],
+                        "order": 4,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [
+                      {
+                        "type": "exit: A.B.C"
+                      }
+                    ],
+                    "order": 3,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [
+                  {
+                    "type": "exit: A.B"
+                  }
+                ],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [
+              {
+                "type": "exit: A"
+              }
+            ],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "P": {
+            "id": "deep.P",
+            "key": "P",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#deep.P.Q"
+              ],
+              "source": "#deep.P",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "Q": {
+                "id": "deep.P.Q",
+                "key": "Q",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#deep.P.Q.R"
+                  ],
+                  "source": "#deep.P.Q",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "R": {
+                    "id": "deep.P.Q.R",
+                    "key": "R",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#deep.P.Q.R.S"
+                      ],
+                      "source": "#deep.P.Q.R",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "S": {
+                        "id": "deep.P.Q.R.S",
+                        "key": "S",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#deep.P.Q.R.S",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [
+                          {
+                            "type": "enter: P.Q.R.S"
+                          }
+                        ],
+                        "exit": [],
+                        "order": 8,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [
+                      {
+                        "type": "enter: P.Q.R"
+                      }
+                    ],
+                    "exit": [],
+                    "order": 7,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [
+                  {
+                    "type": "enter: P.Q"
+                  }
+                ],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "enter: P"
+              }
+            ],
+            "exit": [],
+            "order": 5,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "A": {
+                    "B": {
+                      "C": "D"
+                    }
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "deep",
+                  "deep.A",
+                  "deep.A.B",
+                  "deep.A.B.C",
+                  "deep.A.B.C.D"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "D_P"
+              },
+              "transitions": [
+                {
+                  "source": "#deep.A.B.C.D",
+                  "eventType": "D_P",
+                  "target": [
+                    "#deep.P"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exit: A.B.C.D"
+                },
+                {
+                  "type": "exit: A.B.C"
+                },
+                {
+                  "type": "exit: A.B"
+                },
+                {
+                  "type": "exit: A"
+                },
+                {
+                  "type": "enter: P"
+                },
+                {
+                  "type": "enter: P.Q"
+                },
+                {
+                  "type": "enter: P.Q.R"
+                },
+                {
+                  "type": "enter: P.Q.R.S"
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "P": {
+                    "Q": {
+                      "R": "S"
+                    }
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "deep",
+                  "deep.P",
+                  "deep.P.Q",
+                  "deep.P.Q.R",
+                  "deep.P.Q.R.S"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "exit deep and enter deep targeting an ancestor (A_P)",
+      "definition": {
+        "id": "root",
+        "key": "root",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#root.A"
+          ],
+          "source": "#root",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "A": {
+            "id": "root.A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#root.A.B"
+              ],
+              "source": "#root.A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "B": {
+                "id": "root.A.B",
+                "key": "B",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#root.A.B.C"
+                  ],
+                  "source": "#root.A.B",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "C": {
+                    "id": "root.A.B.C",
+                    "key": "C",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#root.A.B.C.D"
+                      ],
+                      "source": "#root.A.B.C",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "D": {
+                        "id": "root.A.B.C.D",
+                        "key": "D",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#root.A.B.C.D",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [
+                          {
+                            "type": "exit: A.B.C.D"
+                          }
+                        ],
+                        "order": 4,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [
+                      {
+                        "type": "exit: A.B.C"
+                      }
+                    ],
+                    "order": 3,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [
+                  {
+                    "type": "exit: A.B"
+                  }
+                ],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "A_P": [
+                {
+                  "target": [
+                    "#root.P"
+                  ],
+                  "actions": [],
+                  "source": "#root.A",
+                  "reenter": false,
+                  "eventType": "A_P"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#root.P"
+                ],
+                "actions": [],
+                "source": "#root.A",
+                "reenter": false,
+                "eventType": "A_P"
+              }
+            ],
+            "entry": [],
+            "exit": [
+              {
+                "type": "exit: A"
+              }
+            ],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "P": {
+            "id": "root.P",
+            "key": "P",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#root.P.Q"
+              ],
+              "source": "#root.P",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "Q": {
+                "id": "root.P.Q",
+                "key": "Q",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#root.P.Q.R"
+                  ],
+                  "source": "#root.P.Q",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "R": {
+                    "id": "root.P.Q.R",
+                    "key": "R",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#root.P.Q.R.S"
+                      ],
+                      "source": "#root.P.Q.R",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "S": {
+                        "id": "root.P.Q.R.S",
+                        "key": "S",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#root.P.Q.R.S",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [
+                          {
+                            "type": "enter: P.Q.R.S"
+                          }
+                        ],
+                        "exit": [],
+                        "order": 8,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [
+                      {
+                        "type": "enter: P.Q.R"
+                      }
+                    ],
+                    "exit": [],
+                    "order": 7,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [
+                  {
+                    "type": "enter: P.Q"
+                  }
+                ],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "enter: P"
+              }
+            ],
+            "exit": [],
+            "order": 5,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "A": {
+                    "B": {
+                      "C": "D"
+                    }
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "root",
+                  "root.A",
+                  "root.A.B",
+                  "root.A.B.C",
+                  "root.A.B.C.D"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "A_P"
+              },
+              "transitions": [
+                {
+                  "source": "#root.A",
+                  "eventType": "A_P",
+                  "target": [
+                    "#root.P"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exit: A.B.C.D"
+                },
+                {
+                  "type": "exit: A.B.C"
+                },
+                {
+                  "type": "exit: A.B"
+                },
+                {
+                  "type": "exit: A"
+                },
+                {
+                  "type": "enter: P"
+                },
+                {
+                  "type": "enter: P.Q"
+                },
+                {
+                  "type": "enter: P.Q.R"
+                },
+                {
+                  "type": "enter: P.Q.R.S"
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "P": {
+                    "Q": {
+                      "R": "S"
+                    }
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "root",
+                  "root.P",
+                  "root.P.Q",
+                  "root.P.Q.R",
+                  "root.P.Q.R.S"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "exit deep and enter deep targeting a deep state (D_S)",
+      "definition": {
+        "id": "root",
+        "key": "root",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#root.A"
+          ],
+          "source": "#root",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "A": {
+            "id": "root.A",
+            "key": "A",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#root.A.B"
+              ],
+              "source": "#root.A",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "B": {
+                "id": "root.A.B",
+                "key": "B",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#root.A.B.C"
+                  ],
+                  "source": "#root.A.B",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "C": {
+                    "id": "root.A.B.C",
+                    "key": "C",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#root.A.B.C.D"
+                      ],
+                      "source": "#root.A.B.C",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "D": {
+                        "id": "root.A.B.C.D",
+                        "key": "D",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#root.A.B.C.D",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {
+                          "D_S": [
+                            {
+                              "target": [
+                                "#root.P.Q.R.S"
+                              ],
+                              "actions": [],
+                              "source": "#root.A.B.C.D",
+                              "reenter": false,
+                              "eventType": "D_S"
+                            }
+                          ]
+                        },
+                        "transitions": [
+                          {
+                            "target": [
+                              "#root.P.Q.R.S"
+                            ],
+                            "actions": [],
+                            "source": "#root.A.B.C.D",
+                            "reenter": false,
+                            "eventType": "D_S"
+                          }
+                        ],
+                        "entry": [],
+                        "exit": [
+                          {
+                            "type": "exit: A.B.C.D"
+                          }
+                        ],
+                        "order": 4,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [
+                      {
+                        "type": "exit: A.B.C"
+                      }
+                    ],
+                    "order": 3,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [
+                  {
+                    "type": "exit: A.B"
+                  }
+                ],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [
+              {
+                "type": "exit: A"
+              }
+            ],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "P": {
+            "id": "root.P",
+            "key": "P",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#root.P.Q"
+              ],
+              "source": "#root.P",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "Q": {
+                "id": "root.P.Q",
+                "key": "Q",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#root.P.Q.R"
+                  ],
+                  "source": "#root.P.Q",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "R": {
+                    "id": "root.P.Q.R",
+                    "key": "R",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#root.P.Q.R.S"
+                      ],
+                      "source": "#root.P.Q.R",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "S": {
+                        "id": "root.P.Q.R.S",
+                        "key": "S",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#root.P.Q.R.S",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [
+                          {
+                            "type": "enter: P.Q.R.S"
+                          }
+                        ],
+                        "exit": [],
+                        "order": 8,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [
+                      {
+                        "type": "enter: P.Q.R"
+                      }
+                    ],
+                    "exit": [],
+                    "order": 7,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [
+                  {
+                    "type": "enter: P.Q"
+                  }
+                ],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "enter: P"
+              }
+            ],
+            "exit": [],
+            "order": 5,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "A": {
+                    "B": {
+                      "C": "D"
+                    }
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "root",
+                  "root.A",
+                  "root.A.B",
+                  "root.A.B.C",
+                  "root.A.B.C.D"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "D_S"
+              },
+              "transitions": [
+                {
+                  "source": "#root.A.B.C.D",
+                  "eventType": "D_S",
+                  "target": [
+                    "#root.P.Q.R.S"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exit: A.B.C.D"
+                },
+                {
+                  "type": "exit: A.B.C"
+                },
+                {
+                  "type": "exit: A.B"
+                },
+                {
+                  "type": "exit: A"
+                },
+                {
+                  "type": "enter: P"
+                },
+                {
+                  "type": "enter: P.Q"
+                },
+                {
+                  "type": "enter: P.Q.R"
+                },
+                {
+                  "type": "enter: P.Q.R.S"
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "P": {
+                    "Q": {
+                      "R": "S"
+                    }
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "root",
+                  "root.P",
+                  "root.P.Q",
+                  "root.P.Q.R",
+                  "root.P.Q.R.S"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

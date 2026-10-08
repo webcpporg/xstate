@@ -1,0 +1,402 @@
+{
+  "source": "meta.test.ts",
+  "cases": [
+    {
+      "name": "meta of the active states",
+      "test": "meta.test.ts > state meta data > states should aggregate meta data",
+      "machine": {
+        "id": "light",
+        "initial": "green",
+        "states": {
+          "green": {
+            "meta": [
+              "green",
+              "array",
+              "data"
+            ],
+            "on": {
+              "TIMER": "yellow",
+              "POWER_OUTAGE": "red",
+              "NOTHING": "green"
+            },
+            "entry": "enter_green",
+            "exit": "exit_green"
+          },
+          "yellow": {
+            "meta": {
+              "yellowData": "yellow data"
+            },
+            "on": {
+              "TIMER": "red",
+              "POWER_OUTAGE": "red"
+            },
+            "entry": "enter_yellow",
+            "exit": "exit_yellow"
+          },
+          "red": {
+            "meta": {
+              "redData": {
+                "nested": {
+                  "red": "data",
+                  "array": [
+                    1,
+                    2,
+                    3
+                  ]
+                }
+              }
+            },
+            "on": {
+              "TIMER": "green",
+              "POWER_OUTAGE": "red",
+              "NOTHING": "red"
+            },
+            "entry": "enter_red",
+            "exit": "exit_red",
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "meta": {
+                  "walkData": "walk data"
+                },
+                "on": {
+                  "PED_COUNTDOWN": "wait"
+                },
+                "entry": "enter_walk",
+                "exit": "exit_walk"
+              },
+              "wait": {
+                "meta": {
+                  "waitData": "wait data"
+                },
+                "on": {
+                  "PED_COUNTDOWN": "stop"
+                },
+                "entry": "enter_wait",
+                "exit": "exit_wait"
+              },
+              "stop": {
+                "meta": {
+                  "stopData": "stop data"
+                },
+                "entry": "enter_stop",
+                "exit": "exit_stop"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        },
+        {
+          "query": {
+            "meta": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "meta of deep active states",
+      "test": "meta.test.ts > state meta data > states should aggregate meta data (deep)",
+      "machine": {
+        "id": "light",
+        "initial": "green",
+        "states": {
+          "green": {
+            "meta": [
+              "green",
+              "array",
+              "data"
+            ],
+            "on": {
+              "TIMER": "yellow",
+              "POWER_OUTAGE": "red",
+              "NOTHING": "green"
+            },
+            "entry": "enter_green",
+            "exit": "exit_green"
+          },
+          "yellow": {
+            "meta": {
+              "yellowData": "yellow data"
+            },
+            "on": {
+              "TIMER": "red",
+              "POWER_OUTAGE": "red"
+            },
+            "entry": "enter_yellow",
+            "exit": "exit_yellow"
+          },
+          "red": {
+            "meta": {
+              "redData": {
+                "nested": {
+                  "red": "data",
+                  "array": [
+                    1,
+                    2,
+                    3
+                  ]
+                }
+              }
+            },
+            "on": {
+              "TIMER": "green",
+              "POWER_OUTAGE": "red",
+              "NOTHING": "red"
+            },
+            "entry": "enter_red",
+            "exit": "exit_red",
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "meta": {
+                  "walkData": "walk data"
+                },
+                "on": {
+                  "PED_COUNTDOWN": "wait"
+                },
+                "entry": "enter_walk",
+                "exit": "exit_walk"
+              },
+              "wait": {
+                "meta": {
+                  "waitData": "wait data"
+                },
+                "on": {
+                  "PED_COUNTDOWN": "stop"
+                },
+                "entry": "enter_wait",
+                "exit": "exit_wait"
+              },
+              "stop": {
+                "meta": {
+                  "stopData": "stop data"
+                },
+                "entry": "enter_stop",
+                "exit": "exit_stop"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        },
+        {
+          "query": {
+            "meta": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "meta of a resolved state",
+      "test": "meta.test.ts > state meta data > services started from a persisted state should calculate meta data",
+      "machine": {
+        "id": "test",
+        "initial": "first",
+        "states": {
+          "first": {
+            "meta": {
+              "name": "first state"
+            }
+          },
+          "second": {
+            "meta": {
+              "name": "second state"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": "second"
+        },
+        {
+          "query": {
+            "meta": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "states may omit meta",
+      "test": "meta.test.ts > state meta data > should allow states to omit meta",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "meta": {
+              "layout": "a-layout"
+            }
+          },
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "meta": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "the definition keeps the meta of the initial, delayed and invoke transitions",
+      "test": "meta.test.ts > transition meta data > preserves transition meta on all transition definitions (the meta of the initial transition, of the delayed one and of the invoke's onDone, onError and onSnapshot, as the definition holds them; the eventless transition's meta is not ported, as XState's definition leaves out the eventless transitions and the record's transitions carry no meta; the child machine stands as a host actor, of which the definition holds only the src; the satisfies checks and the @ts-expect-error on the invoke's transition meta are TypeScript's type checker)",
+      "machine": {
+        "initial": {
+          "target": "idle",
+          "meta": {
+            "source": "initial"
+          }
+        },
+        "states": {
+          "idle": {
+            "always": {
+              "meta": {
+                "source": "always"
+              }
+            },
+            "after": {
+              "100": {
+                "meta": {
+                  "source": "after"
+                }
+              }
+            },
+            "invoke": {
+              "src": "child",
+              "onDone": {
+                "meta": {
+                  "source": "invoke.done"
+                }
+              },
+              "onError": {
+                "meta": {
+                  "source": "invoke.error"
+                }
+              },
+              "onSnapshot": {
+                "meta": {
+                  "source": "invoke.snapshot"
+                }
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": []
+    },
+    {
+      "name": "the definition keeps a state's description",
+      "test": "meta.test.ts > state description > state node should have its description",
+      "machine": {
+        "initial": "test",
+        "states": {
+          "test": {
+            "description": "This is a test"
+          }
+        }
+      },
+      "steps": []
+    },
+    {
+      "name": "the definition keeps a transition's description",
+      "test": "meta.test.ts > transition description > state node should have its description",
+      "machine": {
+        "on": {
+          "EVENT": {
+            "description": "This is a test"
+          }
+        }
+      },
+      "steps": []
+    }
+  ],
+  "excluded": [
+    {
+      "test": "meta.test.ts > state meta data > meta keys are strongly-typed",
+      "reason": "TypeScript's type checker only"
+    },
+    {
+      "test": "meta.test.ts > state meta data > TS should error with unexpected meta property",
+      "reason": "TypeScript's type checker only"
+    },
+    {
+      "test": "meta.test.ts > state meta data > TS should error with wrong meta value type",
+      "reason": "TypeScript's type checker only"
+    },
+    {
+      "test": "meta.test.ts > state meta data > TS should error with unexpected transition meta property",
+      "reason": "TypeScript's type checker only"
+    },
+    {
+      "test": "meta.test.ts > state meta data > TS should error with wrong transition meta value type",
+      "reason": "TypeScript's type checker only"
+    },
+    {
+      "test": "meta.test.ts > state meta data > should support typing meta properties (no ts-expected errors)",
+      "reason": "TypeScript's type checker only"
+    },
+    {
+      "test": "meta.test.ts > state meta data > should strongly type the state IDs in snapshot.getMeta()",
+      "reason": "TypeScript's type checker only"
+    },
+    {
+      "test": "meta.test.ts > state meta data > should strongly type the state IDs in snapshot.getMeta() (no root ID)",
+      "reason": "TypeScript's type checker only"
+    },
+    {
+      "test": "meta.test.ts > transition meta data > infers distinct metadata types with createMachine",
+      "reason": "TypeScript's type checker only"
+    },
+    {
+      "test": "meta.test.ts > transition meta data > supports distinct state and transition meta types",
+      "reason": "TypeScript's type checker only"
+    },
+    {
+      "test": "meta.test.ts > transition meta data > rejects state and transition metadata in the wrong positions",
+      "reason": "TypeScript's type checker only"
+    },
+    {
+      "test": "meta.test.ts > transition meta data > keeps types.meta as the shared metadata type for compatibility",
+      "reason": "TypeScript's type checker only"
+    },
+    {
+      "test": "meta.test.ts > transition meta data > TS should error with unexpected transition meta property",
+      "reason": "TypeScript's type checker only"
+    },
+    {
+      "test": "meta.test.ts > transition meta data > TS should error with wrong transition meta value type",
+      "reason": "TypeScript's type checker only"
+    }
+  ]
+}

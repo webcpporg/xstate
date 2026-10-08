@@ -1,0 +1,82 @@
+{
+  "source": "spawn.test.ts",
+  "cases": [
+    {
+      "name": "a child spawned with an input and a systemId is in the system",
+      "test": "spawn.test.ts > spawn inside machine > input is required when defined in actor (spawned with an id by the root's entry in place of its context function; system.get is read by the root's sendTo to the systemId; the type check of the input is TypeScript's)",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "entry": [
+          "spawn"
+        ],
+        "on": {
+          "PROBE": {
+            "actions": [
+              "probe"
+            ]
+          },
+          "PING": {
+            "actions": [
+              {
+                "type": "push_event",
+                "params": {
+                  "key": "log"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawn": {
+          "kind": "spawn_child",
+          "src": "child",
+          "id": "child",
+          "systemId": "test",
+          "input": {
+            "value": 42
+          }
+        },
+        "probe": {
+          "kind": "send_to",
+          "target": "#system:test",
+          "event": {
+            "type": "PING"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "PING": "pinged"
+                }
+              },
+              "pinged": {}
+            }
+          },
+          "context_from_input": {
+            "value": "value"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PROBE"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

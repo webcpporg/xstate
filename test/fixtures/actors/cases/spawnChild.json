@@ -1,0 +1,120 @@
+{
+  "source": "spawnChild.test.ts",
+  "cases": [
+    {
+      "name": "an entry spawnChild of a promise adds the child",
+      "test": "spawnChild.test.ts > spawnChild action > can spawn (the promise is a host actor)",
+      "machine": {
+        "entry": [
+          "spawn"
+        ]
+      },
+      "actions": {
+        "spawn": {
+          "kind": "spawn_child",
+          "src": "promise",
+          "id": "child"
+        }
+      },
+      "actors": {
+        "promise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "an entry spawnChild of a named actor adds the child with its input",
+      "test": "spawnChild.test.ts > spawnChild action > can spawn from named actor (the promise is a host actor, named by the case's actors where the test gives it with machine.provide)",
+      "machine": {
+        "entry": [
+          "spawn"
+        ]
+      },
+      "actions": {
+        "spawn": {
+          "kind": "spawn_child",
+          "src": "fetchNum",
+          "id": "child",
+          "input": 21
+        }
+      },
+      "actors": {
+        "fetchNum": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "an entry spawnChild whose id is computed from the context names the child a later sendTo reaches",
+      "test": "spawnChild.test.ts > spawnChild action > should handle a dynamic id (the spy is the child's assign counting FOO in its context)",
+      "machine": {
+        "context": {
+          "childId": "myChild"
+        },
+        "entry": [
+          "spawn",
+          "send_foo"
+        ]
+      },
+      "actions": {
+        "spawn": {
+          "kind": "spawn_child",
+          "src": "child",
+          "id": {
+            "$context": "childId"
+          }
+        },
+        "send_foo": {
+          "kind": "send_to",
+          "target": "myChild",
+          "event": {
+            "type": "FOO"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "context": {
+              "calls": 0
+            },
+            "on": {
+              "FOO": {
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "calls"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "spawnChild.test.ts > spawnChild action > should accept `syncSnapshot` option",
+      "reason": "fromObservable is not ported (out of scope for the actor layer); the test also needs spawnChild's syncSnapshot option and a guard on the xstate.snapshot event's snapshot, which the vocabulary has neither of"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+heard "a"
+heard "b"
+  the listener sent NEXT
+heard "c"
+after the host's send: "c"

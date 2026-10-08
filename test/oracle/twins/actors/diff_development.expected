@@ -1,0 +1,13 @@
+a transition that declares cond: throws: State "m.a" has declared `cond` for one of its transitions. This property has been renamed to `guard`. Please update your code.
+an event of the type * from outside: throws: An event cannot have the wildcard type ('*')
+a forwardTo to no actor: error, Attempted to forward event to undefined actor. This risks an infinite loop in the sender.
+the event mouse.x: "idle"
+  warns: Wildcards can only be the last token of an event descriptor (e.g., "event.*") or the entire event descriptor ("*"). Check the "mouse.*.*" event.
+  warns: Infix wildcards in transition events are not allowed. Check the "mouse.*.*" transition.
+  warns: Wildcards can only be the last token of an event descriptor (e.g., "event.*") or the entire event descriptor ("*"). Check the "mou*se.*" event.
+the event mouse.x: "idle"
+the event mou*se.x: "starred"
+  warns: Wildcards can only be the last token of an event descriptor (e.g., "event.*") or the entire event descriptor ("*"). Check the "mouse.*.*" event.
+  warns: Wildcards can only be the last token of an event descriptor (e.g., "event.*") or the entire event descriptor ("*"). Check the "mou*se.*" event.
+the event mouse.*.*: "deep"
+  warns: Wildcards can only be the last token of an event descriptor (e.g., "event.*") or the entire event descriptor ("*"). Check the "mou*se.*" event.

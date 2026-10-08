@@ -1,0 +1,44 @@
+{
+  "source": "state.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "a running actor that is stopped is stopped",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

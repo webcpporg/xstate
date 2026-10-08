@@ -1,0 +1,662 @@
+{
+  "source": "invoke.test.ts (lines 758 to 1365; each test of the describe `with promises (${type})` is ported once, for Promise and PromiseLike alike, since fromPromise adopts either through Promise.resolve and one host actor stands for both)",
+  "cases": [
+    {
+      "name": "a promise invoked inline resolves and its onDone reaches a final state",
+      "test": "invoke.test.ts > invoke > with promises (Promise) > should be invoked with a promise factory and resolve through onDone",
+      "machine": {
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "invoke": {
+              "src": "promise",
+              "onDone": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "promise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "promise"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a promise given the context as input rejects and its onError reaches a final state",
+      "test": "invoke.test.ts > invoke > with promises (Promise) > should be invoked with a promise factory and reject with ErrorExecution (the context, defaults merged with the input, is the input's two members; the invoke's input, the context, is the value it computes; onDone's guard, event.output === context.id, is event_equals on that id)",
+      "machine": {
+        "id": "invokePromise",
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "invoke": {
+              "src": "promise",
+              "input": {
+                "id": 31,
+                "succeed": false
+              },
+              "onDone": {
+                "target": "success",
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "output",
+                    "value": 31
+                  }
+                }
+              },
+              "onError": "failure"
+            }
+          },
+          "success": {
+            "type": "final"
+          },
+          "failure": {
+            "type": "final"
+          }
+        }
+      },
+      "context_from_input": {
+        "id": "id",
+        "succeed": "succeed"
+      },
+      "actors": {
+        "promise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true,
+          "input": {
+            "id": 31,
+            "succeed": false
+          }
+        },
+        {
+          "reject": {
+            "src": "promise",
+            "error": {
+              "message": "failed on purpose for: 31"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a promise that rejects with no onError fails its parent with the error",
+      "test": "invoke.test.ts > invoke > with promises (Promise) > should be invoked with a promise factory and surface any unhandled errors (the Error thrown is the JSON error {message: 'test'})",
+      "machine": {
+        "id": "invokePromise",
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "invoke": {
+              "src": "promise",
+              "onDone": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "promise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "reject": {
+            "src": "promise",
+            "error": {
+              "message": "test"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "an unhandled rejection leaves the parent failed, never done",
+      "test": "invoke.test.ts > invoke > with promises (Promise) > should be invoked with a promise factory and stop on unhandled onError target (the Error thrown is the JSON error {message: 'test'}; complete never called is the status error)",
+      "machine": {
+        "id": "invokePromise",
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "invoke": {
+              "src": "promise",
+              "onDone": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "promise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "reject": {
+            "src": "promise",
+            "error": {
+              "message": "test"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a promise invoked inline in a compound state finishes it and its onDone finishes the machine",
+      "test": "invoke.test.ts > invoke > with promises (Promise) > should be invoked with a promise factory and resolve through onDone for compound state nodes",
+      "machine": {
+        "id": "promise",
+        "initial": "parent",
+        "states": {
+          "parent": {
+            "initial": "pending",
+            "states": {
+              "pending": {
+                "invoke": {
+                  "src": "promise",
+                  "onDone": "success"
+                }
+              },
+              "success": {
+                "type": "final"
+              }
+            },
+            "onDone": "success"
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "promise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "promise"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a named promise service in a compound state finishes it and its onDone finishes the machine",
+      "test": "invoke.test.ts > invoke > with promises (Promise) > should be invoked with a promise service and resolve through onDone for compound state nodes",
+      "machine": {
+        "id": "promise",
+        "initial": "parent",
+        "states": {
+          "parent": {
+            "initial": "pending",
+            "states": {
+              "pending": {
+                "invoke": {
+                  "src": "somePromise",
+                  "onDone": "success"
+                }
+              },
+              "success": {
+                "type": "final"
+              }
+            },
+            "onDone": "success"
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "somePromise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "somePromise"
+          }
+        }
+      ]
+    },
+    {
+      "name": "the output of a promise invoked inline is assigned to the context on done",
+      "test": "invoke.test.ts > invoke > with promises (Promise) > should assign the resolved data when invoked with a promise factory (the resolved {count: 1} is answered as 1, since set_from_event cannot read event.output.count, so assigning event.output.count is assigning event.output)",
+      "machine": {
+        "id": "promise",
+        "context": {
+          "count": 0
+        },
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "invoke": {
+              "src": "promise",
+              "onDone": {
+                "target": "success",
+                "actions": [
+                  {
+                    "type": "set_from_event",
+                    "params": {
+                      "key": "count",
+                      "from": "output"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "promise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "promise",
+            "output": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "the output of a named promise service is assigned to the context on done",
+      "test": "invoke.test.ts > invoke > with promises (Promise) > should assign the resolved data when invoked with a promise service (the resolved {count: 1} is answered as 1, since set_from_event cannot read event.output.count, so assigning event.output.count is assigning event.output)",
+      "machine": {
+        "id": "promise",
+        "context": {
+          "count": 0
+        },
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "invoke": {
+              "src": "somePromise",
+              "onDone": {
+                "target": "success",
+                "actions": [
+                  {
+                    "type": "set_from_event",
+                    "params": {
+                      "key": "count",
+                      "from": "output"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "somePromise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "somePromise",
+            "output": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "the onDone action of a promise invoked inline receives its output",
+      "test": "invoke.test.ts > invoke > with promises (Promise) > should provide the resolved data when invoked with a promise factory (the action that copies event.output.count to an outer variable copies event.output into the context's provided; the resolved {count: 1} is answered as 1, since set_from_event cannot read event.output.count)",
+      "machine": {
+        "id": "promise",
+        "context": {
+          "count": 0,
+          "provided": 0
+        },
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "invoke": {
+              "src": "promise",
+              "onDone": {
+                "target": "success",
+                "actions": [
+                  {
+                    "type": "set_from_event",
+                    "params": {
+                      "key": "provided",
+                      "from": "output"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "promise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "promise",
+            "output": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "the onDone action of a named promise service receives its output",
+      "test": "invoke.test.ts > invoke > with promises (Promise) > should provide the resolved data when invoked with a promise service (the action that copies event.output.count to an outer variable copies event.output into the context's provided; the resolved {count: 1} is answered as 1, since set_from_event cannot read event.output.count)",
+      "machine": {
+        "id": "promise",
+        "context": {
+          "provided": 0
+        },
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "invoke": {
+              "src": "somePromise",
+              "onDone": {
+                "target": "success",
+                "actions": [
+                  {
+                    "type": "set_from_event",
+                    "params": {
+                      "key": "provided",
+                      "from": "output"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "somePromise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "somePromise",
+            "output": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "a promise service invoked on an event gets the context and the event as input and its done finishes the machine",
+      "test": "invoke.test.ts > invoke > with promises (Promise) > should be able to specify a Promise as a service (the invoke's input, computed from the context and the entering event, is the value it computes)",
+      "machine": {
+        "id": "promise",
+        "initial": "pending",
+        "context": {
+          "foo": true
+        },
+        "states": {
+          "pending": {
+            "on": {
+              "BEGIN": "first"
+            }
+          },
+          "first": {
+            "invoke": {
+              "src": "somePromise",
+              "input": {
+                "foo": true,
+                "event": {
+                  "type": "BEGIN",
+                  "payload": true
+                }
+              },
+              "onDone": "last"
+            }
+          },
+          "last": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "somePromise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "BEGIN",
+            "payload": true
+          }
+        },
+        {
+          "resolve": {
+            "src": "somePromise"
+          }
+        }
+      ]
+    },
+    {
+      "name": "one promise service invoked in two regions makes two requests, each answered on its own",
+      "test": "invoke.test.ts > invoke > with promises (Promise) > should be able to reuse the same promise logic multiple times and create unique promise for each created actor (Math.random() is two distinct numbers the host answers, and its {result: n} is answered as n, since set_from_event cannot read event.output.result)",
+      "machine": {
+        "context": {
+          "result1": null,
+          "result2": null
+        },
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "type": "parallel",
+            "states": {
+              "state1": {
+                "initial": "active",
+                "states": {
+                  "active": {
+                    "invoke": {
+                      "src": "getRandomNumber",
+                      "onDone": {
+                        "target": "success",
+                        "actions": [
+                          {
+                            "type": "set_from_event",
+                            "params": {
+                              "key": "result1",
+                              "from": "output"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "success": {
+                    "type": "final"
+                  }
+                }
+              },
+              "state2": {
+                "initial": "active",
+                "states": {
+                  "active": {
+                    "invoke": {
+                      "src": "getRandomNumber",
+                      "onDone": {
+                        "target": "success",
+                        "actions": [
+                          {
+                            "type": "set_from_event",
+                            "params": {
+                              "key": "result2",
+                              "from": "output"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "success": {
+                    "type": "final"
+                  }
+                }
+              }
+            },
+            "onDone": "done"
+          },
+          "done": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "getRandomNumber": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "getRandomNumber",
+            "output": 0.25
+          }
+        },
+        {
+          "resolve": {
+            "src": "getRandomNumber",
+            "output": 0.75
+          }
+        }
+      ]
+    },
+    {
+      "name": "a promise that settles after its invoking state was left sends its parent nothing",
+      "test": "invoke.test.ts > invoke > with promises (Promise) > should not emit onSnapshot if stopped (in part: the stop and the late answer; onSnapshot is left out, as syncSnapshot is not ported (out of scope for the actor layer), and the wildcard that throws on an event with a snapshot pushes every event's type to the log; the promise's 5 ms timer is the late resolve)",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "initial": "active",
+        "states": {
+          "active": {
+            "invoke": {
+              "src": "promise"
+            },
+            "on": {
+              "deactivate": "inactive"
+            }
+          },
+          "inactive": {
+            "on": {
+              "*": {
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "log"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "promise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "deactivate"
+          }
+        },
+        {
+          "resolve": {
+            "actor": "root/0.(machine).active",
+            "output": 42
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

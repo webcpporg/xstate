@@ -1,0 +1,24 @@
+{
+  "source": "state.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "a running actor that is stopped is stopped",
+      "test": "state.test.ts > State > .status > should be 'stopped' after a running actor gets stopped",
+      "machine": {},
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "stop": true
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "state.test.ts > State > .can > should not spawn actors when determining if an event is accepted",
+      "reason": "the test asks snapshot.can(), which no step of the actor cases does, and asserts that the fromCallback the transition would spawn never ran; fromCallback is not ported (out of scope for the actor layer), and the spawn is an assign that stores the reference (an actor reference as data is not expressible)"
+    }
+  ]
+}

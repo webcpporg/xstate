@@ -1,0 +1,123 @@
+{
+  "source": "spawn.test.ts",
+  "cases": [
+    {
+      "name": "a child spawned with an input and a systemId is in the system",
+      "steps": [
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": {
+                      "value": 42
+                    }
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {
+                      "value": 42
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "child": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "PING"
+                  },
+                  "snapshot": {
+                    "value": "pinged",
+                    "context": {
+                      "value": 42
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pinged"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "PROBE"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "child": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "active"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

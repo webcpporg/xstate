@@ -1,0 +1,141 @@
+{
+  "source": "match.test.ts",
+  "cases": [
+    {
+      "name": "matches on a snapshot's parent state value",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).foo"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "foo": {
+            "id": "(machine).foo",
+            "key": "foo",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).foo.bar"
+              ],
+              "source": "#(machine).foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "bar": {
+                "id": "(machine).foo.bar",
+                "key": "bar",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).foo.bar.baz"
+                  ],
+                  "source": "#(machine).foo.bar",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "baz": {
+                    "id": "(machine).foo.bar.baz",
+                    "key": "baz",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).foo.bar.baz",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 3,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "foo": {
+                    "bar": "baz"
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).foo",
+                  "(machine).foo.bar",
+                  "(machine).foo.bar.baz"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "query": {
+            "matches": true
+          }
+        },
+        {
+          "query": {
+            "matches": true
+          }
+        },
+        {
+          "query": {
+            "matches": false
+          }
+        }
+      ]
+    }
+  ]
+}

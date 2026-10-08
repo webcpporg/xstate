@@ -1,0 +1,63 @@
+{
+  "source": "definition.test.ts",
+  "cases": [
+    {
+      "name": "a machine's definition lists both invokes of its root",
+      "definition": {
+        "id": "invoke",
+        "key": "invoke",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#invoke.idle"
+          ],
+          "source": "#invoke",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "idle": {
+            "id": "invoke.idle",
+            "key": "idle",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#invoke.idle",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [
+          {
+            "src": "foo",
+            "type": "xstate.invoke",
+            "id": "0.invoke"
+          },
+          {
+            "src": "bar",
+            "type": "xstate.invoke",
+            "id": "1.invoke"
+          }
+        ],
+        "tags": []
+      },
+      "steps": []
+    }
+  ]
+}

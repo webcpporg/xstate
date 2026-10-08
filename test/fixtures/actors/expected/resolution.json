@@ -1,0 +1,1233 @@
+{
+  "source": "the final review of the actor layer, findings 5 and 7, and XState's resolution of spawnChild, stopChild and sendTo (stateUtils.ts resolveActionsAndContext)",
+  "cases": [
+    {
+      "name": "a stop frees a systemId a later invoke of the same macrostep claims, and a send to that invoke reaches it after its start",
+      "steps": [
+        {
+          "actors": {
+            "root/y": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.a"
+                    ],
+                    "children": {
+                      "y": "worker"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/y": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/n": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.idle"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "PING"
+                  },
+                  "snapshot": {
+                    "value": "heard",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.heard"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "GO"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.b"
+                    ],
+                    "children": {
+                      "n": "worker"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/y": "stopped",
+            "root/n": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a send to a systemId reaches the grandchild a child spawned earlier in the same macrostep constructed",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/c/g": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "grand",
+                      "grand.idle"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "HELLO"
+                  },
+                  "snapshot": {
+                    "value": "heard",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "grand",
+                      "grand.heard"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/c": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "middle"
+                    ],
+                    "children": {
+                      "g": "grand"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "GO"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "b": "b1"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.b",
+                      "root.b.b1"
+                    ],
+                    "children": {
+                      "c": "middle"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/c": "active",
+            "root/c/g": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a claim of a systemId the grandchild of a child spawned earlier in the same macrostep holds fails the actor",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a root's initial send to a systemId reaches the grandchild its initial macrostep constructed",
+      "steps": [
+        {
+          "actors": {
+            "root/c/g": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "grand",
+                      "grand.idle"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "HELLO"
+                  },
+                  "snapshot": {
+                    "value": "heard",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "grand",
+                      "grand.heard"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/c": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "middle"
+                    ],
+                    "children": {
+                      "g": "grand"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.a"
+                    ],
+                    "children": {
+                      "c": "middle"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/c": "active",
+            "root/c/g": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child spawned and stopped in one macrostep never starts, and the systemId of its grandchild is free again",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/other": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "grand",
+                      "grand.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "GO"
+                  },
+                  "snapshot": {
+                    "value": "x",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.x"
+                    ],
+                    "children": {
+                      "other": "grand"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/other": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/other": {
+              "events": [
+                {
+                  "event": {
+                    "type": "HELLO"
+                  },
+                  "snapshot": {
+                    "value": "heard",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "grand",
+                      "grand.heard"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/other": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a send to a systemId a stop of the same macrostep released goes to the actor itself",
+      "steps": [
+        {
+          "actors": {
+            "root/y": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.a"
+                    ],
+                    "children": {
+                      "y": "worker"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/y": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "GO"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.b"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "PING"
+                  },
+                  "snapshot": {
+                    "value": "c",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.c"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/y": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a send to an invoke of the state being entered reaches the new invoke, not an older child under the same id",
+      "steps": [
+        {
+          "actors": {
+            "root/n": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": {
+                      "tag": "old"
+                    }
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {
+                      "tag": "old"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.a"
+                    ],
+                    "children": {
+                      "n": "worker"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/n": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/n#2": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": {
+                      "tag": "new"
+                    }
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {
+                      "tag": "new"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.idle"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "PING"
+                  },
+                  "snapshot": {
+                    "value": "heard",
+                    "context": {
+                      "tag": "new"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.heard"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "GO"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.b"
+                    ],
+                    "children": {
+                      "n": "worker"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/n": "active",
+            "root/n#2": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a send to an invoke a child state's entry stops in the same microstep is dropped, and the actor stays active",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "GO"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "b": "b1"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.b",
+                      "root.b.b1"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "NEXT"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "b": "b2"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.b",
+                      "root.b.b2"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a send to an invoke a child state's entry stops in the initial macrostep is dropped, and the actor stays active",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "b": "b1"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.b",
+                      "root.b.b1"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "NEXT"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "b": "b2"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.b",
+                      "root.b.b2"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a send to an invoke reaches it even when a child state's spawn replaces it under the same id in the same microstep",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/n": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": {
+                      "tag": "outer"
+                    }
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {
+                      "tag": "outer"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.idle"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "PING"
+                  },
+                  "snapshot": {
+                    "value": "heard",
+                    "context": {
+                      "tag": "outer"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.heard"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/n#2": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": {
+                      "tag": "inner"
+                    }
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {
+                      "tag": "inner"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "GO"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "b": "b1"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.b",
+                      "root.b.b1"
+                    ],
+                    "children": {
+                      "n": "worker"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/n": "active",
+            "root/n#2": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a send to #_<id> reaches the child that id names",
+      "steps": [
+        {
+          "actors": {
+            "root/kid": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.a"
+                    ],
+                    "children": {
+                      "kid": "worker"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/kid": {
+              "events": [
+                {
+                  "event": {
+                    "type": "PING"
+                  },
+                  "snapshot": {
+                    "value": "heard",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.heard"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "GO"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.a"
+                    ],
+                    "children": {
+                      "kid": "worker"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child born done holds its systemId only while it starts",
+      "steps": [
+        {
+          "actors": {
+            "root/a": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "f",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).f",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "a": "finished"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.done.actor.a",
+                    "actorId": "a"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "a": "finished"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/a": "done"
+          },
+          "requests": []
+        },
+        {
+          "got": null,
+          "actors": {},
+          "statuses": {
+            "root": "active",
+            "root/a": "done"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

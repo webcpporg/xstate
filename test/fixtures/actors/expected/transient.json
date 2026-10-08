@@ -1,0 +1,69 @@
+{
+  "source": "transient.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "an invoked machine whose initial eventless transition reads its input starts",
+      "steps": [
+        {
+          "actors": {
+            "root/0.(machine).active": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": {
+                      "duration": 3000
+                    }
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "duration": 3000
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "customDuration": 3000
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).active"
+                    ],
+                    "children": {
+                      "0.(machine).active": "timerMachine"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).active": "active"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,847 @@
+{
+  "source": "transition.test.ts",
+  "cases": [
+    {
+      "name": "custom action not executed through initialTransition",
+      "test": "transition.test.ts > transition function > should not execute a referenced serialized action",
+      "machine": {
+        "entry": "foo",
+        "context": {
+          "count": 0
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "delayed raise action returned from initial transition",
+      "test": "transition.test.ts > transition function > delayed raise actions should be returned",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": "raiseNext",
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actions": {
+        "raiseNext": {
+          "kind": "raise",
+          "event": {
+            "type": "NEXT"
+          },
+          "delay": 10
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "matches": "a"
+          }
+        }
+      ]
+    },
+    {
+      "name": "after-delay raise action returned from initial transition",
+      "test": "transition.test.ts > transition function > raise actions related to delayed transitions should be returned",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "after": {
+              "10": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "matches": "a"
+          }
+        }
+      ]
+    },
+    {
+      "name": "cancel action returned for a pending raise",
+      "test": "transition.test.ts > transition function > cancel action should be returned",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": "raiseNext",
+            "on": {
+              "NEXT": {
+                "target": "b",
+                "actions": "cancelRaise"
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "actions": {
+        "raiseNext": {
+          "kind": "raise",
+          "event": {
+            "type": "NEXT"
+          },
+          "delay": 10,
+          "id": "myRaise"
+        },
+        "cancelRaise": {
+          "kind": "cancel",
+          "id": "myRaise"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "matches": "a"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "log action with resolved value returned",
+      "test": "transition.test.ts > transition function > log actions should be returned",
+      "machine": {
+        "initial": "a",
+        "context": {
+          "count": 10
+        },
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": {
+                "actions": "logCount"
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "logCount": {
+          "kind": "log",
+          "value": "count: 10"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "matches": "a"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "next snapshot via the pure transition function",
+      "test": "transition.test.ts > transition function > should calculate the next snapshot for machine logic",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "on": {
+              "NEXT": "c"
+            }
+          },
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "query": {
+            "matches": "c"
+          }
+        }
+      ]
+    },
+    {
+      "name": "entry action not executed through initialTransition",
+      "test": "transition.test.ts > transition function > should not execute entry actions",
+      "machine": {
+        "initial": "a",
+        "entry": "rootEntry",
+        "states": {
+          "a": {},
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "transition action not executed through transition function",
+      "test": "transition.test.ts > transition function > should not execute transition actions",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "event": {
+                "target": "b",
+                "actions": "transitionAction"
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "event"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "delayed after-transition resolves through simulated clock",
+      "test": "transition.test.ts > transition function > delayed events example (experimental)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "next": "waiting"
+            }
+          },
+          "waiting": {
+            "after": {
+              "10": "done"
+            }
+          },
+          "done": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "next"
+          }
+        },
+        {
+          "advance": 10
+        },
+        {
+          "query": {
+            "matches": "done"
+          }
+        }
+      ]
+    },
+    {
+      "name": "getNextTransitions returns transitions in definition order",
+      "test": "transition.test.ts > getNextTransitions > should return all transitions from current state",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO_B": "b",
+              "GO_C": "c"
+            }
+          },
+          "b": {},
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "next_transitions": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "getNextTransitions includes guarded transitions regardless of guard result",
+      "test": "transition.test.ts > getNextTransitions > should include guarded transitions regardless of guard result",
+      "machine": {
+        "initial": "a",
+        "context": {
+          "count": 100
+        },
+        "states": {
+          "a": {
+            "on": {
+              "GO_B": [
+                {
+                  "guard": {
+                    "type": "xstate.not",
+                    "guards": [
+                      {
+                        "type": "context_at_least",
+                        "params": {
+                          "key": "count",
+                          "value": 10
+                        }
+                      }
+                    ]
+                  },
+                  "target": "b"
+                },
+                {
+                  "target": "d"
+                }
+              ],
+              "GO_C": {
+                "guard": {
+                  "type": "context_at_least",
+                  "params": {
+                    "key": "count",
+                    "value": 51
+                  }
+                },
+                "target": "c"
+              }
+            }
+          },
+          "b": {},
+          "c": {},
+          "d": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "next_transitions": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "getNextTransitions includes always transitions after on transitions",
+      "test": "transition.test.ts > getNextTransitions > should include always (eventless) transitions",
+      "machine": {
+        "initial": "a",
+        "context": {
+          "count": 5
+        },
+        "states": {
+          "a": {
+            "always": [
+              {
+                "guard": {
+                  "type": "context_at_least",
+                  "params": {
+                    "key": "count",
+                    "value": 11
+                  }
+                },
+                "target": "b"
+              },
+              {
+                "guard": {
+                  "type": "context_equals",
+                  "params": {
+                    "key": "__never__",
+                    "value": "__false__"
+                  }
+                },
+                "target": "c"
+              }
+            ],
+            "on": {
+              "GO_D": "d"
+            }
+          },
+          "b": {},
+          "c": {},
+          "d": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "next_transitions": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "getNextTransitions includes after transitions last",
+      "test": "transition.test.ts > getNextTransitions > should include after (delayed) transitions",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "after": {
+              "1000": "b"
+            },
+            "on": {
+              "GO_C": "c"
+            }
+          },
+          "b": {},
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "next_transitions": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "getNextTransitions orders child before parent transitions",
+      "test": "transition.test.ts > getNextTransitions > should include transitions from parent states in depth-first order",
+      "machine": {
+        "initial": "parent",
+        "states": {
+          "parent": {
+            "initial": "child",
+            "on": {
+              "PARENT_EVENT": "other"
+            },
+            "states": {
+              "child": {
+                "on": {
+                  "CHILD_EVENT": "sibling"
+                }
+              },
+              "sibling": {}
+            }
+          },
+          "other": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "next_transitions": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "getNextTransitions includes same-event transitions from every node",
+      "test": "transition.test.ts > getNextTransitions > should include all guarded transitions from different state nodes with same event type",
+      "machine": {
+        "initial": "parent",
+        "states": {
+          "parent": {
+            "initial": "child",
+            "on": {
+              "SAME_EVENT": [
+                {
+                  "guard": {
+                    "type": "context_equals",
+                    "params": {
+                      "key": "__never__",
+                      "value": "__false__"
+                    }
+                  },
+                  "target": "parentTarget"
+                },
+                {
+                  "target": "parentTarget2"
+                }
+              ]
+            },
+            "states": {
+              "child": {
+                "on": {
+                  "SAME_EVENT": {
+                    "target": "childTarget"
+                  }
+                }
+              },
+              "childTarget": {}
+            }
+          },
+          "parentTarget": {},
+          "parentTarget2": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "next_transitions": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "getNextTransitions orders parallel regions in document order",
+      "test": "transition.test.ts > getNextTransitions > should return transitions from parallel states in document order",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "regionA": {
+            "initial": "a1",
+            "on": {
+              "REGION_A_EVENT": ".a2"
+            },
+            "states": {
+              "a1": {
+                "on": {
+                  "A1_EVENT": "a2"
+                }
+              },
+              "a2": {}
+            }
+          },
+          "regionB": {
+            "initial": "b1",
+            "on": {
+              "REGION_B_EVENT": ".b2"
+            },
+            "states": {
+              "b1": {
+                "on": {
+                  "B1_EVENT": "b2"
+                }
+              },
+              "b2": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "next_transitions": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "getNextTransitions orders deeply nested compound states depth-first",
+      "test": "transition.test.ts > getNextTransitions > should return transitions from deeply nested compound states in depth-first order",
+      "machine": {
+        "initial": "level1",
+        "on": {
+          "ROOT_EVENT": ".level1"
+        },
+        "states": {
+          "level1": {
+            "initial": "level2",
+            "on": {
+              "LEVEL1_EVENT": ".level2"
+            },
+            "states": {
+              "level2": {
+                "initial": "level3",
+                "on": {
+                  "LEVEL2_EVENT": ".level3"
+                },
+                "states": {
+                  "level3": {
+                    "on": {
+                      "LEVEL3_EVENT": "level3"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "next_transitions": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "getNextTransitions orders parallel regions with nested compounds",
+      "test": "transition.test.ts > getNextTransitions > should return transitions from parallel states with nested compound states",
+      "machine": {
+        "type": "parallel",
+        "on": {
+          "ROOT_EVENT": {}
+        },
+        "states": {
+          "regionA": {
+            "initial": "nested",
+            "on": {
+              "REGION_A_EVENT": ".nested"
+            },
+            "states": {
+              "nested": {
+                "initial": "deep",
+                "on": {
+                  "NESTED_A_EVENT": ".deep"
+                },
+                "states": {
+                  "deep": {
+                    "on": {
+                      "DEEP_A_EVENT": "deep"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "regionB": {
+            "initial": "leaf",
+            "on": {
+              "REGION_B_EVENT": ".leaf"
+            },
+            "states": {
+              "leaf": {
+                "on": {
+                  "LEAF_B_EVENT": "leaf"
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "next_transitions": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "custom actions returned by the initial transition and by an event, the assign applied",
+      "test": "transition.test.ts > transition function > should capture actions (the count of 100 after both transitions, the two custom entry actions with the first's params and without the assign, and the event's one action by its type; that action's params, which a function computes from the event, are not ported)",
+      "machine": {
+        "entry": [
+          {
+            "type": "actionWithParams",
+            "params": {
+              "a": 1
+            }
+          },
+          "stringAction",
+          {
+            "type": "set",
+            "params": {
+              "key": "count",
+              "value": 100
+            }
+          }
+        ],
+        "context": {
+          "count": 0
+        },
+        "on": {
+          "event": {
+            "actions": "actionWithDynamicParams"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "event",
+            "msg": "hello"
+          }
+        }
+      ]
+    },
+    {
+      "name": "sendTo action to an invoked child returned after the child's spawnChild",
+      "test": "transition.test.ts > transition function > sendTo action should be returned (the invoked child is a host actor in place of createMachine({}), the only actor kind the core cases run; the test asserts only the returned action objects)",
+      "machine": {
+        "initial": "a",
+        "invoke": {
+          "src": "child",
+          "id": "someActor"
+        },
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": {
+                "actions": [
+                  "sendSomeEvent"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "sendSomeEvent": {
+          "kind": "send_to",
+          "target": "someActor",
+          "event": {
+            "type": "someEvent"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "emit action with an event computed from the context returned",
+      "test": "transition.test.ts > transition function > emit actions should be returned",
+      "machine": {
+        "initial": "a",
+        "context": {
+          "count": 10
+        },
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": {
+                "actions": "emitCounted"
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "emitCounted": {
+          "kind": "emit",
+          "event": {
+            "type": "counted",
+            "count": {
+              "$context": "count"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "matches": "a"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "transition.test.ts > transition function > should capture enqueued actions",
+      "reason": "uses enqueueActions"
+    },
+    {
+      "test": "transition.test.ts > transition function > should calculate the next snapshot for transition logic",
+      "reason": "uses fromTransition, actor logic other than a machine"
+    },
+    {
+      "test": "transition.test.ts > transition function > serverless workflow example (experimental)",
+      "reason": "ported with the actor cases, fixtures/actors/cases/transition.json"
+    }
+  ]
+}

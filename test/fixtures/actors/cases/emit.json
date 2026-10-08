@@ -1,0 +1,185 @@
+{
+  "source": "emit.test.ts",
+  "cases": [
+    {
+      "name": "an event's emit reaches the actor's listeners with its members",
+      "test": "emit.test.ts > event emitter > emits events that can be listened to on actorRef.on(…)",
+      "machine": {
+        "on": {
+          "someEvent": {
+            "actions": [
+              "emitBar"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "emitBar": {
+          "kind": "emit",
+          "event": {
+            "type": "emitted",
+            "foo": "bar"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "someEvent"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an emit on a transition is emitted once by the actor that reached the target",
+      "test": "emit.test.ts > event emitter > listener should be able to read the updated snapshot of the emitting actor (the event emitted once and the state b the step leaves; that the listener reads b while it runs is not recorded)",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "ev": {
+                "actions": [
+                  "emitSomeEvent"
+                ],
+                "target": "b"
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "actions": {
+        "emitSomeEvent": {
+          "kind": "emit",
+          "event": {
+            "type": "someEvent"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "ev"
+          }
+        }
+      ]
+    },
+    {
+      "name": "every emitted event reaches a wildcard listener once",
+      "test": "emit.test.ts > event emitter > wildcard listeners should be able to receive all emitted events",
+      "machine": {
+        "on": {
+          "event": {
+            "actions": [
+              "emitEmitted"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "emitEmitted": {
+          "kind": "emit",
+          "event": {
+            "type": "emitted"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "event"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an emit whose event is computed from the context reaches the listeners with the context's count",
+      "test": "emit.test.ts > event emitter > dynamically emits events that can be listened to on actorRef.on(…)",
+      "machine": {
+        "context": {
+          "count": 10
+        },
+        "on": {
+          "someEvent": {
+            "actions": [
+              "emitCount"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "emitCount": {
+          "kind": "emit",
+          "event": {
+            "type": "emitted",
+            "count": {
+              "$context": "count"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "someEvent"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "emit.test.ts > event emitter > only emits expected events if specified in setup",
+      "reason": "TypeScript's type checker: the test only builds a machine and asserts, with @ts-expect-error, that setup's emitted types reject an unknown event and a wrong member type; nothing runs"
+    },
+    {
+      "test": "emit.test.ts > event emitter > emits any events if not specified in setup (unsafe)",
+      "reason": "TypeScript's type checker: the test only builds a machine without emitted types, so that emit accepts any event with no @ts-expect-error; nothing runs"
+    },
+    {
+      "test": "emit.test.ts > event emitter > enqueue.emit(…) emits events that can be listened to on actorRef.on(…)",
+      "reason": "enqueueActions is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "emit.test.ts > event emitter > handles errors",
+      "reason": "actor.on listeners' own semantics, which are out of scope: the test's subject is a listener that throws, whose error XState reports apart while the actor stays active; the record's only listener is the oracle's own recorder, and no step registers a listener, let alone one that throws. It would need a step that registers a throwing listener for an event type on an actor"
+    },
+    {
+      "test": "emit.test.ts > event emitter > events can be emitted from promise logic",
+      "reason": "a promise logic that emits: the root is a fromPromise actor whose body calls emit when it starts; a host actor stands for fromPromise but runs no body, an actor case's root is always a machine, and no step makes a host actor emit. It would need a root that is a host actor and a step by which a host actor emits an event"
+    },
+    {
+      "test": "emit.test.ts > event emitter > events can be emitted from transition logic",
+      "reason": "fromTransition is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "emit.test.ts > event emitter > events can be emitted from observable logic",
+      "reason": "fromObservable is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "emit.test.ts > event emitter > events can be emitted from event observable logic",
+      "reason": "fromEventObservable is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "emit.test.ts > event emitter > events can be emitted from callback logic",
+      "reason": "fromCallback is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "emit.test.ts > event emitter > events can be emitted from callback logic (restored root)",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test also restores the root from getPersistedSnapshot, and listens on a child reached through the snapshot's children"
+    }
+  ]
+}

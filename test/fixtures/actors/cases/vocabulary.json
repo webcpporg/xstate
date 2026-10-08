@@ -1,0 +1,955 @@
+{
+  "source": "the cases' own vocabulary and oracle, against XState: findings 30 to 33 of the review of the actor layer",
+  "cases": [
+    {
+      "name": "a guard that fails in a child reaches its parent as implementation_failed",
+      "test": "review of the actor layer, finding 31: XState wraps a guard's error as 'Unable to evaluate guard ...', which the oracle writes as the code xstate gives",
+      "machine": {
+        "id": "root",
+        "context": {},
+        "invoke": {
+          "src": "picky",
+          "id": "kid",
+          "onError": {
+            "actions": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "reason",
+                  "from": "error"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actors": {
+        "picky": {
+          "kind": "machine",
+          "machine": {
+            "id": "picky",
+            "on": {
+              "GO": {
+                "guard": "fail",
+                "actions": []
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          },
+          "to": "root/kid"
+        }
+      ]
+    },
+    {
+      "name": "a context that cannot be made from a missing input reaches the parent as implementation_failed",
+      "test": "review of the actor layer, finding 31: the vocabulary's context function fails on a missing input, as reading a member of undefined throws",
+      "machine": {
+        "id": "root",
+        "context": {},
+        "invoke": {
+          "src": "needs_input",
+          "id": "kid",
+          "onError": {
+            "actions": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "reason",
+                  "from": "error"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actors": {
+        "needs_input": {
+          "kind": "machine",
+          "context_from_input": {
+            "x": "a"
+          },
+          "machine": {
+            "id": "needs_input"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a context made from an input that is not an object lacks the members it would take",
+      "test": "review of the actor layer, finding 32: input[from] of a number or an array is undefined, and the context lacks the key",
+      "machine": {
+        "id": "root",
+        "context": {},
+        "invoke": [
+          {
+            "src": "needs_input",
+            "id": "number",
+            "input": 5
+          },
+          {
+            "src": "needs_input",
+            "id": "list",
+            "input": [
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      "actors": {
+        "needs_input": {
+          "kind": "machine",
+          "context_from_input": {
+            "x": "a"
+          },
+          "machine": {
+            "id": "needs_input"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "set_from_event copies a member that is null",
+      "test": "review of the actor layer, finding 33: assign({[key]: event[from]}) sets the key to null",
+      "machine": {
+        "id": "root",
+        "context": {
+          "k": 1
+        },
+        "on": {
+          "E": {
+            "actions": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "k",
+                  "from": "v"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "E",
+            "v": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "host requests are listed and answered in the order of their actors' keys, whatever their depth",
+      "test": "review of the actor layer, finding 30: a request is named by src as the pending one whose actor's key comes first, an order no nesting of deliveries changes",
+      "machine": {
+        "id": "root",
+        "entry": [
+          "spawn_a",
+          "spawn_m",
+          "spawn_c"
+        ]
+      },
+      "actions": {
+        "spawn_a": {
+          "kind": "spawn_child",
+          "src": "fetch",
+          "id": "a"
+        },
+        "spawn_m": {
+          "kind": "spawn_child",
+          "src": "m",
+          "id": "m"
+        },
+        "spawn_c": {
+          "kind": "spawn_child",
+          "src": "fetch",
+          "id": "c"
+        }
+      },
+      "actors": {
+        "fetch": {
+          "kind": "host"
+        },
+        "m": {
+          "kind": "machine",
+          "machine": {
+            "id": "m",
+            "entry": [
+              "spawn_b"
+            ]
+          },
+          "actions": {
+            "spawn_b": {
+              "kind": "spawn_child",
+              "src": "fetch",
+              "id": "b"
+            }
+          },
+          "actors": {
+            "fetch": {
+              "kind": "host"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "fetch",
+            "output": 1
+          }
+        },
+        {
+          "resolve": {
+            "src": "fetch",
+            "output": 2
+          }
+        },
+        {
+          "resolve": {
+            "src": "fetch",
+            "output": 3
+          }
+        }
+      ]
+    },
+    {
+      "name": "requests whose actors nested deliveries create in another order are listed and answered by key",
+      "machine": {
+        "id": "root",
+        "invoke": [
+          {
+            "src": "relay",
+            "id": "a"
+          },
+          {
+            "src": "worker",
+            "id": "b"
+          }
+        ],
+        "on": {
+          "GO": {
+            "actions": [
+              "ping_a",
+              "ping_b"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "ping_a": {
+          "kind": "send_to",
+          "target": "a",
+          "event": {
+            "type": "PING"
+          }
+        },
+        "ping_b": {
+          "kind": "send_to",
+          "target": "b",
+          "event": {
+            "type": "PING"
+          }
+        }
+      },
+      "actors": {
+        "relay": {
+          "kind": "machine",
+          "machine": {
+            "id": "relay",
+            "invoke": {
+              "src": "worker",
+              "id": "x"
+            },
+            "on": {
+              "PING": {
+                "actions": [
+                  "ping_x"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "ping_x": {
+              "kind": "send_to",
+              "target": "x",
+              "event": {
+                "type": "PING"
+              }
+            }
+          },
+          "actors": {
+            "worker": {
+              "kind": "machine",
+              "machine": {
+                "id": "worker",
+                "initial": "idle",
+                "states": {
+                  "idle": {
+                    "on": {
+                      "PING": "busy"
+                    }
+                  },
+                  "busy": {
+                    "invoke": {
+                      "src": "job",
+                      "id": "job",
+                      "onDone": "done"
+                    }
+                  },
+                  "done": {
+                    "type": "final"
+                  }
+                }
+              },
+              "actors": {
+                "job": {
+                  "kind": "host"
+                }
+              }
+            }
+          }
+        },
+        "worker": {
+          "kind": "machine",
+          "machine": {
+            "id": "worker",
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "PING": "busy"
+                }
+              },
+              "busy": {
+                "invoke": {
+                  "src": "job",
+                  "id": "job",
+                  "onDone": "done"
+                }
+              },
+              "done": {
+                "type": "final"
+              }
+            }
+          },
+          "actors": {
+            "job": {
+              "kind": "host"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        },
+        {
+          "resolve": {
+            "src": "job",
+            "output": 1
+          }
+        },
+        {
+          "resolve": {
+            "src": "job",
+            "output": 2
+          }
+        }
+      ],
+      "test": "review of the cases' oracle: XState delivers a send to an idle actor nested in its sender and xactor queues it, so the jobs are created in another order; their keys are not"
+    },
+    {
+      "name": "a higher-order guard over a failing guard reaches the parent as implementation_failed",
+      "machine": {
+        "id": "root",
+        "context": {},
+        "invoke": {
+          "src": "kid_logic",
+          "id": "kid",
+          "onError": {
+            "actions": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "reason",
+                  "from": "error"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actors": {
+        "kid_logic": {
+          "kind": "machine",
+          "machine": {
+            "id": "picky",
+            "on": {
+              "GO": {
+                "guard": {
+                  "type": "xstate.not",
+                  "guards": [
+                    {
+                      "type": "fail"
+                    }
+                  ]
+                },
+                "actions": []
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          },
+          "to": "root/kid"
+        }
+      ],
+      "test": "review of the cases' vocabulary and oracle: the vocabulary is strict and both of its tables define the same functions"
+    },
+    {
+      "name": "increment of a key the context lacks fails",
+      "machine": {
+        "id": "root",
+        "context": {},
+        "invoke": {
+          "src": "kid_logic",
+          "id": "kid",
+          "onError": {
+            "actions": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "reason",
+                  "from": "error"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actors": {
+        "kid_logic": {
+          "kind": "machine",
+          "machine": {
+            "id": "counting",
+            "context": {},
+            "on": {
+              "GO": {
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "n"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          },
+          "to": "root/kid"
+        }
+      ],
+      "test": "review of the cases' vocabulary and oracle: the vocabulary is strict and both of its tables define the same functions"
+    },
+    {
+      "name": "push onto text fails",
+      "machine": {
+        "id": "root",
+        "context": {},
+        "invoke": {
+          "src": "kid_logic",
+          "id": "kid",
+          "onError": {
+            "actions": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "reason",
+                  "from": "error"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actors": {
+        "kid_logic": {
+          "kind": "machine",
+          "machine": {
+            "id": "listing",
+            "context": {
+              "k": "ab"
+            },
+            "on": {
+              "GO": {
+                "actions": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "k",
+                      "value": 1
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          },
+          "to": "root/kid"
+        }
+      ],
+      "test": "review of the cases' vocabulary and oracle: the vocabulary is strict and both of its tables define the same functions"
+    },
+    {
+      "name": "context_at_least of a key the context lacks fails",
+      "machine": {
+        "id": "root",
+        "context": {},
+        "invoke": {
+          "src": "kid_logic",
+          "id": "kid",
+          "onError": {
+            "actions": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "reason",
+                  "from": "error"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actors": {
+        "kid_logic": {
+          "kind": "machine",
+          "machine": {
+            "id": "measuring",
+            "context": {},
+            "on": {
+              "GO": {
+                "guard": {
+                  "type": "context_at_least",
+                  "params": {
+                    "key": "n",
+                    "value": 0
+                  }
+                },
+                "actions": []
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          },
+          "to": "root/kid"
+        }
+      ],
+      "test": "review of the cases' vocabulary and oracle: the vocabulary is strict and both of its tables define the same functions"
+    },
+    {
+      "name": "set without a value fails",
+      "machine": {
+        "id": "root",
+        "context": {},
+        "invoke": {
+          "src": "kid_logic",
+          "id": "kid",
+          "onError": {
+            "actions": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "reason",
+                  "from": "error"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actors": {
+        "kid_logic": {
+          "kind": "machine",
+          "machine": {
+            "id": "setting",
+            "context": {},
+            "on": {
+              "GO": {
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "k"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          },
+          "to": "root/kid"
+        }
+      ],
+      "test": "review of the cases' vocabulary and oracle: the vocabulary is strict and both of its tables define the same functions"
+    },
+    {
+      "name": "an entry named without params fails",
+      "machine": {
+        "id": "root",
+        "context": {},
+        "invoke": {
+          "src": "kid_logic",
+          "id": "kid",
+          "onError": {
+            "actions": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "reason",
+                  "from": "error"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actors": {
+        "kid_logic": {
+          "kind": "machine",
+          "machine": {
+            "id": "bare",
+            "context": {},
+            "on": {
+              "GO": {
+                "actions": [
+                  "set_from_event"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          },
+          "to": "root/kid"
+        }
+      ],
+      "test": "review of the cases' vocabulary and oracle: the vocabulary is strict and both of its tables define the same functions"
+    },
+    {
+      "name": "context_equals compares as JSON.stringify writes: 1 and 1.0 alike, key order and null against a missing key told apart",
+      "machine": {
+        "id": "root",
+        "context": {
+          "n": 1,
+          "o": {
+            "a": 1,
+            "b": 2
+          },
+          "z": null
+        },
+        "initial": "s",
+        "states": {
+          "s": {
+            "on": {
+              "INT": {
+                "guard": {
+                  "type": "context_equals",
+                  "params": {
+                    "key": "n",
+                    "value": 1.0
+                  }
+                },
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "int",
+                      "value": true
+                    }
+                  }
+                ]
+              },
+              "ORDER": {
+                "guard": {
+                  "type": "context_equals",
+                  "params": {
+                    "key": "o",
+                    "value": {
+                      "b": 2,
+                      "a": 1
+                    }
+                  }
+                },
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "order",
+                      "value": true
+                    }
+                  }
+                ]
+              },
+              "NULL": {
+                "guard": {
+                  "type": "context_equals",
+                  "params": {
+                    "key": "missing",
+                    "value": null
+                  }
+                },
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "null",
+                      "value": true
+                    }
+                  }
+                ]
+              },
+              "BOTH": {
+                "guard": {
+                  "type": "context_equals",
+                  "params": {
+                    "key": "missing"
+                  }
+                },
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "both",
+                      "value": true
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "INT"
+          }
+        },
+        {
+          "send": {
+            "type": "ORDER"
+          }
+        },
+        {
+          "send": {
+            "type": "NULL"
+          }
+        },
+        {
+          "send": {
+            "type": "BOTH"
+          }
+        }
+      ],
+      "test": "review of the cases' vocabulary and oracle: the vocabulary is strict and both of its tables define the same functions"
+    },
+    {
+      "name": "a host given a null input is asked with null",
+      "machine": {
+        "id": "root",
+        "invoke": {
+          "src": "fetch",
+          "id": "f",
+          "input": null
+        }
+      },
+      "actors": {
+        "fetch": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ],
+      "test": "review of the cases' vocabulary and oracle: the vocabulary is strict and both of its tables define the same functions"
+    },
+    {
+      "name": "a context reads an input as JavaScript does: an array's length, a number key, a string's UTF-16 length and __proto__",
+      "machine": {
+        "id": "root",
+        "invoke": [
+          {
+            "src": "reader",
+            "id": "list",
+            "input": [
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "src": "reader",
+            "id": "text",
+            "input": "a😀b"
+          },
+          {
+            "src": "reader",
+            "id": "object",
+            "input": {
+              "x": 1
+            }
+          }
+        ]
+      },
+      "actors": {
+        "reader": {
+          "kind": "machine",
+          "context_from_input": {
+            "length": "length",
+            "first": 0,
+            "proto": "__proto__",
+            "x": "x"
+          },
+          "machine": {
+            "id": "reader"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ],
+      "test": "review of the cases' vocabulary and oracle: the vocabulary is strict and both of its tables define the same functions"
+    },
+    {
+      "name": "a context that reads half of a surrogate pair fails",
+      "machine": {
+        "id": "root",
+        "context": {},
+        "invoke": {
+          "src": "kid_logic",
+          "id": "kid",
+          "onError": {
+            "actions": [
+              {
+                "type": "set_from_event",
+                "params": {
+                  "key": "reason",
+                  "from": "error"
+                }
+              }
+            ]
+          },
+          "input": "a😀"
+        }
+      },
+      "actors": {
+        "kid_logic": {
+          "kind": "machine",
+          "machine": {
+            "id": "halves"
+          },
+          "context_from_input": {
+            "half": "1"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ],
+      "test": "review of the cases' vocabulary and oracle: the vocabulary is strict and both of its tables define the same functions"
+    }
+  ],
+  "excluded": []
+}

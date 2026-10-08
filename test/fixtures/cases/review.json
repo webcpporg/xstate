@@ -1,0 +1,1572 @@
+{
+  "source": "the reviews of xstate: what XState does where its own tests are silent",
+  "cases": [
+    {
+      "name": "a root history without a target fails the initial transition",
+      "test": "createMachine accepts a machine whose root is a history node, and its initial transition throws: resolveHistoryDefaultTransition reads the root's parent, which it has none of",
+      "machine": {
+        "type": "history"
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a root history with a target fails the initial transition",
+      "test": "createMachine accepts a machine whose root is a history node, and its initial transition throws: resolveHistoryDefaultTransition reads the root's parent, which it has none of",
+      "machine": {
+        "type": "history",
+        "target": "x"
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a deep root history fails the initial transition",
+      "test": "createMachine accepts a machine whose root is a history node, and its initial transition throws: resolveHistoryDefaultTransition reads the root's parent, which it has none of",
+      "machine": {
+        "type": "history",
+        "history": "deep"
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a raised event of type '*' takes the wildcard transition",
+      "test": "XState's development build refuses an event of type '*' where a macrostep takes it (stateUtils.ts macrostep), and nowhere else: a raised one goes through the internal queue, which that check never sees",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": [
+              "raise_star"
+            ],
+            "on": {
+              "*": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actions": {
+        "raise_star": {
+          "kind": "raise",
+          "event": {
+            "type": "*"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "an event of type '*' sent to a machine fails its macrostep",
+      "test": "XState's development build refuses an event of type '*' where a macrostep takes it (stateUtils.ts macrostep), and nowhere else: a raised one goes through the internal queue, which that check never sees",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "*": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "*"
+          }
+        }
+      ]
+    },
+    {
+      "name": "root history: root history whose initial chain reaches a history targeting the root",
+      "machine": {
+        "type": "history",
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "h",
+            "states": {
+              "h": {
+                "type": "history",
+                "target": "#(machine)"
+              },
+              "y": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: resolved root history, a transition to the root",
+      "machine": {
+        "type": "history",
+        "on": {
+          "E": "#(machine)"
+        }
+      },
+      "steps": [
+        {
+          "resolve": {}
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: resolved root history with children, a reentering transition to the root",
+      "machine": {
+        "type": "history",
+        "initial": "a",
+        "states": {
+          "a": {},
+          "b": {}
+        },
+        "on": {
+          "E": {
+            "target": "#(machine)",
+            "reenter": true
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": "b"
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: resolved root history with children, a nested history defaulting to the root",
+      "machine": {
+        "type": "history",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "E": "b.h"
+            }
+          },
+          "b": {
+            "initial": "y",
+            "states": {
+              "h": {
+                "type": "history",
+                "target": "#(machine)"
+              },
+              "y": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": "a"
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: resolved root history with children, a child transition",
+      "machine": {
+        "type": "history",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "E": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "resolve": "a"
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: root history with a context function fails after computing the context",
+      "machine": {
+        "type": "history",
+        "history": "deep",
+        "initial": "a",
+        "states": {
+          "a": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: root history with a target, resolved, a transition to the root",
+      "machine": {
+        "type": "history",
+        "target": "a",
+        "initial": "b",
+        "states": {
+          "a": {},
+          "b": {}
+        },
+        "on": {
+          "E": "#(machine)"
+        }
+      },
+      "steps": [
+        {
+          "resolve": "b"
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: root history, resolved, a final child entered",
+      "machine": {
+        "type": "history",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "E": "f"
+            }
+          },
+          "f": {
+            "type": "final"
+          }
+        },
+        "output": {
+          "k": 1
+        }
+      },
+      "steps": [
+        {
+          "resolve": "a"
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: root history, resolved, a final grandchild entered",
+      "machine": {
+        "type": "history",
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "x",
+            "states": {
+              "x": {
+                "on": {
+                  "E": "f"
+                }
+              },
+              "f": {
+                "type": "final"
+              }
+            },
+            "onDone": "b"
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "resolve": "a"
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: root history, resolved, eventless and raised",
+      "machine": {
+        "type": "history",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "E": "b"
+            }
+          },
+          "b": {
+            "always": "c"
+          },
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "resolve": "a"
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: root history, resolved, a child history with no target",
+      "machine": {
+        "type": "history",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "E": "h"
+            }
+          },
+          "b": {},
+          "h": {
+            "type": "history"
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": "a"
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: root history, resolved, a child history with a target",
+      "machine": {
+        "type": "history",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "E": "h"
+            }
+          },
+          "b": {},
+          "h": {
+            "type": "history",
+            "target": "b"
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": "a"
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: root history, resolved, query can",
+      "machine": {
+        "type": "history",
+        "on": {
+          "E": "#(machine)"
+        }
+      },
+      "steps": [
+        {
+          "resolve": {}
+        },
+        {
+          "query": {
+            "can": {
+              "type": "E"
+            },
+            "next_transitions": true
+          }
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: a root history whose target is an empty list",
+      "machine": {
+        "type": "history",
+        "target": [],
+        "entry": [
+          "went"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "a transition declaring cond is refused",
+      "test": "formatTransition: XState's development build refuses a transition that declares a truthy `cond`, renamed `guard` in v5, after it resolves the target",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": {
+                "target": "b",
+                "cond": "never"
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "expect_create_error": true,
+      "steps": []
+    },
+    {
+      "name": "a transition whose cond is false is taken",
+      "test": "formatTransition: XState's development build refuses a transition that declares a truthy `cond`, renamed `guard` in v5, after it resolves the target",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": {
+                "target": "b",
+                "cond": false
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a log whose value computes nothing has no value",
+      "test": "JavaScript's undefined, what a function of XState's computes when it reads nothing, leaves its member out: a log's value, a spawn's input, a snapshot's output",
+      "machine": {
+        "context": {},
+        "on": {
+          "GO": {
+            "actions": [
+              "say"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "say": {
+          "kind": "log",
+          "value": {
+            "$event": "missing"
+          },
+          "label": "L"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an invoke whose input computes nothing gives its child no input",
+      "test": "JavaScript's undefined, what a function of XState's computes when it reads nothing, leaves its member out: a log's value, a spawn's input, a snapshot's output",
+      "machine": {
+        "context": {},
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "b"
+            }
+          },
+          "b": {
+            "invoke": {
+              "src": "kid",
+              "id": "k"
+            }
+          }
+        }
+      },
+      "actors": {
+        "kid": {
+          "kind": "host"
+        }
+      },
+      "inputs": {
+        "k": {
+          "$event": "missing"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a spawn whose input computes nothing gives its child no input",
+      "test": "JavaScript's undefined, what a function of XState's computes when it reads nothing, leaves its member out: a log's value, a spawn's input, a snapshot's output",
+      "machine": {
+        "context": {},
+        "on": {
+          "GO": {
+            "actions": [
+              "sp"
+            ]
+          }
+        }
+      },
+      "actors": {
+        "kid": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "sp": {
+          "kind": "spawn_child",
+          "src": "kid",
+          "id": "k",
+          "input": {
+            "$event": "missing"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a final state and a machine whose outputs compute nothing have no output",
+      "test": "JavaScript's undefined, what a function of XState's computes when it reads nothing, leaves its member out: a log's value, a spawn's input, a snapshot's output",
+      "machine": {
+        "id": "m",
+        "context": {},
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "f"
+            }
+          },
+          "f": {
+            "type": "final"
+          }
+        }
+      },
+      "outputs": {
+        "m.f": {
+          "$event": "missing"
+        },
+        "m": {
+          "$event": "missing"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a delayed raise of an event of type '*' fails the macrostep it starts when it is due",
+      "test": "XState's development build refuses an event of type '*' where a macrostep takes it from outside (stateUtils.ts macrostep), which a delayed raise is when the clock delivers it",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": {
+                "actions": [
+                  "raise_star_later"
+                ]
+              },
+              "*": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actions": {
+        "raise_star_later": {
+          "kind": "raise",
+          "event": {
+            "type": "*"
+          },
+          "delay": 10
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        },
+        {
+          "advance": 10
+        }
+      ]
+    },
+    {
+      "name": "a cancel of an id armed twice cancels the later timer, and the earlier fires",
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "CANCEL"
+          }
+        },
+        {
+          "advance": 300
+        }
+      ],
+      "test": "system.ts scheduler: schedule keeps an earlier timeout under the same id in the clock, timerMap names the later, and any of them deletes timerMap's entry when it fires",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "entry": [
+          "a_later",
+          "b_later"
+        ],
+        "on": {
+          "A": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "a"
+                }
+              }
+            ]
+          },
+          "B": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "b"
+                }
+              }
+            ]
+          },
+          "CANCEL": {
+            "actions": [
+              "cancel_t"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "a_later": {
+          "kind": "raise",
+          "event": {
+            "type": "A"
+          },
+          "id": "t",
+          "delay": 100
+        },
+        "b_later": {
+          "kind": "raise",
+          "event": {
+            "type": "B"
+          },
+          "id": "t",
+          "delay": 200
+        },
+        "cancel_t": {
+          "kind": "cancel",
+          "id": "t"
+        }
+      }
+    },
+    {
+      "name": "the earlier of two timers under one id unregisters the id when it fires, so a cancel cancels nothing",
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 150
+        },
+        {
+          "send": {
+            "type": "CANCEL"
+          }
+        },
+        {
+          "advance": 100
+        }
+      ],
+      "test": "system.ts scheduler: schedule keeps an earlier timeout under the same id in the clock, timerMap names the later, and any of them deletes timerMap's entry when it fires",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "entry": [
+          "a_later",
+          "b_later"
+        ],
+        "on": {
+          "A": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "a"
+                }
+              }
+            ]
+          },
+          "B": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "b"
+                }
+              }
+            ]
+          },
+          "CANCEL": {
+            "actions": [
+              "cancel_t"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "a_later": {
+          "kind": "raise",
+          "event": {
+            "type": "A"
+          },
+          "id": "t",
+          "delay": 100
+        },
+        "b_later": {
+          "kind": "raise",
+          "event": {
+            "type": "B"
+          },
+          "id": "t",
+          "delay": 200
+        },
+        "cancel_t": {
+          "kind": "cancel",
+          "id": "t"
+        }
+      }
+    },
+    {
+      "name": "two timers armed under one id both fire",
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 300
+        }
+      ],
+      "test": "system.ts scheduler: schedule keeps an earlier timeout under the same id in the clock, timerMap names the later, and any of them deletes timerMap's entry when it fires",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "entry": [
+          "a_later",
+          "b_later"
+        ],
+        "on": {
+          "A": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "a"
+                }
+              }
+            ]
+          },
+          "B": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "b"
+                }
+              }
+            ]
+          },
+          "CANCEL": {
+            "actions": [
+              "cancel_t"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "a_later": {
+          "kind": "raise",
+          "event": {
+            "type": "A"
+          },
+          "id": "t",
+          "delay": 100
+        },
+        "b_later": {
+          "kind": "raise",
+          "event": {
+            "type": "B"
+          },
+          "id": "t",
+          "delay": 200
+        },
+        "cancel_t": {
+          "kind": "cancel",
+          "id": "t"
+        }
+      }
+    },
+    {
+      "name": "a cancel of an id a raise and then a delayed send share cancels the send, and the raise fires",
+      "test": "system.ts scheduler: schedule keys every delayed event by its id, whatever its target, so a delayed send and a raise under one id share timerMap's entry",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "kid",
+              "id": "kid"
+            },
+            "entry": [
+              "b_later",
+              "p_later"
+            ],
+            "on": {
+              "CANCEL": {
+                "actions": [
+                  "cancel_t"
+                ]
+              },
+              "B": "got_b"
+            }
+          },
+          "got_b": {}
+        }
+      },
+      "actions": {
+        "b_later": {
+          "kind": "raise",
+          "event": {
+            "type": "B"
+          },
+          "id": "t",
+          "delay": 200
+        },
+        "p_later": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "P"
+          },
+          "id": "t",
+          "delay": 100
+        },
+        "cancel_t": {
+          "kind": "cancel",
+          "id": "t"
+        }
+      },
+      "actors": {
+        "kid": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "CANCEL"
+          }
+        },
+        {
+          "advance": 300
+        }
+      ]
+    },
+    {
+      "name": "a delayed send that fires unregisters the id a later raise shares, so a cancel cancels nothing",
+      "test": "system.ts scheduler: schedule keys every delayed event by its id, whatever its target, so a delayed send and a raise under one id share timerMap's entry",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "kid",
+              "id": "kid"
+            },
+            "entry": [
+              "p_later",
+              "b_later"
+            ],
+            "on": {
+              "CANCEL": {
+                "actions": [
+                  "cancel_t"
+                ]
+              },
+              "B": "got_b"
+            }
+          },
+          "got_b": {}
+        }
+      },
+      "actions": {
+        "b_later": {
+          "kind": "raise",
+          "event": {
+            "type": "B"
+          },
+          "id": "t",
+          "delay": 200
+        },
+        "p_later": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "P"
+          },
+          "id": "t",
+          "delay": 100
+        },
+        "cancel_t": {
+          "kind": "cancel",
+          "id": "t"
+        }
+      },
+      "actors": {
+        "kid": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 150
+        },
+        {
+          "send": {
+            "type": "CANCEL"
+          }
+        },
+        {
+          "advance": 100
+        }
+      ]
+    },
+    {
+      "name": "a nested final state whose output computes nothing raises a done event without output",
+      "test": "JavaScript's undefined, what a function of XState's computes when it reads nothing, leaves its member out: a log's value, a spawn's input, a snapshot's output",
+      "machine": {
+        "id": "m",
+        "context": {},
+        "initial": "p",
+        "states": {
+          "p": {
+            "initial": "x",
+            "states": {
+              "x": {
+                "on": {
+                  "E": "f"
+                }
+              },
+              "f": {
+                "type": "final"
+              }
+            },
+            "onDone": {
+              "actions": [
+                "note"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "note": {
+          "kind": "log",
+          "label": "done"
+        }
+      },
+      "outputs": {
+        "m.p.f": {
+          "$event": "missing"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a machine's output reads the done event of a final state whose output computes nothing",
+      "test": "JavaScript's undefined, what a function of XState's computes when it reads nothing, leaves its member out: a log's value, a spawn's input, a snapshot's output",
+      "machine": {
+        "id": "m",
+        "context": {},
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "f"
+            }
+          },
+          "f": {
+            "type": "final"
+          }
+        }
+      },
+      "outputs": {
+        "m.f": {
+          "$event": "missing"
+        },
+        "m": {
+          "whole": {
+            "$event": ""
+          },
+          "o": {
+            "$event": "output"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a spawn whose input is read from a context member that is not there gives no input",
+      "test": "JavaScript's undefined, what a function of XState's computes when it reads nothing, leaves its member out: a log's value, a spawn's input, a snapshot's output",
+      "machine": {
+        "context": {},
+        "on": {
+          "GO": {
+            "actions": [
+              "sp"
+            ]
+          }
+        }
+      },
+      "actors": {
+        "kid": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "sp": {
+          "kind": "spawn_child",
+          "src": "kid",
+          "id": "k",
+          "input_from_context": "missing"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a forwardTo whose target is the empty string fails",
+      "test": "send.ts forwardTo: XState's development build throws 'Attempted to forward event to undefined actor' for any falsy target, the empty string included",
+      "machine": {
+        "invoke": {
+          "src": "kid",
+          "id": ""
+        },
+        "on": {
+          "GO": {
+            "actions": [
+              "fwd"
+            ]
+          }
+        }
+      },
+      "actors": {
+        "kid": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "fwd": {
+          "kind": "forward_to",
+          "target": ""
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a node whose history is the empty string is atomic",
+      "test": "StateNode.ts reads config.history by JavaScript's truthiness: a node with no type, no children and a falsy history, the empty string or 0, is atomic, and a transition to it enters it",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "h"
+            }
+          },
+          "h": {
+            "history": ""
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a node whose history is zero is atomic",
+      "test": "StateNode.ts reads config.history by JavaScript's truthiness: a node with no type, no children and a falsy history, the empty string or 0, is atomic, and a transition to it enters it",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "h"
+            }
+          },
+          "h": {
+            "history": 0
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a history node whose history is the number 5 is shallow",
+      "test": "StateNode.ts keeps config.history as written when it is truthy and not true, and resolveHistoryDefaultTransition and getHistoryNodes treat every history but 'deep' as shallow; toJSON writes the value as the config gave it",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "NEXT": "a2"
+                }
+              },
+              "a2": {
+                "initial": "deep1",
+                "states": {
+                  "deep1": {
+                    "on": {
+                      "DOWN": "deep2"
+                    }
+                  },
+                  "deep2": {}
+                }
+              },
+              "h": {
+                "history": 5
+              }
+            },
+            "on": {
+              "OUT": "b"
+            }
+          },
+          "b": {
+            "on": {
+              "BACK": "a.h"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "DOWN"
+          }
+        },
+        {
+          "send": {
+            "type": "OUT"
+          }
+        },
+        {
+          "send": {
+            "type": "BACK"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a history node whose history is the string \"x\" is shallow",
+      "test": "StateNode.ts keeps config.history as written when it is truthy and not true, and resolveHistoryDefaultTransition and getHistoryNodes treat every history but 'deep' as shallow; toJSON writes the value as the config gave it",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "NEXT": "a2"
+                }
+              },
+              "a2": {
+                "initial": "deep1",
+                "states": {
+                  "deep1": {
+                    "on": {
+                      "DOWN": "deep2"
+                    }
+                  },
+                  "deep2": {}
+                }
+              },
+              "h": {
+                "history": "x"
+              }
+            },
+            "on": {
+              "OUT": "b"
+            }
+          },
+          "b": {
+            "on": {
+              "BACK": "a.h"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "DOWN"
+          }
+        },
+        {
+          "send": {
+            "type": "OUT"
+          }
+        },
+        {
+          "send": {
+            "type": "BACK"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an after's delays are formatted in JavaScript's key order",
+      "test": "StateNode.ts getDelayedTransitions reads Object.keys(after): a delay that is an array index comes first, in numeric order, so the raises of the entry are scheduled 500 before 1000",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "after": {
+              "1000": "b",
+              "500": "c",
+              "slow": "d"
+            }
+          },
+          "b": {},
+          "c": {},
+          "d": {}
+        }
+      },
+      "delays": {
+        "slow": 2000
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a parallel state's regions are entered in JavaScript's key order",
+      "test": "StateNode.ts builds states with mapValues over Object.keys(config.states): a key that is an array index comes first, so region '1' is entered before region 'b'",
+      "machine": {
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "on": {
+              "GO": "p"
+            }
+          },
+          "p": {
+            "type": "parallel",
+            "states": {
+              "b": {
+                "entry": [
+                  "enter_b"
+                ]
+              },
+              "1": {
+                "entry": [
+                  "enter_1"
+                ]
+              },
+              "a": {
+                "entry": [
+                  "enter_a"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a state's events are formatted in JavaScript's key order",
+      "test": "stateUtils.ts formatTransitions reads Object.keys(config.on): an event type that is an array index comes first, which the definition's transitions show",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "b": "x",
+              "10": "y",
+              "2": "z"
+            }
+          },
+          "x": {},
+          "y": {},
+          "z": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a state value's regions are read in JavaScript's key order",
+      "test": "StateNode.ts getStateNodes reads Object.keys(stateValue): a region whose key is an array index comes first, so resolveState lists its nodes before those of a region written before it",
+      "machine": {
+        "id": "m",
+        "type": "parallel",
+        "states": {
+          "z": {
+            "initial": "z1",
+            "states": {
+              "z1": {},
+              "z2": {}
+            }
+          },
+          "3": {
+            "initial": "c",
+            "states": {
+              "c": {},
+              "d": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": {
+            "z": "z2",
+            "3": "d"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

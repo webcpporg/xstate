@@ -1,0 +1,172 @@
+{
+  "source": "initial.test.ts",
+  "cases": [
+    {
+      "name": "the initial state of nested compound states",
+      "test": "initial.test.ts > Initial states > should return the correct initial state",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "b",
+            "states": {
+              "b": {
+                "initial": "c",
+                "states": {
+                  "c": {}
+                }
+              }
+            }
+          },
+          "leaf": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "the initial state of a parallel machine",
+      "test": "initial.test.ts > Initial states > should return the correct initial state (parallel)",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "foo": {
+            "initial": "a",
+            "states": {
+              "a": {
+                "initial": "b",
+                "states": {
+                  "b": {
+                    "initial": "c",
+                    "states": {
+                      "c": {}
+                    }
+                  }
+                }
+              },
+              "leaf": {}
+            }
+          },
+          "bar": {
+            "initial": "a",
+            "states": {
+              "a": {
+                "initial": "b",
+                "states": {
+                  "b": {
+                    "initial": "c",
+                    "states": {
+                      "c": {}
+                    }
+                  }
+                }
+              },
+              "leaf": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "the initial state of a deep parallel state",
+      "test": "initial.test.ts > Initial states > should return the correct initial state (deep parallel)",
+      "machine": {
+        "initial": "one",
+        "states": {
+          "one": {
+            "type": "parallel",
+            "states": {
+              "foo": {
+                "initial": "a",
+                "states": {
+                  "a": {
+                    "initial": "b",
+                    "states": {
+                      "b": {
+                        "initial": "c",
+                        "states": {
+                          "c": {}
+                        }
+                      }
+                    }
+                  },
+                  "leaf": {}
+                }
+              },
+              "bar": {
+                "initial": "a",
+                "states": {
+                  "a": {
+                    "initial": "b",
+                    "states": {
+                      "b": {
+                        "initial": "c",
+                        "states": {
+                          "c": {}
+                        }
+                      }
+                    }
+                  },
+                  "leaf": {}
+                }
+              }
+            }
+          },
+          "two": {
+            "type": "parallel",
+            "states": {
+              "foo": {
+                "initial": "a",
+                "states": {
+                  "a": {
+                    "initial": "b",
+                    "states": {
+                      "b": {
+                        "initial": "c",
+                        "states": {
+                          "c": {}
+                        }
+                      }
+                    }
+                  },
+                  "leaf": {}
+                }
+              },
+              "bar": {
+                "initial": "a",
+                "states": {
+                  "a": {
+                    "initial": "b",
+                    "states": {
+                      "b": {
+                        "initial": "c",
+                        "states": {
+                          "c": {}
+                        }
+                      }
+                    }
+                  },
+                  "leaf": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

@@ -1,0 +1,720 @@
+{
+  "source": "deterministic.test.ts",
+  "cases": [
+    {
+      "name": "transitions based on an event-like object",
+      "test": "deterministic.test.ts > deterministic machine > machine transitions > should properly transition states based on event-like object",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "yellow": {
+            "on": {
+              "TIMER": "red",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "red": {
+            "on": {
+              "TIMER": "green",
+              "POWER_OUTAGE": "red"
+            },
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "on": {
+                  "PED_COUNTDOWN": "wait",
+                  "TIMER": {}
+                }
+              },
+              "wait": {
+                "on": {
+                  "PED_COUNTDOWN": "stop",
+                  "TIMER": {}
+                }
+              },
+              "stop": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": "green"
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "does not transition for illegal transitions",
+      "test": "deterministic.test.ts > deterministic machine > machine transitions > should not transition states for illegal transitions",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FAKE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "throws for transitions from an invalid top-level state",
+      "test": "deterministic.test.ts > deterministic machine > machine transitions > should throw an error for transitions from invalid states",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "T": "b.b1",
+              "F": "c"
+            }
+          },
+          "b": {
+            "initial": "b1",
+            "states": {
+              "b1": {}
+            }
+          },
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "resolve": "fake"
+        }
+      ]
+    },
+    {
+      "name": "transitions to a nested state as target",
+      "test": "deterministic.test.ts > deterministic machine > machine transitions > should transition to nested states as target",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "T": "b.b1",
+              "F": "c"
+            }
+          },
+          "b": {
+            "initial": "b1",
+            "states": {
+              "b1": {}
+            }
+          },
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "resolve": "a"
+        },
+        {
+          "send": {
+            "type": "T"
+          }
+        }
+      ]
+    },
+    {
+      "name": "throws for transitions from an invalid substate",
+      "test": "deterministic.test.ts > deterministic machine > machine transitions > should throw an error for transitions from invalid substates",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "T": "b.b1",
+              "F": "c"
+            }
+          },
+          "b": {
+            "initial": "b1",
+            "states": {
+              "b1": {}
+            }
+          },
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "resolve": "a.fake"
+        }
+      ]
+    },
+    {
+      "name": "uses the machine's initial state when an undefined state is given",
+      "test": "deterministic.test.ts > deterministic machine > machine transitions > should use the machine.initialState when an undefined state is given",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "yellow": {
+            "on": {
+              "TIMER": "red",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "red": {
+            "on": {
+              "TIMER": "green",
+              "POWER_OUTAGE": "red"
+            },
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "on": {
+                  "PED_COUNTDOWN": "wait",
+                  "TIMER": {}
+                }
+              },
+              "wait": {
+                "on": {
+                  "PED_COUNTDOWN": "stop",
+                  "TIMER": {}
+                }
+              },
+              "stop": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "uses the machine's initial state when an undefined state is given (unhandled event)",
+      "test": "deterministic.test.ts > deterministic machine > machine transitions > should use the machine.initialState when an undefined state is given (unhandled event)",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "yellow": {
+            "on": {
+              "TIMER": "red",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "red": {
+            "on": {
+              "TIMER": "green",
+              "POWER_OUTAGE": "red"
+            },
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "on": {
+                  "PED_COUNTDOWN": "wait",
+                  "TIMER": {}
+                }
+              },
+              "wait": {
+                "on": {
+                  "PED_COUNTDOWN": "stop",
+                  "TIMER": {}
+                }
+              },
+              "stop": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "transitions a nested state property",
+      "test": "deterministic.test.ts > deterministic machine > machine transition with nested states > should properly transition a nested state",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "yellow": {
+            "on": {
+              "TIMER": "red",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "red": {
+            "on": {
+              "TIMER": "green",
+              "POWER_OUTAGE": "red"
+            },
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "on": {
+                  "PED_COUNTDOWN": "wait",
+                  "TIMER": {}
+                }
+              },
+              "wait": {
+                "on": {
+                  "PED_COUNTDOWN": "stop",
+                  "TIMER": {}
+                }
+              },
+              "stop": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": {
+            "red": "walk"
+          }
+        },
+        {
+          "send": {
+            "type": "PED_COUNTDOWN"
+          }
+        }
+      ]
+    },
+    {
+      "name": "transitions from an initial nested state",
+      "test": "deterministic.test.ts > deterministic machine > machine transition with nested states > should transition from initial nested states",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "yellow": {
+            "on": {
+              "TIMER": "red",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "red": {
+            "on": {
+              "TIMER": "green",
+              "POWER_OUTAGE": "red"
+            },
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "on": {
+                  "PED_COUNTDOWN": "wait",
+                  "TIMER": {}
+                }
+              },
+              "wait": {
+                "on": {
+                  "PED_COUNTDOWN": "stop",
+                  "TIMER": {}
+                }
+              },
+              "stop": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": "red"
+        },
+        {
+          "send": {
+            "type": "PED_COUNTDOWN"
+          }
+        }
+      ]
+    },
+    {
+      "name": "transitions from a deep initial nested state",
+      "test": "deterministic.test.ts > deterministic machine > machine transition with nested states > should transition from deep initial nested states",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "yellow": {
+            "on": {
+              "TIMER": "red",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "red": {
+            "on": {
+              "TIMER": "green",
+              "POWER_OUTAGE": "red"
+            },
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "on": {
+                  "PED_COUNTDOWN": "wait",
+                  "TIMER": {}
+                }
+              },
+              "wait": {
+                "on": {
+                  "PED_COUNTDOWN": "stop",
+                  "TIMER": {}
+                }
+              },
+              "stop": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": "red"
+        },
+        {
+          "send": {
+            "type": "PED_COUNTDOWN"
+          }
+        }
+      ]
+    },
+    {
+      "name": "bubbles up events that a nested state cannot handle",
+      "test": "deterministic.test.ts > deterministic machine > machine transition with nested states > should bubble up events that nested states cannot handle",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "yellow": {
+            "on": {
+              "TIMER": "red",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "red": {
+            "on": {
+              "TIMER": "green",
+              "POWER_OUTAGE": "red"
+            },
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "on": {
+                  "PED_COUNTDOWN": "wait",
+                  "TIMER": {}
+                }
+              },
+              "wait": {
+                "on": {
+                  "PED_COUNTDOWN": "stop",
+                  "TIMER": {}
+                }
+              },
+              "stop": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": {
+            "red": "stop"
+          }
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "does not transition on illegal events in a nested state",
+      "test": "deterministic.test.ts > deterministic machine > machine transition with nested states > should not transition from illegal events",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "b",
+            "states": {
+              "b": {
+                "on": {
+                  "NEXT": "c"
+                }
+              },
+              "c": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FAKE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "transitions to the deepest initial state",
+      "test": "deterministic.test.ts > deterministic machine > machine transition with nested states > should transition to the deepest initial state",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "yellow": {
+            "on": {
+              "TIMER": "red",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "red": {
+            "on": {
+              "TIMER": "green",
+              "POWER_OUTAGE": "red"
+            },
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "on": {
+                  "PED_COUNTDOWN": "wait",
+                  "TIMER": {}
+                }
+              },
+              "wait": {
+                "on": {
+                  "PED_COUNTDOWN": "stop",
+                  "TIMER": {}
+                }
+              },
+              "stop": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": "yellow"
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "returns to the same state twice when no transition occurs",
+      "test": "deterministic.test.ts > deterministic machine > machine transition with nested states > should return the same state if no transition occurs",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "yellow": {
+            "on": {
+              "TIMER": "red",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "red": {
+            "on": {
+              "TIMER": "green",
+              "POWER_OUTAGE": "red"
+            },
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "on": {
+                  "PED_COUNTDOWN": "wait",
+                  "TIMER": {}
+                }
+              },
+              "wait": {
+                "on": {
+                  "PED_COUNTDOWN": "stop",
+                  "TIMER": {}
+                }
+              },
+              "stop": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NOTHING"
+          }
+        },
+        {
+          "send": {
+            "type": "NOTHING"
+          }
+        }
+      ]
+    },
+    {
+      "name": "undefined transitions forbid an event from bubbling",
+      "test": "deterministic.test.ts > deterministic machine > forbidden events > undefined transitions should forbid events",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "yellow": {
+            "on": {
+              "TIMER": "red",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "red": {
+            "on": {
+              "TIMER": "green",
+              "POWER_OUTAGE": "red"
+            },
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "on": {
+                  "PED_COUNTDOWN": "wait",
+                  "TIMER": {}
+                }
+              },
+              "wait": {
+                "on": {
+                  "PED_COUNTDOWN": "stop",
+                  "TIMER": {}
+                }
+              },
+              "stop": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": {
+            "red": "walk"
+          }
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "throws before a transition with no event, resolving a state the machine lacks",
+      "test": "deterministic.test.ts > deterministic machine > machine transitions > should throw an error if not given an event (what throws is testMachine.resolveState({ value: 'red' }), as testMachine has no state 'red', before transition is given the missing event; the missing event itself is not ported: oracle.mjs takes {\"send\": null} for an unknown step, where XState's transition would throw on null as on undefined)",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "T": "b.b1",
+              "F": "c"
+            }
+          },
+          "b": {
+            "initial": "b1",
+            "states": {
+              "b1": {}
+            }
+          },
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "resolve": "red"
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "deterministic.test.ts > deterministic machine > state key names > should work with substate nodes that have the same key",
+      "reason": "ported with the actor cases, fixtures/actors/cases/deterministic.json"
+    }
+  ]
+}

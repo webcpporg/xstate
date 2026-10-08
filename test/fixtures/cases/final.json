@@ -1,0 +1,1126 @@
+{
+  "source": "final.test.ts",
+  "cases": [
+    {
+      "name": "root final status is done",
+      "test": "final.test.ts > final states > status of a machine with a root state being final should be done",
+      "machine": {
+        "type": "final"
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "parallel region done raises done state event and transitions",
+      "test": "final.test.ts > final states > should emit the \"xstate.done.state.*\" event when all nested states are in their final states",
+      "machine": {
+        "id": "m",
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "type": "parallel",
+            "states": {
+              "first": {
+                "initial": "a",
+                "states": {
+                  "a": {
+                    "on": {
+                      "NEXT_1": "b"
+                    }
+                  },
+                  "b": {
+                    "type": "final"
+                  }
+                }
+              },
+              "second": {
+                "initial": "a",
+                "states": {
+                  "a": {
+                    "on": {
+                      "NEXT_2": "b"
+                    }
+                  },
+                  "b": {
+                    "type": "final"
+                  }
+                }
+              }
+            },
+            "onDone": "bar"
+          },
+          "bar": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT_1"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT_2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "final child state actions run before parent onDone actions",
+      "test": "final.test.ts > final states > should execute final child state actions first",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "initial": "bar",
+            "onDone": {
+              "actions": "fooAction"
+            },
+            "states": {
+              "bar": {
+                "initial": "baz",
+                "onDone": "barFinal",
+                "states": {
+                  "baz": {
+                    "type": "final",
+                    "entry": "bazAction"
+                  }
+                }
+              },
+              "barFinal": {
+                "type": "final",
+                "entry": "barAction"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "final output reflects entry-updated context",
+      "test": "final.test.ts > final states > state output should be able to use context updated by the entry action of the reached final state",
+      "machine": {
+        "context": {
+          "count": 0
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "NEXT": "a2"
+                }
+              },
+              "a2": {
+                "type": "final",
+                "entry": {
+                  "type": "set",
+                  "params": {
+                    "key": "count",
+                    "value": 1
+                  }
+                },
+                "output": 1
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel done event when both parallel children reach final",
+      "test": "final.test.ts > final states > should emit a done state event for a parallel state when its parallel children reach their final states",
+      "machine": {
+        "initial": "first",
+        "states": {
+          "first": {
+            "type": "parallel",
+            "states": {
+              "alpha": {
+                "type": "parallel",
+                "states": {
+                  "one": {
+                    "initial": "start",
+                    "states": {
+                      "start": {
+                        "on": {
+                          "finish_one_alpha": "finish"
+                        }
+                      },
+                      "finish": {
+                        "type": "final"
+                      }
+                    }
+                  },
+                  "two": {
+                    "initial": "start",
+                    "states": {
+                      "start": {
+                        "on": {
+                          "finish_two_alpha": "finish"
+                        }
+                      },
+                      "finish": {
+                        "type": "final"
+                      }
+                    }
+                  }
+                }
+              },
+              "beta": {
+                "type": "parallel",
+                "states": {
+                  "third": {
+                    "initial": "start",
+                    "states": {
+                      "start": {
+                        "on": {
+                          "finish_three_beta": "finish"
+                        }
+                      },
+                      "finish": {
+                        "type": "final"
+                      }
+                    }
+                  },
+                  "fourth": {
+                    "initial": "start",
+                    "states": {
+                      "start": {
+                        "on": {
+                          "finish_four_beta": "finish"
+                        }
+                      },
+                      "finish": {
+                        "type": "final"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "onDone": "done"
+          },
+          "done": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "finish_one_alpha"
+          }
+        },
+        {
+          "send": {
+            "type": "finish_two_alpha"
+          }
+        },
+        {
+          "send": {
+            "type": "finish_three_beta"
+          }
+        },
+        {
+          "send": {
+            "type": "finish_four_beta"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel done event when compound child finishes after sibling already final",
+      "test": "final.test.ts > final states > should emit a done state event for a parallel state when its compound child reaches its final state when the other parallel child region is already in its final state",
+      "machine": {
+        "initial": "first",
+        "states": {
+          "first": {
+            "type": "parallel",
+            "states": {
+              "alpha": {
+                "type": "parallel",
+                "states": {
+                  "one": {
+                    "initial": "start",
+                    "states": {
+                      "start": {
+                        "on": {
+                          "finish_one_alpha": "finish"
+                        }
+                      },
+                      "finish": {
+                        "type": "final"
+                      }
+                    }
+                  },
+                  "two": {
+                    "initial": "start",
+                    "states": {
+                      "start": {
+                        "on": {
+                          "finish_two_alpha": "finish"
+                        }
+                      },
+                      "finish": {
+                        "type": "final"
+                      }
+                    }
+                  }
+                }
+              },
+              "beta": {
+                "initial": "three",
+                "states": {
+                  "three": {
+                    "on": {
+                      "finish_beta": "finish"
+                    }
+                  },
+                  "finish": {
+                    "type": "final"
+                  }
+                }
+              }
+            },
+            "onDone": "done"
+          },
+          "done": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "finish_one_alpha"
+          }
+        },
+        {
+          "send": {
+            "type": "finish_two_alpha"
+          }
+        },
+        {
+          "send": {
+            "type": "finish_beta"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel done event when parallel child finishes after compound sibling already final",
+      "test": "final.test.ts > final states > should emit a done state event for a parallel state when its parallel child reaches its final state when the other compound child region is already in its final state",
+      "machine": {
+        "initial": "first",
+        "states": {
+          "first": {
+            "type": "parallel",
+            "states": {
+              "alpha": {
+                "type": "parallel",
+                "states": {
+                  "one": {
+                    "initial": "start",
+                    "states": {
+                      "start": {
+                        "on": {
+                          "finish_one_alpha": "finish"
+                        }
+                      },
+                      "finish": {
+                        "type": "final"
+                      }
+                    }
+                  },
+                  "two": {
+                    "initial": "start",
+                    "states": {
+                      "start": {
+                        "on": {
+                          "finish_two_alpha": "finish"
+                        }
+                      },
+                      "finish": {
+                        "type": "final"
+                      }
+                    }
+                  }
+                }
+              },
+              "beta": {
+                "initial": "three",
+                "states": {
+                  "three": {
+                    "on": {
+                      "finish_beta": "finish"
+                    }
+                  },
+                  "finish": {
+                    "type": "final"
+                  }
+                }
+              }
+            },
+            "onDone": "done"
+          },
+          "done": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "finish_beta"
+          }
+        },
+        {
+          "send": {
+            "type": "finish_one_alpha"
+          }
+        },
+        {
+          "send": {
+            "type": "finish_two_alpha"
+          }
+        }
+      ]
+    },
+    {
+      "name": "top-level final reached via parallel state done at start (flat)",
+      "test": "final.test.ts > final states > should reach a final state when a parallel state reaches its final state and transitions to a top-level final state in response to that",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "type": "parallel",
+            "onDone": "b",
+            "states": {
+              "a1": {
+                "type": "parallel",
+                "states": {
+                  "a1a": {
+                    "type": "final"
+                  },
+                  "a1b": {
+                    "type": "final"
+                  }
+                }
+              },
+              "a2": {
+                "initial": "a2a",
+                "states": {
+                  "a2a": {
+                    "type": "final"
+                  }
+                }
+              }
+            }
+          },
+          "b": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "top-level final reached via nested parallel state done at start",
+      "test": "final.test.ts > final states > should reach a final state when a parallel state nested in a parallel state reaches its final state and transitions to a top-level final state in response to that",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "type": "parallel",
+            "onDone": "b",
+            "states": {
+              "a1": {
+                "type": "parallel",
+                "states": {
+                  "a1a": {
+                    "type": "final"
+                  },
+                  "a1b": {
+                    "type": "final"
+                  }
+                }
+              },
+              "a2": {
+                "initial": "a2a",
+                "states": {
+                  "a2a": {
+                    "type": "final"
+                  }
+                }
+              }
+            }
+          },
+          "b": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "outer parallel onDone event names the direct parallel child",
+      "test": "final.test.ts > final states > onDone of an outer parallel state should be called with its own \"xstate.done.state.*\" event when its direct parallel child completes",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "type": "parallel",
+            "states": {
+              "b": {
+                "type": "parallel",
+                "states": {
+                  "c": {
+                    "initial": "d",
+                    "states": {
+                      "d": {
+                        "type": "final"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "onDone": {}
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "onDone not called when reached only via initial resolution",
+      "test": "final.test.ts > final states > onDone should not be called when the machine reaches its final state",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "a": {
+            "type": "parallel",
+            "states": {
+              "b": {
+                "initial": "c",
+                "states": {
+                  "c": {
+                    "type": "final"
+                  }
+                },
+                "onDone": {
+                  "actions": "spyAction"
+                }
+              }
+            },
+            "onDone": {
+              "actions": "spyAction"
+            }
+          }
+        },
+        "onDone": {
+          "actions": "spyAction"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "machine stays active when only a parallel child of a compound state completes",
+      "test": "final.test.ts > final states > machine should not complete when a parallel child of a compound state completes",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "type": "parallel",
+            "states": {
+              "b": {
+                "initial": "c",
+                "states": {
+                  "c": {
+                    "type": "final"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "onDone of a parallel state fires once for simultaneous region completion",
+      "test": "final.test.ts > final states > onDone of a parallel state should only be called once when multiple parallel regions complete at once",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "type": "parallel",
+            "states": {
+              "b": {
+                "type": "final"
+              },
+              "c": {
+                "type": "final"
+              }
+            },
+            "onDone": {
+              "actions": "spyAction"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "exit actions run in reversed document order reaching final",
+      "test": "final.test.ts > final states > should call exit actions in reversed document order when the machines reaches its final state",
+      "machine": {
+        "initial": "a",
+        "exit": "exit: __root__",
+        "states": {
+          "a": {
+            "on": {
+              "EV": "b"
+            },
+            "exit": "exit: a"
+          },
+          "b": {
+            "type": "final",
+            "entry": "enter: b",
+            "exit": "exit: b"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EV"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel exit actions reversed order after earlier region transition",
+      "test": "final.test.ts > final states > should call exit actions of parallel states in reversed document order when the machines reaches its final state after earlier region transition",
+      "machine": {
+        "type": "parallel",
+        "exit": "exit: __root__",
+        "states": {
+          "a": {
+            "initial": "child_a1",
+            "exit": "exit: a",
+            "states": {
+              "child_a1": {
+                "on": {
+                  "EV2": "child_a2"
+                },
+                "exit": "exit: a.child_a1"
+              },
+              "child_a2": {
+                "type": "final",
+                "entry": "enter: a.child_a2",
+                "exit": "exit: a.child_a2"
+              }
+            }
+          },
+          "b": {
+            "initial": "child_b1",
+            "exit": "exit: b",
+            "states": {
+              "child_b1": {
+                "on": {
+                  "EV1": "child_b2"
+                }
+              },
+              "child_b2": {
+                "type": "final",
+                "exit": "exit: b.child_b2"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EV1"
+          }
+        },
+        {
+          "send": {
+            "type": "EV2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel exit actions reversed order after later region transition",
+      "test": "final.test.ts > final states > should call exit actions of parallel states in reversed document order when the machines reaches its final state after later region transition",
+      "machine": {
+        "type": "parallel",
+        "exit": "exit: __root__",
+        "states": {
+          "a": {
+            "initial": "child_a1",
+            "exit": "exit: a",
+            "states": {
+              "child_a1": {
+                "on": {
+                  "EV2": "child_a2"
+                },
+                "exit": "exit: a.child_a1"
+              },
+              "child_a2": {
+                "type": "final",
+                "entry": "enter: a.child_a2",
+                "exit": "exit: a.child_a2"
+              }
+            }
+          },
+          "b": {
+            "initial": "child_b1",
+            "exit": "exit: b",
+            "states": {
+              "child_b1": {
+                "on": {
+                  "EV1": "child_b2"
+                }
+              },
+              "child_b2": {
+                "type": "final",
+                "exit": "exit: b.child_b2"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EV1"
+          }
+        },
+        {
+          "send": {
+            "type": "EV2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel exit actions reversed order after multiple regions transition at once",
+      "test": "final.test.ts > final states > should call exit actions of parallel states in reversed document order when the machines reaches its final state after multiple regions transition",
+      "machine": {
+        "type": "parallel",
+        "exit": "exit: __root__",
+        "states": {
+          "a": {
+            "initial": "child_a1",
+            "exit": "exit: a",
+            "states": {
+              "child_a1": {
+                "on": {
+                  "EV": "child_a2"
+                },
+                "exit": "exit: a.child_a1"
+              },
+              "child_a2": {
+                "type": "final",
+                "entry": "enter: a.child_a2",
+                "exit": "exit: a.child_a2"
+              }
+            }
+          },
+          "b": {
+            "initial": "child_b1",
+            "exit": "exit: b",
+            "states": {
+              "child_b1": {
+                "on": {
+                  "EV": "child_b2"
+                },
+                "exit": "exit: b.child_b1"
+              },
+              "child_b2": {
+                "type": "final",
+                "entry": "enter: b.child_b2",
+                "exit": "exit: b.child_b2"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EV"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel root stays active when only compound region reaches final",
+      "test": "final.test.ts > final states > should not complete a parallel root immediately when only some of its regions are in their final states (final state reached in a compound region)",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "A": {
+            "initial": "A1",
+            "states": {
+              "A1": {
+                "type": "final"
+              }
+            }
+          },
+          "B": {
+            "initial": "B1",
+            "states": {
+              "B1": {},
+              "B2": {
+                "type": "final"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "parallel root stays active when only a direct final child is reached",
+      "test": "final.test.ts > final states > should not complete a parallel root immediately when only some of its regions are in their final states (a direct final child state reached)",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "A": {
+            "type": "final"
+          },
+          "B": {
+            "initial": "B1",
+            "states": {
+              "B1": {},
+              "B2": {
+                "type": "final"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "completes with a null output directly on root",
+      "test": "final.test.ts > final states > should be possible to complete with a null output (directly on root)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "NEXT": "end"
+            }
+          },
+          "end": {
+            "type": "final"
+          }
+        },
+        "output": null
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "completes with a null output resolving from the final state's own output",
+      "test": "final.test.ts > final states > should be possible to complete with a null output (resolving with final state's output)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "NEXT": "end"
+            }
+          },
+          "end": {
+            "type": "final",
+            "output": null
+          }
+        },
+        "output": null
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "root final machine output receives the root's done event",
+      "test": "final.test.ts > final states > output of a machine with a root state being final should be called with a \"xstate.done.state.ROOT_ID\" event (the event the output function receives, written as the machine's output: its type, and no \"output\" member, which is JavaScript's undefined; that the function is called exactly once is not observable)",
+      "machine": {
+        "type": "final"
+      },
+      "outputs": {
+        "(machine)": {
+          "$event": ""
+        }
+      },
+      "steps": [
+        {
+          "start": true,
+          "input": 42
+        }
+      ]
+    },
+    {
+      "name": "a nested final state's output reaches the parent's onDone assign",
+      "test": "final.test.ts > final states > should call output expressions on nested final nodes",
+      "machine": {
+        "initial": "secret",
+        "context": {},
+        "states": {
+          "secret": {
+            "initial": "wait",
+            "states": {
+              "wait": {
+                "on": {
+                  "REQUEST_SECRET": "reveal"
+                }
+              },
+              "reveal": {
+                "type": "final"
+              }
+            },
+            "onDone": {
+              "target": "success",
+              "actions": {
+                "type": "set_computed",
+                "params": {
+                  "key": "revealedSecret",
+                  "value": {
+                    "$event": "output.secret"
+                  }
+                }
+              }
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "outputs": {
+        "(machine).secret.reveal": {
+          "secret": "the secret"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "REQUEST_SECRET"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel root output receives the root's done event when a direct final child is reached",
+      "test": "final.test.ts > final states > root output should be called with a \"xstate.done.state.*\" event of the parallel root when a direct final child of that parallel root is reached (the event the output function receives, written as the machine's output: its type, and no \"output\" member, which is JavaScript's undefined; that the function is called exactly once is not observable)",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "a": {
+            "type": "final"
+          }
+        }
+      },
+      "outputs": {
+        "(machine)": {
+          "$event": ""
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "parallel root output receives the root's done event when a compound child's final child is reached",
+      "test": "final.test.ts > final states > root output should be called with a \"xstate.done.state.*\" event of the parallel root when a final child of its compound child is reached (the event the output function receives, written as the machine's output: its type, and no \"output\" member, which is JavaScript's undefined; that the function is called exactly once is not observable)",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "a": {
+            "initial": "b",
+            "states": {
+              "b": {
+                "type": "final"
+              }
+            }
+          }
+        }
+      },
+      "outputs": {
+        "(machine)": {
+          "$event": ""
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "parallel root output receives the root's done event when a final descendant two parallel levels deep is reached",
+      "test": "final.test.ts > final states > root output should be called with a \"xstate.done.state.*\" event of the parallel root when a final descendant is reached 2 parallel levels deep (the event the output function receives, written as the machine's output: its type, and no \"output\" member, which is JavaScript's undefined; that the function is called exactly once is not observable)",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "a": {
+            "type": "parallel",
+            "states": {
+              "b": {
+                "initial": "c",
+                "states": {
+                  "c": {
+                    "type": "final"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "outputs": {
+        "(machine)": {
+          "$event": ""
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "final.test.ts > final states > should only call data expression once when entering root's final state",
+      "reason": "asserts that the machine's output function is called exactly once (toBeCalledTimes(1)); a case's output (\"outputs\") is a computed value, a pure function of the context and the event with no effect of its own, so the record holds only the value it gave, the same whether XState computed it once or twice; it would need an output with an effect the record shows, such as one that counts its calls"
+    },
+    {
+      "test": "final.test.ts > final states > output mapper should receive self",
+      "reason": "asserts the output mapper receives the actor's own self reference (selfRef.send is defined); no vocabulary or static value can express an actor reference"
+    },
+    {
+      "test": "final.test.ts > final states > root output should only be called once when multiple parallel regions complete at once",
+      "reason": "asserts that the machine's output function is called exactly once when both regions of the parallel root complete in the same microstep (toBeCalledTimes(1)); a case's output (\"outputs\") is a computed value, a pure function of the context and the event with no effect of its own, so the record holds only the value it gave, the same whether XState computed it once or twice; it would need an output with an effect the record shows, such as one that counts its calls"
+    },
+    {
+      "test": "final.test.ts > final states > should not resolve output of a final state if its parent is a parallel state",
+      "reason": "asserts that the output function of a final state whose parent is parallel is never called (not.toHaveBeenCalled); a case's output (\"outputs\") is a computed value with no effect of its own that cannot fail, and the value it would give reaches no event (a parallel state's done event carries no output, and in this machine the parallel state never completes), so whether XState computes it leaves nothing in the record; it would need an output that records its calls, or one that fails"
+    },
+    {
+      "test": "final.test.ts > final states > should only call exit actions once when a child machine reaches its final state and sends an event to its parent that ends up stopping that child",
+      "reason": "ported with the actor cases, fixtures/actors/cases/final.json"
+    },
+    {
+      "test": "final.test.ts > final states > should deliver final outgoing events (from final entry action) to the parent before delivering the `xstate.done.actor.*` event",
+      "reason": "ported with the actor cases, fixtures/actors/cases/final.json"
+    },
+    {
+      "test": "final.test.ts > final states > should deliver final outgoing events (from root exit action) to the parent before delivering the `xstate.done.actor.*` event",
+      "reason": "ported with the actor cases, fixtures/actors/cases/final.json"
+    }
+  ]
+}

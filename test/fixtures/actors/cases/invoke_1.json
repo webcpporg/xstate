@@ -1,0 +1,423 @@
+{
+  "source": "invoke.test.ts (lines 1 to 414)",
+  "cases": [
+    {
+      "name": "a child answers one forwarded event with three events to its parent",
+      "test": "invoke.test.ts > invoke > child can immediately respond to the parent with multiple events",
+      "machine": {
+        "id": "parent",
+        "context": {
+          "count": 0
+        },
+        "initial": "start",
+        "states": {
+          "start": {
+            "invoke": {
+              "src": "child",
+              "id": "someService"
+            },
+            "always": {
+              "target": "stop",
+              "guard": {
+                "type": "context_equals",
+                "params": {
+                  "key": "count",
+                  "value": -3
+                }
+              }
+            },
+            "on": {
+              "DEC": {
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "count",
+                      "by": -1
+                    }
+                  }
+                ]
+              },
+              "FORWARD_DEC": {
+                "actions": [
+                  "forward_dec"
+                ]
+              }
+            }
+          },
+          "stop": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "forward_dec": {
+          "kind": "send_to",
+          "target": "someService",
+          "event": {
+            "type": "FORWARD_DEC"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "initial": "init",
+            "states": {
+              "init": {
+                "on": {
+                  "FORWARD_DEC": {
+                    "actions": [
+                      "dec",
+                      "dec",
+                      "dec"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "actions": {
+            "dec": {
+              "kind": "send_parent",
+              "event": {
+                "type": "DEC"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FORWARD_DEC"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an invoked machine started from a fixed input reaches its final state, and the fixed output it declares passes its parent's onDone guard",
+      "test": "invoke.test.ts > invoke > should start services (explicit machine, invoke = config) (the child's run and the parent's completion only; neither data flow of the test is checked: the invoke's input, a function of the parent's selectedUserId, is the fixed value it computes and does not read selectedUserId, and the child's output, a function of the user its success entry assigns, is the fixed value it computes, so the onDone guard does not depend on that assign; the child's guard userId !== undefined is written as userId equals that input, and the onDone guard on output.user.name as equality with the whole output)",
+      "machine": {
+        "id": "fetcher",
+        "initial": "idle",
+        "context": {
+          "selectedUserId": "42"
+        },
+        "states": {
+          "idle": {
+            "on": {
+              "GO_TO_WAITING": "waiting"
+            }
+          },
+          "waiting": {
+            "invoke": {
+              "src": "fetch",
+              "input": {
+                "userId": "42"
+              },
+              "onDone": {
+                "target": "received",
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "output",
+                    "value": {
+                      "user": {
+                        "name": "David"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "received": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "fetch": {
+          "kind": "machine",
+          "machine": {
+            "id": "fetch",
+            "initial": "pending",
+            "states": {
+              "pending": {
+                "entry": [
+                  "resolve_user"
+                ],
+                "on": {
+                  "RESOLVE": {
+                    "target": "success",
+                    "guard": {
+                      "type": "context_equals",
+                      "params": {
+                        "key": "userId",
+                        "value": "42"
+                      }
+                    }
+                  }
+                }
+              },
+              "success": {
+                "type": "final",
+                "entry": [
+                  {
+                    "type": "set_from_event",
+                    "params": {
+                      "key": "user",
+                      "from": "user"
+                    }
+                  }
+                ]
+              },
+              "failure": {
+                "entry": [
+                  "reject_parent"
+                ]
+              }
+            },
+            "output": {
+              "user": {
+                "name": "David"
+              }
+            }
+          },
+          "context_from_input": {
+            "userId": "userId"
+          },
+          "actions": {
+            "resolve_user": {
+              "kind": "raise",
+              "event": {
+                "type": "RESOLVE",
+                "user": {
+                  "name": "David"
+                }
+              }
+            },
+            "reject_parent": {
+              "kind": "send_parent",
+              "event": {
+                "type": "REJECT"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO_TO_WAITING"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an invoked machine that raises its way to its final state completes its parent",
+      "test": "invoke.test.ts > invoke > should start services (explicit machine, invoke = machine)",
+      "machine": {
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "on": {
+              "GO_TO_WAITING": "waiting"
+            }
+          },
+          "waiting": {
+            "invoke": {
+              "src": "child",
+              "onDone": "received"
+            }
+          },
+          "received": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "initial": "pending",
+            "states": {
+              "pending": {
+                "entry": [
+                  "resolve"
+                ],
+                "on": {
+                  "RESOLVE": {
+                    "target": "success"
+                  }
+                }
+              },
+              "success": {
+                "type": "final"
+              }
+            }
+          },
+          "actions": {
+            "resolve": {
+              "kind": "raise",
+              "event": {
+                "type": "RESOLVE"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO_TO_WAITING"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a child's entry sendParent takes its parent to its final state",
+      "test": "invoke.test.ts > invoke > should start services (machine as invoke config)",
+      "machine": {
+        "id": "machine-invoke",
+        "initial": "pending",
+        "states": {
+          "pending": {
+            "invoke": {
+              "src": "child"
+            },
+            "on": {
+              "SUCCESS": {
+                "target": "success",
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "data",
+                    "value": 42
+                  }
+                }
+              }
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "initial": "sending",
+            "states": {
+              "sending": {
+                "entry": [
+                  "success"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "success": {
+              "kind": "send_parent",
+              "event": {
+                "type": "SUCCESS",
+                "data": 42
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a child invoked by a nested state reaches the root's transition through sendParent",
+      "test": "invoke.test.ts > invoke > should start deeply nested service (machine as invoke config)",
+      "machine": {
+        "id": "parent",
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "b",
+            "states": {
+              "b": {
+                "invoke": {
+                  "src": "child"
+                }
+              }
+            }
+          },
+          "success": {
+            "id": "success",
+            "type": "final"
+          }
+        },
+        "on": {
+          "SUCCESS": {
+            "target": ".success",
+            "guard": {
+              "type": "event_equals",
+              "params": {
+                "key": "data",
+                "value": 42
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "initial": "sending",
+            "states": {
+              "sending": {
+                "entry": [
+                  "success"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "success": {
+              "kind": "send_parent",
+              "event": {
+                "type": "SUCCESS",
+                "data": 42
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "invoke.test.ts > invoke > should use the service overwritten by .provide(...)",
+      "reason": "machine.provide, which replaces the logic of the invoked src, is out of scope; without it the case is only a child whose entry sendParent finishes its parent, which the cases above already show"
+    }
+  ]
+}

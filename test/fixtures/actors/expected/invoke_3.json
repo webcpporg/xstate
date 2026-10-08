@@ -1,0 +1,1133 @@
+{
+  "source": "invoke.test.ts (lines 758 to 1365; each test of the describe `with promises (${type})` is ported once, for Promise and PromiseLike alike, since fromPromise adopts either through Promise.resolve and one host actor stands for both)",
+  "cases": [
+    {
+      "name": "a promise invoked inline resolves and its onDone reaches a final state",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pending"
+                    ],
+                    "children": {
+                      "0.(machine).pending": "promise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).pending": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).pending",
+              "src": "promise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.(machine).pending",
+                    "actorId": "0.(machine).pending"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).success",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.(machine).pending": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a promise given the context as input rejects and its onError reaches a final state",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": {
+                      "id": 31,
+                      "succeed": false
+                    }
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {
+                      "id": 31,
+                      "succeed": false
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "invokePromise",
+                      "invokePromise.pending"
+                    ],
+                    "children": {
+                      "0.invokePromise.pending": "promise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.invokePromise.pending": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.invokePromise.pending",
+              "src": "promise",
+              "input": {
+                "id": 31,
+                "succeed": false
+              }
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.0.invokePromise.pending",
+                    "error": {
+                      "message": "failed on purpose for: 31"
+                    },
+                    "actorId": "0.invokePromise.pending"
+                  },
+                  "snapshot": {
+                    "value": "failure",
+                    "context": {
+                      "id": 31,
+                      "succeed": false
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "invokePromise.failure",
+                      "invokePromise"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.invokePromise.pending": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a promise that rejects with no onError fails its parent with the error",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "invokePromise",
+                      "invokePromise.pending"
+                    ],
+                    "children": {
+                      "0.invokePromise.pending": "promise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.invokePromise.pending": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.invokePromise.pending",
+              "src": "promise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.0.invokePromise.pending",
+                    "error": {
+                      "message": "test"
+                    },
+                    "actorId": "0.invokePromise.pending"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "error",
+                    "tags": [],
+                    "nodes": [
+                      "invokePromise",
+                      "invokePromise.pending"
+                    ],
+                    "error": {
+                      "message": "test"
+                    },
+                    "children": {
+                      "0.invokePromise.pending": "promise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "error",
+            "root/0.invokePromise.pending": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an unhandled rejection leaves the parent failed, never done",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "invokePromise",
+                      "invokePromise.pending"
+                    ],
+                    "children": {
+                      "0.invokePromise.pending": "promise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.invokePromise.pending": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.invokePromise.pending",
+              "src": "promise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.0.invokePromise.pending",
+                    "error": {
+                      "message": "test"
+                    },
+                    "actorId": "0.invokePromise.pending"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "error",
+                    "tags": [],
+                    "nodes": [
+                      "invokePromise",
+                      "invokePromise.pending"
+                    ],
+                    "error": {
+                      "message": "test"
+                    },
+                    "children": {
+                      "0.invokePromise.pending": "promise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "error",
+            "root/0.invokePromise.pending": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a promise invoked inline in a compound state finishes it and its onDone finishes the machine",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "parent": "pending"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "promise",
+                      "promise.parent",
+                      "promise.parent.pending"
+                    ],
+                    "children": {
+                      "0.promise.parent.pending": "promise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.promise.parent.pending": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.promise.parent.pending",
+              "src": "promise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.promise.parent.pending",
+                    "actorId": "0.promise.parent.pending"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "promise.success",
+                      "promise"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.promise.parent.pending": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a named promise service in a compound state finishes it and its onDone finishes the machine",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "parent": "pending"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "promise",
+                      "promise.parent",
+                      "promise.parent.pending"
+                    ],
+                    "children": {
+                      "0.promise.parent.pending": "somePromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.promise.parent.pending": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.promise.parent.pending",
+              "src": "somePromise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.promise.parent.pending",
+                    "actorId": "0.promise.parent.pending"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "promise.success",
+                      "promise"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.promise.parent.pending": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "the output of a promise invoked inline is assigned to the context on done",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {
+                      "count": 0
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "promise",
+                      "promise.pending"
+                    ],
+                    "children": {
+                      "0.promise.pending": "promise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.promise.pending": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.promise.pending",
+              "src": "promise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.promise.pending",
+                    "output": 1,
+                    "actorId": "0.promise.pending"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {
+                      "count": 1
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "promise.success",
+                      "promise"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.promise.pending": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "the output of a named promise service is assigned to the context on done",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {
+                      "count": 0
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "promise",
+                      "promise.pending"
+                    ],
+                    "children": {
+                      "0.promise.pending": "somePromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.promise.pending": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.promise.pending",
+              "src": "somePromise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.promise.pending",
+                    "output": 1,
+                    "actorId": "0.promise.pending"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {
+                      "count": 1
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "promise.success",
+                      "promise"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.promise.pending": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "the onDone action of a promise invoked inline receives its output",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {
+                      "count": 0,
+                      "provided": 0
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "promise",
+                      "promise.pending"
+                    ],
+                    "children": {
+                      "0.promise.pending": "promise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.promise.pending": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.promise.pending",
+              "src": "promise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.promise.pending",
+                    "output": 1,
+                    "actorId": "0.promise.pending"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {
+                      "count": 0,
+                      "provided": 1
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "promise.success",
+                      "promise"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.promise.pending": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "the onDone action of a named promise service receives its output",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {
+                      "provided": 0
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "promise",
+                      "promise.pending"
+                    ],
+                    "children": {
+                      "0.promise.pending": "somePromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.promise.pending": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.promise.pending",
+              "src": "somePromise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.promise.pending",
+                    "output": 1,
+                    "actorId": "0.promise.pending"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {
+                      "provided": 1
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "promise.success",
+                      "promise"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.promise.pending": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a promise service invoked on an event gets the context and the event as input and its done finishes the machine",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {
+                      "foo": true
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "promise",
+                      "promise.pending"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "BEGIN",
+                    "payload": true
+                  },
+                  "snapshot": {
+                    "value": "first",
+                    "context": {
+                      "foo": true
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "promise",
+                      "promise.first"
+                    ],
+                    "children": {
+                      "0.promise.first": "somePromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.promise.first": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.promise.first",
+              "src": "somePromise",
+              "input": {
+                "foo": true,
+                "event": {
+                  "type": "BEGIN",
+                  "payload": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.promise.first",
+                    "actorId": "0.promise.first"
+                  },
+                  "snapshot": {
+                    "value": "last",
+                    "context": {
+                      "foo": true
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "promise.last",
+                      "promise"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.promise.first": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "one promise service invoked in two regions makes two requests, each answered on its own",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "pending": {
+                        "state1": "active",
+                        "state2": "active"
+                      }
+                    },
+                    "context": {
+                      "result1": null,
+                      "result2": null
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pending",
+                      "(machine).pending.state1",
+                      "(machine).pending.state1.active",
+                      "(machine).pending.state2",
+                      "(machine).pending.state2.active"
+                    ],
+                    "children": {
+                      "0.(machine).pending.state1.active": "getRandomNumber",
+                      "0.(machine).pending.state2.active": "getRandomNumber"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).pending.state1.active": "active",
+            "root/0.(machine).pending.state2.active": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).pending.state1.active",
+              "src": "getRandomNumber"
+            },
+            {
+              "actor": "root/0.(machine).pending.state2.active",
+              "src": "getRandomNumber"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.(machine).pending.state1.active",
+                    "output": 0.25,
+                    "actorId": "0.(machine).pending.state1.active"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "pending": {
+                        "state1": "success",
+                        "state2": "active"
+                      }
+                    },
+                    "context": {
+                      "result1": 0.25,
+                      "result2": null
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pending",
+                      "(machine).pending.state1",
+                      "(machine).pending.state2",
+                      "(machine).pending.state2.active",
+                      "(machine).pending.state1.success"
+                    ],
+                    "children": {
+                      "0.(machine).pending.state2.active": "getRandomNumber"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).pending.state1.active": "done",
+            "root/0.(machine).pending.state2.active": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).pending.state2.active",
+              "src": "getRandomNumber"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.(machine).pending.state2.active",
+                    "output": 0.75,
+                    "actorId": "0.(machine).pending.state2.active"
+                  },
+                  "snapshot": {
+                    "value": "done",
+                    "context": {
+                      "result1": 0.25,
+                      "result2": 0.75
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).done",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.(machine).pending.state1.active": "done",
+            "root/0.(machine).pending.state2.active": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a promise that settles after its invoking state was left sends its parent nothing",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).active"
+                    ],
+                    "children": {
+                      "0.(machine).active": "promise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).active": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).active",
+              "src": "promise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "deactivate"
+                  },
+                  "snapshot": {
+                    "value": "inactive",
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).inactive"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).active": "stopped"
+          },
+          "requests": []
+        },
+        {
+          "refused": true,
+          "actors": {},
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).active": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

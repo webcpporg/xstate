@@ -1,0 +1,377 @@
+{
+  "source": "microstep.test.ts",
+  "cases": [
+    {
+      "name": "full microstep chain via raised events and always",
+      "test": "microstep.test.ts > machine.microstep() > should return an array of states from all microsteps",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "GO": "a"
+            }
+          },
+          "a": {
+            "entry": "raiseNext",
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "always": "c"
+          },
+          "c": {
+            "entry": "raiseNext",
+            "on": {
+              "NEXT": "d"
+            }
+          },
+          "d": {}
+        }
+      },
+      "actions": {
+        "raiseNext": {
+          "kind": "raise",
+          "event": {
+            "type": "NEXT"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "microstep chain via transient always",
+      "test": "microstep.test.ts > machine.microstep() > should return the states from microstep (transient)",
+      "machine": {
+        "initial": "first",
+        "states": {
+          "first": {
+            "on": {
+              "TRIGGER": "second"
+            }
+          },
+          "second": {
+            "always": "third"
+          },
+          "third": {}
+        }
+      },
+      "steps": [
+        {
+          "resolve": "first"
+        },
+        {
+          "send": {
+            "type": "TRIGGER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "microstep chain via raised event in transition",
+      "test": "microstep.test.ts > machine.microstep() > should return the states from microstep (raised event)",
+      "machine": {
+        "initial": "first",
+        "states": {
+          "first": {
+            "on": {
+              "TRIGGER": {
+                "target": "second",
+                "actions": "raiseRaised"
+              }
+            }
+          },
+          "second": {
+            "on": {
+              "RAISED": "third"
+            }
+          },
+          "third": {}
+        }
+      },
+      "actions": {
+        "raiseRaised": {
+          "kind": "raise",
+          "event": {
+            "type": "RAISED"
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": "first"
+        },
+        {
+          "send": {
+            "type": "TRIGGER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "single microstep for normal transition",
+      "test": "microstep.test.ts > machine.microstep() > should return a single-item array for normal transitions",
+      "machine": {
+        "initial": "first",
+        "states": {
+          "first": {
+            "on": {
+              "TRIGGER": "second"
+            }
+          },
+          "second": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TRIGGER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "internal queue preserved across states",
+      "test": "microstep.test.ts > machine.microstep() > each state should preserve their internal queue",
+      "machine": {
+        "initial": "first",
+        "states": {
+          "first": {
+            "on": {
+              "TRIGGER": {
+                "target": "second",
+                "actions": [
+                  "raiseFoo",
+                  "raiseBar"
+                ]
+              }
+            }
+          },
+          "second": {
+            "on": {
+              "FOO": {
+                "target": "third"
+              }
+            }
+          },
+          "third": {
+            "on": {
+              "BAR": {
+                "target": "fourth"
+              }
+            }
+          },
+          "fourth": {
+            "always": "fifth"
+          },
+          "fifth": {}
+        }
+      },
+      "actions": {
+        "raiseFoo": {
+          "kind": "raise",
+          "event": {
+            "type": "FOO"
+          }
+        },
+        "raiseBar": {
+          "kind": "raise",
+          "event": {
+            "type": "BAR"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TRIGGER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "microsteps record actions in getMicrosteps",
+      "test": "microstep.test.ts > getMicrosteps > should return microsteps with actions",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": {
+                "target": "b",
+                "actions": "transitionAction"
+              }
+            }
+          },
+          "b": {
+            "entry": "bEntry",
+            "always": {
+              "target": "c",
+              "actions": "alwaysAction"
+            }
+          },
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "microsteps capture actions from raised events",
+      "test": "microstep.test.ts > getMicrosteps > should capture actions from raised events",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": {
+                "target": "b",
+                "actions": [
+                  "transitionAction",
+                  "raiseNext"
+                ]
+              }
+            }
+          },
+          "b": {
+            "on": {
+              "NEXT": {
+                "target": "c",
+                "actions": "nextAction"
+              }
+            }
+          },
+          "c": {}
+        }
+      },
+      "actions": {
+        "raiseNext": {
+          "kind": "raise",
+          "event": {
+            "type": "NEXT"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "initial microsteps with entry action",
+      "test": "microstep.test.ts > getInitialMicrosteps > should return initial microsteps with entry actions",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": "aEntry"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "initial microsteps via always transition",
+      "test": "microstep.test.ts > getInitialMicrosteps > should capture actions from initial always transitions",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": "entryA",
+            "always": {
+              "target": "b",
+              "actions": "alwaysAction"
+            }
+          },
+          "b": {
+            "entry": "entryB"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "initial microsteps with nested initial states",
+      "test": "microstep.test.ts > getInitialMicrosteps > should work with nested initial states",
+      "machine": {
+        "initial": "parent",
+        "states": {
+          "parent": {
+            "entry": "parentEntry",
+            "initial": "child",
+            "states": {
+              "child": {
+                "entry": "childEntry"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "initial microsteps with context from input",
+      "test": "microstep.test.ts > getInitialMicrosteps > should pass input to context function",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {}
+        }
+      },
+      "context_from_input": {
+        "count": "value"
+      },
+      "steps": [
+        {
+          "start": true,
+          "input": {
+            "value": 42
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

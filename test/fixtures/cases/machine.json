@@ -1,0 +1,308 @@
+{
+  "source": "machine.test.ts",
+  "cases": [
+    {
+      "name": "a compound state without initial is refused",
+      "test": "machine.test.ts > machine > machine.provide > should throw if initial state is missing in a compound state",
+      "machine": {
+        "initial": "first",
+        "states": {
+          "first": {
+            "states": {
+              "second": {},
+              "third": {}
+            }
+          }
+        }
+      },
+      "expect_create_error": true,
+      "steps": []
+    },
+    {
+      "name": "a machine with no context gets an empty object",
+      "test": "machine.test.ts > machine > machine.provide > machines defined without context should have a default empty object for context",
+      "machine": {},
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "resolves a parallel state value",
+      "test": "machine.test.ts > machine > machine.resolveStateValue() > should resolve the state value",
+      "machine": {
+        "id": "resolve",
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "initial": "one",
+            "states": {
+              "one": {
+                "type": "parallel",
+                "states": {
+                  "a": {
+                    "initial": "aa",
+                    "states": {
+                      "aa": {}
+                    }
+                  },
+                  "b": {
+                    "initial": "bb",
+                    "states": {
+                      "bb": {}
+                    }
+                  }
+                },
+                "on": {
+                  "TO_TWO": "two"
+                }
+              },
+              "two": {
+                "on": {
+                  "TO_ONE": "one"
+                }
+              }
+            },
+            "on": {
+              "TO_BAR": "bar"
+            }
+          },
+          "bar": {
+            "on": {
+              "TO_FOO": "foo"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": "foo"
+        }
+      ]
+    },
+    {
+      "name": "resolveState resolves status done",
+      "test": "machine.test.ts > machine > machine.resolveStateValue() > should resolve `status: done`",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "on": {
+              "NEXT": "bar"
+            }
+          },
+          "bar": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": "bar"
+        }
+      ]
+    },
+    {
+      "name": "follows an always transition for the initial state",
+      "test": "machine.test.ts > machine > initial state > should follow always transition",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "always": [
+              {
+                "target": "b"
+              }
+            ]
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a state node id (explicit) shows up in the active nodes",
+      "test": "machine.test.ts > machine > id > should represent the ID (state node)",
+      "machine": {
+        "id": "some-id",
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "id": "idle"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a state node id defaults to the dotted key path",
+      "test": "machine.test.ts > machine > id > should use the key as the ID if no ID is provided (state node)",
+      "machine": {
+        "id": "some-id",
+        "initial": "idle",
+        "states": {
+          "idle": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a combinatorial (stateless) machine accepts events",
+      "test": "machine.test.ts > machine > combinatorial machines > should support combinatorial machines (single-state)",
+      "machine": {
+        "context": {
+          "value": 42
+        },
+        "on": {
+          "INC": {
+            "actions": {
+              "type": "increment",
+              "params": {
+                "key": "value"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "INC"
+          }
+        }
+      ]
+    },
+    {
+      "name": "lists a state node's transitions in declaration order",
+      "test": "machine.test.ts > StateNode > should list transitions",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow",
+              "POWER_OUTAGE": "red",
+              "FORBIDDEN_EVENT": {}
+            }
+          },
+          "yellow": {
+            "on": {
+              "TIMER": "red",
+              "POWER_OUTAGE": "red"
+            }
+          },
+          "red": {
+            "on": {
+              "TIMER": "green",
+              "POWER_OUTAGE": "red"
+            },
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "on": {
+                  "PED_COUNTDOWN": "wait"
+                }
+              },
+              "wait": {
+                "on": {
+                  "PED_COUNTDOWN": "stop"
+                }
+              },
+              "stop": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "next_transitions": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "a machine carries the version its config gives",
+      "test": "machine.test.ts > machine > versioning > should allow a version to be specified",
+      "machine": {
+        "id": "version",
+        "version": "1.0.4",
+        "states": {}
+      },
+      "steps": []
+    },
+    {
+      "name": "a machine's id is the one its config gives",
+      "test": "machine.test.ts > machine > id > should represent the ID",
+      "machine": {
+        "id": "some-id",
+        "initial": "idle",
+        "states": {
+          "idle": {}
+        }
+      },
+      "steps": []
+    }
+  ],
+  "excluded": [
+    {
+      "test": "machine.test.ts > machine > machine.states > should properly register machine states",
+      "reason": "inspects Object.keys(machine.states), the declared child state names; no query exposes a state node's full child key list"
+    },
+    {
+      "test": "machine.test.ts > machine > machine.events > should return the set of events accepted by machine",
+      "reason": "inspects machine.events, every event type declared anywhere in the machine; no query exposes that aggregate, only per-snapshot queries (next_transitions, can)"
+    },
+    {
+      "test": "machine.test.ts > machine > machine.config > state node config should reference original machine config",
+      "reason": "asserts that a state node's config is the same object as the matching member of machine.config and that writing meta through one shows in the other; object identity and mutating a created machine's config are not in the oracle's record (the definition is a serialized copy) and no step writes to a created machine. It would need a step that mutates a state node's config after creation and a reference comparison, which xstate, holding its own parsed definition rather than the caller's JSON, has no counterpart of"
+    },
+    {
+      "test": "machine.test.ts > machine > machine.provide > should override an action",
+      "reason": "machine.provide is out of scope; it would need a step that replaces a machine's named action implementation before its actor is created, and a count of each implementation's calls"
+    },
+    {
+      "test": "machine.test.ts > machine > machine.provide > should override a guard",
+      "reason": "machine.provide is out of scope; it would need a step that replaces a machine's named guard implementation before its actor is created, and a count of each implementation's calls"
+    },
+    {
+      "test": "machine.test.ts > machine > machine.provide > should not override context if not defined",
+      "reason": "machine.provide is out of scope; it would need a step that derives a machine with machine.provide({}) and starts the derived machine in place of the case's"
+    },
+    {
+      "test": "machine.test.ts > machine > machine.provide > should override context (second argument)",
+      "reason": "it.skip in XState's own suite"
+    },
+    {
+      "test": "machine.test.ts > machine > machine.provide > should lazily create context for all interpreter instances created from the same machine template created by `provide`",
+      "reason": "machine.provide is out of scope, the context is a function of nothing (the vocabulary's only context function, context_from_input, needs an input), and the assertion is that two actors' context.foo are different objects, an object identity the oracle's serialized record cannot show; it would need provide, a context function without input, two actors in one core case and a reference comparison"
+    },
+    {
+      "test": "machine.test.ts > machine > machine function context > context from a function should be lazily evaluated",
+      "reason": "the context is a function of nothing evaluated once per machine (the vocabulary's only context function, context_from_input, needs an input), and the assertion is that two machines' initial contexts are different objects, an object identity the oracle's serialized record cannot show; it would need a context function without input, two machines in one case and a reference comparison (its toEqual half alone is a machine with a literal context, which other cases already cover)"
+    },
+    {
+      "test": "machine.test.ts > machine > should pass through schemas",
+      "reason": "machine.schemas is not part of machine.toJSON(), the only part of a machine the oracle records, and the oracle's setup() passes no schemas (setup replaces a config's own schemas with its own); it would need a schemas field in the case, passed to setup(), and a record of machine.schemas"
+    }
+  ]
+}

@@ -1,0 +1,217 @@
+{
+  "source": "tags.test.ts",
+  "cases": [
+    {
+      "name": "tagging states",
+      "test": "tags.test.ts > tags > supports tagging states",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "tags": [
+              "go"
+            ],
+            "on": {
+              "TIMER": "yellow"
+            }
+          },
+          "yellow": {
+            "tags": [
+              "go"
+            ],
+            "on": {
+              "TIMER": "red"
+            }
+          },
+          "red": {
+            "tags": [
+              "stop"
+            ]
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "has_tag": "go"
+          }
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        },
+        {
+          "query": {
+            "has_tag": "go"
+          }
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        },
+        {
+          "query": {
+            "has_tag": "go"
+          }
+        }
+      ]
+    },
+    {
+      "name": "tags in compound states",
+      "test": "tags.test.ts > tags > supports tags in compound states",
+      "machine": {
+        "initial": "red",
+        "states": {
+          "green": {
+            "tags": [
+              "go"
+            ]
+          },
+          "yellow": {},
+          "red": {
+            "tags": [
+              "stop"
+            ],
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "tags": [
+                  "crosswalkLight"
+                ]
+              },
+              "wait": {
+                "tags": [
+                  "crosswalkLight"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "has_tag": "go"
+          }
+        },
+        {
+          "query": {
+            "has_tag": "stop"
+          }
+        },
+        {
+          "query": {
+            "has_tag": "crosswalkLight"
+          }
+        }
+      ]
+    },
+    {
+      "name": "tags in parallel states",
+      "test": "tags.test.ts > tags > supports tags in parallel states",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "foo": {
+            "initial": "active",
+            "states": {
+              "active": {
+                "tags": "yes"
+              },
+              "inactive": {
+                "tags": "no"
+              }
+            }
+          },
+          "bar": {
+            "initial": "active",
+            "states": {
+              "active": {
+                "tags": "yes",
+                "on": {
+                  "DEACTIVATE": "inactive"
+                }
+              },
+              "inactive": {
+                "tags": "no"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "DEACTIVATE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "tags after no transition is selected",
+      "test": "tags.test.ts > tags > sets tags correctly after not selecting any transition",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "tags": "myTag"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "UNMATCHED"
+          }
+        },
+        {
+          "query": {
+            "has_tag": "myTag"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a single tag that is not an array",
+      "test": "tags.test.ts > tags > tags can be single (not array)",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "tags": "go"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "has_tag": "go"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "tags.test.ts > tags > stringifies to an array",
+      "reason": "asserts what snapshot.toJSON() writes of the tags, an array in the order the state lists them; toJSON is not ported, as xstate's snapshot has no JSON form of its own, and the record's tags are the oracle's own sorted array of every snapshot's tags (serialize.mjs), already compared by every tags case, so a case would show neither the conversion nor the order. It would need a JSON form of xstate's snapshot and a step that writes it"
+    }
+  ]
+}
