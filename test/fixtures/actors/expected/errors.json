@@ -1,0 +1,656 @@
+{
+  "source": "errors.test.ts",
+  "cases": [
+    {
+      "name": "a machine stays active and handles a later event",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "initial",
+                    "context": {
+                      "count": 0,
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "machine",
+                      "machine.initial"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "activate"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 0,
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "machine",
+                      "machine.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "do"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 0,
+                      "log": [
+                        "spy"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "machine",
+                      "machine.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a machine that reaches its state does not fail",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "initial",
+                    "context": {
+                      "count": 0
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "machine",
+                      "machine.initial"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "activate"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 0
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "machine",
+                      "machine.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an unhandled rejection of an invoked promise fails the root",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pending"
+                    ],
+                    "children": {
+                      "0.(machine).pending": "rejectingPromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).pending": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).pending",
+              "src": "rejectingPromise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.0.(machine).pending",
+                    "error": {
+                      "message": "unhandled_rejection_in_promise_actor_without_error_listener"
+                    },
+                    "actorId": "0.(machine).pending"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "error",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pending"
+                    ],
+                    "error": {
+                      "message": "unhandled_rejection_in_promise_actor_without_error_listener"
+                    },
+                    "children": {
+                      "0.(machine).pending": "rejectingPromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "error",
+            "root/0.(machine).pending": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an unhandled rejection of an invoked promise reaches the parent's error",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pending"
+                    ],
+                    "children": {
+                      "0.(machine).pending": "rejectingPromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).pending": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).pending",
+              "src": "rejectingPromise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.0.(machine).pending",
+                    "error": {
+                      "message": "unhandled_rejection_in_promise_actor_with_parent_listener"
+                    },
+                    "actorId": "0.(machine).pending"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "error",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pending"
+                    ],
+                    "error": {
+                      "message": "unhandled_rejection_in_promise_actor_with_parent_listener"
+                    },
+                    "children": {
+                      "0.(machine).pending": "rejectingPromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "error",
+            "root/0.(machine).pending": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an unhandled rejection of a grandchild promise climbs to the root's error",
+      "steps": [
+        {
+          "actors": {
+            "root/0.(machine).pending": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pending"
+                    ],
+                    "children": {
+                      "0.(machine).pending": "rejectingPromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pending"
+                    ],
+                    "children": {
+                      "0.(machine).pending": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).pending": "active",
+            "root/0.(machine).pending/0.(machine).pending": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).pending/0.(machine).pending",
+              "src": "rejectingPromise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.0.(machine).pending",
+                    "error": {
+                      "message": "unhandled_rejection_in_promise_actor_with_grandparent_listener"
+                    },
+                    "actorId": "0.(machine).pending"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "error",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pending"
+                    ],
+                    "error": {
+                      "message": "unhandled_rejection_in_promise_actor_with_grandparent_listener"
+                    },
+                    "children": {
+                      "0.(machine).pending": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/0.(machine).pending": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.0.(machine).pending",
+                    "error": {
+                      "message": "unhandled_rejection_in_promise_actor_with_grandparent_listener"
+                    },
+                    "actorId": "0.(machine).pending"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "error",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pending"
+                    ],
+                    "error": {
+                      "message": "unhandled_rejection_in_promise_actor_with_grandparent_listener"
+                    },
+                    "children": {
+                      "0.(machine).pending": "rejectingPromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "error",
+            "root/0.(machine).pending": "error",
+            "root/0.(machine).pending/0.(machine).pending": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a failing initial assign fails the actor",
+      "steps": [
+        {
+          "actors": {},
+          "statuses": {
+            "root": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a failing entry action of a transition's target fails the actor",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a guard that fails while transitioning fails the actor",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an actor emits on every event and stays active",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "someEvent"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": [
+                {
+                  "type": "emitted",
+                  "foo": "bar"
+                }
+              ]
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "someEvent"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": [
+                {
+                  "type": "emitted",
+                  "foo": "bar"
+                }
+              ]
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

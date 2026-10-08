@@ -1,0 +1,1766 @@
+{
+  "source": "the reviews of xstate: what XState's actors do where its own tests are silent",
+  "cases": [
+    {
+      "name": "a root that is a history node is in error once started",
+      "test": "createActor's _initState catches the throw of a machine whose root is a history node, and the actor is in error from its construction",
+      "machine": {
+        "type": "history"
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a child whose root is a history node fails its parent's invoke",
+      "test": "createActor's _initState catches the throw of a machine whose root is a history node, and the actor is in error from its construction",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "broken",
+              "id": "kid",
+              "onError": "failed"
+            }
+          },
+          "failed": {}
+        }
+      },
+      "actors": {
+        "broken": {
+          "kind": "machine",
+          "machine": {
+            "type": "history",
+            "target": "x"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a sendTo of an event of type '*' fails the child that takes it",
+      "test": "XState's development build refuses an event of type '*' only where a macrostep takes it from outside (stateUtils.ts macrostep): a sendTo or a delayed raise carries it, and the actor that takes it fails",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "kid",
+              "id": "k",
+              "onError": "failed"
+            },
+            "on": {
+              "GO": {
+                "actions": [
+                  "send_star"
+                ]
+              }
+            }
+          },
+          "failed": {}
+        }
+      },
+      "actions": {
+        "send_star": {
+          "kind": "send_to",
+          "target": "k",
+          "event": {
+            "type": "*"
+          }
+        }
+      },
+      "actors": {
+        "kid": {
+          "kind": "machine",
+          "machine": {
+            "context": {},
+            "on": {
+              "*": {
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "got",
+                      "value": true
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a delayed raise of an event of type '*' fails the actor when it fires",
+      "test": "XState's development build refuses an event of type '*' only where a macrostep takes it from outside (stateUtils.ts macrostep): a sendTo or a delayed raise carries it, and the actor that takes it fails",
+      "machine": {
+        "on": {
+          "GO": {
+            "actions": [
+              "raise_star_later"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "raise_star_later": {
+          "kind": "raise",
+          "event": {
+            "type": "*"
+          },
+          "delay": 100
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        },
+        {
+          "advance": 50
+        },
+        {
+          "advance": 50
+        }
+      ]
+    },
+    {
+      "name": "a delayed raise of an event of type '*' cancelled before it fires changes nothing",
+      "test": "XState's development build refuses an event of type '*' only where a macrostep takes it from outside (stateUtils.ts macrostep): a sendTo or a delayed raise carries it, and the actor that takes it fails",
+      "machine": {
+        "on": {
+          "GO": {
+            "actions": [
+              "raise_star_later"
+            ]
+          },
+          "STOP": {
+            "actions": [
+              "cancel_star"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "raise_star_later": {
+          "kind": "raise",
+          "event": {
+            "type": "*"
+          },
+          "id": "t",
+          "delay": 100
+        },
+        "cancel_star": {
+          "kind": "cancel",
+          "id": "t"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        },
+        {
+          "send": {
+            "type": "STOP"
+          }
+        },
+        {
+          "advance": 200
+        }
+      ]
+    },
+    {
+      "name": "a raised event of type '*' takes the wildcard transition of an actor",
+      "test": "XState's development build refuses an event of type '*' only where a macrostep takes it from outside (stateUtils.ts macrostep): a sendTo or a delayed raise carries it, and the actor that takes it fails",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": {
+                "actions": [
+                  "raise_star"
+                ]
+              },
+              "*": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actions": {
+        "raise_star": {
+          "kind": "raise",
+          "event": {
+            "type": "*"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an active child's start claims nothing, though another actor took its systemId while it waited for a construction",
+      "machine": {
+        "context": {},
+        "initial": "s",
+        "states": {
+          "s": {
+            "invoke": [
+              {
+                "src": "p",
+                "id": "p"
+              },
+              {
+                "src": "m",
+                "id": "m"
+              }
+            ],
+            "on": {
+              "GO": {
+                "actions": [
+                  "go_p",
+                  "ping_m"
+                ]
+              },
+              "RESTART": "t"
+            }
+          },
+          "t": {
+            "invoke": {
+              "src": "k",
+              "id": "k",
+              "systemId": "x"
+            }
+          }
+        }
+      },
+      "actions": {
+        "go_p": {
+          "kind": "send_to",
+          "target": "p",
+          "event": {
+            "type": "GO"
+          }
+        },
+        "ping_m": {
+          "kind": "send_to",
+          "target": "m",
+          "event": {
+            "type": "PING"
+          }
+        }
+      },
+      "actors": {
+        "p": {
+          "kind": "machine",
+          "machine": {
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "GO": "busy"
+                }
+              },
+              "busy": {
+                "invoke": {
+                  "src": "c",
+                  "id": "c",
+                  "systemId": "x"
+                }
+              }
+            }
+          },
+          "actors": {
+            "c": {
+              "kind": "machine",
+              "machine": {}
+            }
+          }
+        },
+        "m": {
+          "kind": "machine",
+          "machine": {
+            "context": {},
+            "on": {
+              "PING": {
+                "actions": [
+                  "restart"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "restart": {
+              "kind": "send_parent",
+              "event": {
+                "type": "RESTART"
+              }
+            }
+          }
+        },
+        "k": {
+          "kind": "machine",
+          "machine": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        },
+        {
+          "get": "x"
+        }
+      ],
+      "test": "createActor.ts start(): system._set claims the systemId again only for a child the constructor released, and within the parent's own macrostep, which XState runs whole"
+    },
+    {
+      "name": "a born-done child's start does not see a claim another actor made while its parent waited",
+      "machine": {
+        "context": {},
+        "initial": "s",
+        "states": {
+          "s": {
+            "invoke": [
+              {
+                "src": "p",
+                "id": "p"
+              },
+              {
+                "src": "m",
+                "id": "m"
+              },
+              {
+                "src": "q",
+                "id": "q",
+                "systemId": "qq"
+              }
+            ],
+            "on": {
+              "GO": {
+                "actions": [
+                  "go_p",
+                  "relay_m"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "go_p": {
+          "kind": "send_to",
+          "target": "p",
+          "event": {
+            "type": "GO"
+          }
+        },
+        "relay_m": {
+          "kind": "send_to",
+          "target": "m",
+          "event": {
+            "type": "RELAY"
+          }
+        }
+      },
+      "actors": {
+        "p": {
+          "kind": "machine",
+          "machine": {
+            "context": {},
+            "on": {
+              "GO": {
+                "actions": [
+                  "spawn_d"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "spawn_d": {
+              "kind": "spawn_child",
+              "src": "finished",
+              "id": "a",
+              "systemId": "x"
+            }
+          },
+          "actors": {
+            "finished": {
+              "kind": "machine",
+              "machine": {
+                "initial": "f",
+                "states": {
+                  "f": {
+                    "type": "final"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "m": {
+          "kind": "machine",
+          "machine": {
+            "context": {},
+            "on": {
+              "RELAY": {
+                "actions": [
+                  "to_q"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "to_q": {
+              "kind": "send_to",
+              "target": "#system:qq",
+              "event": {
+                "type": "SPAWN"
+              }
+            }
+          }
+        },
+        "q": {
+          "kind": "machine",
+          "machine": {
+            "context": {},
+            "on": {
+              "SPAWN": {
+                "actions": [
+                  "spawn_e"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "spawn_e": {
+              "kind": "spawn_child",
+              "src": "running",
+              "id": "e",
+              "systemId": "x"
+            }
+          },
+          "actors": {
+            "running": {
+              "kind": "machine",
+              "machine": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        },
+        {
+          "get": "x"
+        }
+      ],
+      "test": "createActor.ts start(): system._set claims the systemId again only for a child the constructor released, and within the parent's own macrostep, which XState runs whole"
+    },
+    {
+      "name": "a failing re-claim in the initial start leaves the children it already started running",
+      "machine": {
+        "context": {},
+        "entry": [
+          "spawn_done",
+          "spawn_running"
+        ]
+      },
+      "actions": {
+        "spawn_done": {
+          "kind": "spawn_child",
+          "src": "finished",
+          "id": "a",
+          "systemId": "x"
+        },
+        "spawn_running": {
+          "kind": "spawn_child",
+          "src": "running",
+          "id": "b",
+          "systemId": "x"
+        }
+      },
+      "actors": {
+        "finished": {
+          "kind": "machine",
+          "machine": {
+            "initial": "f",
+            "states": {
+              "f": {
+                "type": "final"
+              }
+            }
+          }
+        },
+        "running": {
+          "kind": "machine",
+          "machine": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "get": "x"
+        }
+      ],
+      "test": "StateMachine.start starts every active child of the snapshot before createActor's update runs the deferred actions, so the root fails after its active children started"
+    },
+    {
+      "name": "a deferred effect that fails still shows the snapshot its macrostep reached",
+      "machine": {
+        "context": {
+          "n": 0
+        },
+        "on": {
+          "GO": {
+            "actions": [
+              {
+                "type": "increment",
+                "params": {
+                  "key": "n"
+                }
+              },
+              "spawn_done",
+              "spawn_running",
+              "spawn_w"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawn_done": {
+          "kind": "spawn_child",
+          "src": "finished",
+          "id": "a",
+          "systemId": "x"
+        },
+        "spawn_running": {
+          "kind": "spawn_child",
+          "src": "running",
+          "id": "b",
+          "systemId": "x"
+        },
+        "spawn_w": {
+          "kind": "spawn_child",
+          "src": "running",
+          "id": "w",
+          "systemId": "w"
+        }
+      },
+      "actors": {
+        "finished": {
+          "kind": "machine",
+          "machine": {
+            "initial": "f",
+            "states": {
+              "f": {
+                "type": "final"
+              }
+            }
+          }
+        },
+        "running": {
+          "kind": "machine",
+          "machine": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ],
+      "test": "createActor.ts update(): a deferred action that throws sets the error status, and the inspection still carries the snapshot the macrostep reached"
+    },
+    {
+      "name": "root history: a child whose root is a history node without a target",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "broken",
+              "id": "kid",
+              "onError": "failed"
+            }
+          },
+          "failed": {}
+        }
+      },
+      "actors": {
+        "broken": {
+          "kind": "machine",
+          "machine": {
+            "type": "history"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: a child whose root is a deep history node",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "broken",
+              "id": "kid",
+              "onError": "failed"
+            }
+          },
+          "failed": {}
+        }
+      },
+      "actors": {
+        "broken": {
+          "kind": "machine",
+          "machine": {
+            "history": "deep"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: a child whose root history has a nested history defaulting to the root",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "broken",
+              "id": "kid",
+              "onError": "failed"
+            }
+          },
+          "failed": {}
+        }
+      },
+      "actors": {
+        "broken": {
+          "kind": "machine",
+          "machine": {
+            "type": "history",
+            "initial": "a",
+            "states": {
+              "a": {
+                "initial": "h",
+                "states": {
+                  "h": {
+                    "type": "history",
+                    "target": "#(machine)"
+                  },
+                  "y": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: a root history root actor's snapshot error",
+      "machine": {
+        "type": "history",
+        "context": {
+          "n": 1
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "root history: a child whose root history has an empty target list",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "odd",
+              "id": "kid",
+              "onError": "failed"
+            }
+          },
+          "failed": {}
+        }
+      },
+      "actors": {
+        "odd": {
+          "kind": "machine",
+          "machine": {
+            "type": "history",
+            "target": []
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ],
+      "test": "resolveHistoryDefaultTransition reads the parent of the history node it resolves, so a history at the root throws wherever its default is needed, unless its target is an empty list"
+    },
+    {
+      "name": "a child whose forwardTo resolves to no actor fails, and its parent hears the error",
+      "test": "send.ts forwardTo: XState's development build throws 'Attempted to forward event to undefined actor' where the target resolves to none, which fails the child",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "kid",
+              "id": "k",
+              "onError": "failed"
+            }
+          },
+          "failed": {}
+        }
+      },
+      "actors": {
+        "kid": {
+          "kind": "machine",
+          "machine": {
+            "on": {
+              "GO": {
+                "actions": [
+                  "forward_nowhere"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "forward_nowhere": {
+              "kind": "forward_to",
+              "target": "#system:nobody"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          },
+          "to": "root/k"
+        }
+      ]
+    },
+    {
+      "name": "a cancel of an id armed twice cancels the later timer, and the earlier fires",
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "CANCEL"
+          }
+        },
+        {
+          "advance": 300
+        }
+      ],
+      "test": "system.ts scheduler: schedule keeps an earlier timeout under the same id in the clock, timerMap names the later, and any of them deletes timerMap's entry when it fires",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "entry": [
+          "a_later",
+          "b_later"
+        ],
+        "on": {
+          "A": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "a"
+                }
+              }
+            ]
+          },
+          "B": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "b"
+                }
+              }
+            ]
+          },
+          "CANCEL": {
+            "actions": [
+              "cancel_t"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "a_later": {
+          "kind": "raise",
+          "event": {
+            "type": "A"
+          },
+          "id": "t",
+          "delay": 100
+        },
+        "b_later": {
+          "kind": "raise",
+          "event": {
+            "type": "B"
+          },
+          "id": "t",
+          "delay": 200
+        },
+        "cancel_t": {
+          "kind": "cancel",
+          "id": "t"
+        }
+      }
+    },
+    {
+      "name": "the earlier of two timers under one id unregisters the id when it fires, so a cancel cancels nothing",
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 150
+        },
+        {
+          "send": {
+            "type": "CANCEL"
+          }
+        },
+        {
+          "advance": 100
+        }
+      ],
+      "test": "system.ts scheduler: schedule keeps an earlier timeout under the same id in the clock, timerMap names the later, and any of them deletes timerMap's entry when it fires",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "entry": [
+          "a_later",
+          "b_later"
+        ],
+        "on": {
+          "A": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "a"
+                }
+              }
+            ]
+          },
+          "B": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "b"
+                }
+              }
+            ]
+          },
+          "CANCEL": {
+            "actions": [
+              "cancel_t"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "a_later": {
+          "kind": "raise",
+          "event": {
+            "type": "A"
+          },
+          "id": "t",
+          "delay": 100
+        },
+        "b_later": {
+          "kind": "raise",
+          "event": {
+            "type": "B"
+          },
+          "id": "t",
+          "delay": 200
+        },
+        "cancel_t": {
+          "kind": "cancel",
+          "id": "t"
+        }
+      }
+    },
+    {
+      "name": "two timers armed under one id both fire",
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 300
+        }
+      ],
+      "test": "system.ts scheduler: schedule keeps an earlier timeout under the same id in the clock, timerMap names the later, and any of them deletes timerMap's entry when it fires",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "entry": [
+          "a_later",
+          "b_later"
+        ],
+        "on": {
+          "A": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "a"
+                }
+              }
+            ]
+          },
+          "B": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "b"
+                }
+              }
+            ]
+          },
+          "CANCEL": {
+            "actions": [
+              "cancel_t"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "a_later": {
+          "kind": "raise",
+          "event": {
+            "type": "A"
+          },
+          "id": "t",
+          "delay": 100
+        },
+        "b_later": {
+          "kind": "raise",
+          "event": {
+            "type": "B"
+          },
+          "id": "t",
+          "delay": 200
+        },
+        "cancel_t": {
+          "kind": "cancel",
+          "id": "t"
+        }
+      }
+    },
+    {
+      "name": "a spawn whose claim is refused before a failing action of its microstep names the error",
+      "test": "resolveAndExecuteActionsWithContext resolves a microstep's actions in order, so a spawnChild whose systemId is held throws before a later action that fails",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "worker",
+              "id": "kid",
+              "onError": "failed"
+            }
+          },
+          "failed": {}
+        }
+      },
+      "actors": {
+        "worker": {
+          "kind": "machine",
+          "machine": {
+            "context": {},
+            "invoke": {
+              "src": "idle",
+              "id": "holder",
+              "systemId": "x"
+            },
+            "on": {
+              "GO": {
+                "actions": [
+                  "claim_x",
+                  "fail"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "claim_x": {
+              "kind": "spawn_child",
+              "src": "idle",
+              "id": "second",
+              "systemId": "x"
+            }
+          },
+          "actors": {
+            "idle": {
+              "kind": "machine",
+              "machine": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          },
+          "to": "root/kid"
+        }
+      ]
+    },
+    {
+      "name": "a failing entry after a send to the state's own invoke fails with the entry's error",
+      "test": "resolveSendTo accepts a target among the deferred invokes of the state being entered, and a later entry action that throws fails the actor with its own error",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "worker",
+              "id": "kid",
+              "onError": "failed"
+            }
+          },
+          "failed": {}
+        }
+      },
+      "actors": {
+        "worker": {
+          "kind": "machine",
+          "machine": {
+            "context": {},
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "GO": "busy"
+                }
+              },
+              "busy": {
+                "entry": [
+                  "tell_helper",
+                  "fail"
+                ],
+                "invoke": {
+                  "src": "quiet",
+                  "id": "helper"
+                }
+              }
+            }
+          },
+          "actions": {
+            "tell_helper": {
+              "kind": "send_to",
+              "target": "helper",
+              "event": {
+                "type": "HI"
+              }
+            }
+          },
+          "actors": {
+            "quiet": {
+              "kind": "machine",
+              "machine": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          },
+          "to": "root/kid"
+        }
+      ]
+    },
+    {
+      "name": "a failing initial entry after a send to the state's own invoke fails with the entry's error",
+      "test": "resolveSendTo accepts a target among the deferred invokes of the state being entered, and a later entry action that throws fails the actor with its own error",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "worker",
+              "id": "kid",
+              "onError": "failed"
+            }
+          },
+          "failed": {}
+        }
+      },
+      "actors": {
+        "worker": {
+          "kind": "machine",
+          "machine": {
+            "context": {},
+            "initial": "busy",
+            "states": {
+              "idle": {
+                "on": {
+                  "GO": "busy"
+                }
+              },
+              "busy": {
+                "entry": [
+                  "tell_helper",
+                  "fail"
+                ],
+                "invoke": {
+                  "src": "quiet",
+                  "id": "helper"
+                }
+              }
+            }
+          },
+          "actions": {
+            "tell_helper": {
+              "kind": "send_to",
+              "target": "helper",
+              "event": {
+                "type": "HI"
+              }
+            }
+          },
+          "actors": {
+            "quiet": {
+              "kind": "machine",
+              "machine": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a cancel of an id a raise and then a delayed send share cancels the send, and the raise fires",
+      "test": "system.ts scheduler: schedule keys every delayed event by its id, whatever its target, so a delayed send and a raise under one id share timerMap's entry",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "kid",
+              "id": "kid"
+            },
+            "entry": [
+              "b_later",
+              "p_later"
+            ],
+            "on": {
+              "CANCEL": {
+                "actions": [
+                  "cancel_t"
+                ]
+              },
+              "B": "got_b"
+            }
+          },
+          "got_b": {}
+        }
+      },
+      "actions": {
+        "b_later": {
+          "kind": "raise",
+          "event": {
+            "type": "B"
+          },
+          "id": "t",
+          "delay": 200
+        },
+        "p_later": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "P"
+          },
+          "id": "t",
+          "delay": 100
+        },
+        "cancel_t": {
+          "kind": "cancel",
+          "id": "t"
+        }
+      },
+      "actors": {
+        "kid": {
+          "kind": "machine",
+          "machine": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "CANCEL"
+          }
+        },
+        {
+          "advance": 300
+        }
+      ]
+    },
+    {
+      "name": "a delayed send that fires unregisters the id a later raise shares, so a cancel cancels nothing",
+      "test": "system.ts scheduler: schedule keys every delayed event by its id, whatever its target, so a delayed send and a raise under one id share timerMap's entry",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "kid",
+              "id": "kid"
+            },
+            "entry": [
+              "p_later",
+              "b_later"
+            ],
+            "on": {
+              "CANCEL": {
+                "actions": [
+                  "cancel_t"
+                ]
+              },
+              "B": "got_b"
+            }
+          },
+          "got_b": {}
+        }
+      },
+      "actions": {
+        "b_later": {
+          "kind": "raise",
+          "event": {
+            "type": "B"
+          },
+          "id": "t",
+          "delay": 200
+        },
+        "p_later": {
+          "kind": "send_to",
+          "target": "kid",
+          "event": {
+            "type": "P"
+          },
+          "id": "t",
+          "delay": 100
+        },
+        "cancel_t": {
+          "kind": "cancel",
+          "id": "t"
+        }
+      },
+      "actors": {
+        "kid": {
+          "kind": "machine",
+          "machine": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 150
+        },
+        {
+          "send": {
+            "type": "CANCEL"
+          }
+        },
+        {
+          "advance": 100
+        }
+      ]
+    },
+    {
+      "name": "a child an invoke of the same id replaced starts after the snapshot's children",
+      "test": "StateMachine.start starts the active children snapshot.children lists, in the order JavaScript enumerates its keys, integer-like ids first, before the deferred starts",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "initial": "s",
+        "states": {
+          "s": {
+            "entry": [
+              "spawn_c"
+            ],
+            "invoke": {
+              "src": "kid2",
+              "id": "c"
+            }
+          }
+        },
+        "on": {
+          "HELLO1": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "1"
+                }
+              }
+            ]
+          },
+          "HELLO2": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "2"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawn_c": {
+          "kind": "spawn_child",
+          "src": "kid1",
+          "id": "c"
+        }
+      },
+      "actors": {
+        "kid1": {
+          "kind": "machine",
+          "machine": {
+            "entry": [
+              "hello"
+            ]
+          },
+          "actions": {
+            "hello": {
+              "kind": "send_parent",
+              "event": {
+                "type": "HELLO1"
+              }
+            }
+          }
+        },
+        "kid2": {
+          "kind": "machine",
+          "machine": {
+            "entry": [
+              "hello"
+            ]
+          },
+          "actions": {
+            "hello": {
+              "kind": "send_parent",
+              "event": {
+                "type": "HELLO2"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "children whose ids are integers start first, as JavaScript enumerates their keys",
+      "test": "StateMachine.start starts the active children snapshot.children lists, in the order JavaScript enumerates its keys, integer-like ids first, before the deferred starts",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "initial": "s",
+        "states": {
+          "s": {
+            "entry": [
+              "spawn_z"
+            ],
+            "invoke": {
+              "src": "kid2",
+              "id": "1"
+            }
+          }
+        },
+        "on": {
+          "HELLO1": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "1"
+                }
+              }
+            ]
+          },
+          "HELLO2": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "2"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawn_z": {
+          "kind": "spawn_child",
+          "src": "kid1",
+          "id": "z"
+        }
+      },
+      "actors": {
+        "kid1": {
+          "kind": "machine",
+          "machine": {
+            "entry": [
+              "hello"
+            ]
+          },
+          "actions": {
+            "hello": {
+              "kind": "send_parent",
+              "event": {
+                "type": "HELLO1"
+              }
+            }
+          }
+        },
+        "kid2": {
+          "kind": "machine",
+          "machine": {
+            "entry": [
+              "hello"
+            ]
+          },
+          "actions": {
+            "hello": {
+              "kind": "send_parent",
+              "event": {
+                "type": "HELLO2"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a born-done child's start fails its parent when a grandchild of the macrostep holds its systemId",
+      "test": "createActor.ts start(): a child born done claims its systemId again, held by a grandchild that a later spawn of the same macrostep constructed",
+      "machine": {
+        "context": {},
+        "on": {
+          "GO": {
+            "actions": [
+              "spawn_d",
+              "spawn_f"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawn_d": {
+          "kind": "spawn_child",
+          "src": "ended",
+          "id": "d",
+          "systemId": "x"
+        },
+        "spawn_f": {
+          "kind": "spawn_child",
+          "src": "holding",
+          "id": "f"
+        }
+      },
+      "actors": {
+        "ended": {
+          "kind": "machine",
+          "machine": {
+            "initial": "f",
+            "states": {
+              "f": {
+                "type": "final"
+              }
+            }
+          }
+        },
+        "holding": {
+          "kind": "machine",
+          "machine": {
+            "invoke": {
+              "src": "idle",
+              "id": "g",
+              "systemId": "x"
+            }
+          },
+          "actors": {
+            "idle": {
+              "kind": "machine",
+              "machine": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "two children whose systemId is the empty string both run",
+      "test": "createActor.ts registers a systemId only `if (systemId)`, so the empty string registers nothing",
+      "machine": {
+        "entry": [
+          "sp1",
+          "sp2"
+        ]
+      },
+      "actions": {
+        "sp1": {
+          "kind": "spawn_child",
+          "src": "kid",
+          "id": "k1",
+          "systemId": ""
+        },
+        "sp2": {
+          "kind": "spawn_child",
+          "src": "kid",
+          "id": "k2",
+          "systemId": ""
+        }
+      },
+      "actors": {
+        "kid": {
+          "kind": "machine",
+          "machine": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a forwardTo to the empty systemId finds no actor and fails",
+      "test": "createActor.ts registers a systemId only `if (systemId)`, so the empty string registers nothing; send.ts forwardTo's development check then throws",
+      "machine": {
+        "entry": [
+          "sp1"
+        ],
+        "on": {
+          "GO": {
+            "actions": [
+              "fwd"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "sp1": {
+          "kind": "spawn_child",
+          "src": "kid",
+          "id": "k1",
+          "systemId": ""
+        },
+        "fwd": {
+          "kind": "forward_to",
+          "target": "#system:"
+        }
+      },
+      "actors": {
+        "kid": {
+          "kind": "machine",
+          "machine": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a send_to declared without a target sends to the actor itself",
+      "test": "send.ts resolveSendTo: a target that resolves to undefined is the actor itself",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "on": {
+          "GO": {
+            "actions": [
+              "snd"
+            ]
+          },
+          "PING": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "ping"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "snd": {
+          "kind": "send_to",
+          "event": {
+            "type": "PING"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

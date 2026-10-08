@@ -1,0 +1,970 @@
+{
+  "source": "actor.test.ts (lines 851 to 1840)",
+  "cases": [
+    {
+      "name": "an initial entry that spawns four promises runs once, through the start and each promise's done",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {
+                      "items": [
+                        0,
+                        1,
+                        2,
+                        3
+                      ],
+                      "count": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "start",
+                      "start.start"
+                    ],
+                    "children": {
+                      "item0": "item",
+                      "item1": "item",
+                      "item2": "item",
+                      "item3": "item"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/item0": "active",
+            "root/item1": "active",
+            "root/item2": "active",
+            "root/item3": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/item0",
+              "src": "item",
+              "input": 0
+            },
+            {
+              "actor": "root/item1",
+              "src": "item",
+              "input": 1
+            },
+            {
+              "actor": "root/item2",
+              "src": "item",
+              "input": 2
+            },
+            {
+              "actor": "root/item3",
+              "src": "item",
+              "input": 3
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.item0",
+                    "output": 0,
+                    "actorId": "item0"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {
+                      "items": [
+                        0,
+                        1,
+                        2,
+                        3
+                      ],
+                      "count": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "start",
+                      "start.start"
+                    ],
+                    "children": {
+                      "item0": "item",
+                      "item1": "item",
+                      "item2": "item",
+                      "item3": "item"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/item0": "done",
+            "root/item1": "active",
+            "root/item2": "active",
+            "root/item3": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/item1",
+              "src": "item",
+              "input": 1
+            },
+            {
+              "actor": "root/item2",
+              "src": "item",
+              "input": 2
+            },
+            {
+              "actor": "root/item3",
+              "src": "item",
+              "input": 3
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.item1",
+                    "output": 1,
+                    "actorId": "item1"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {
+                      "items": [
+                        0,
+                        1,
+                        2,
+                        3
+                      ],
+                      "count": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "start",
+                      "start.start"
+                    ],
+                    "children": {
+                      "item0": "item",
+                      "item1": "item",
+                      "item2": "item",
+                      "item3": "item"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/item0": "done",
+            "root/item1": "done",
+            "root/item2": "active",
+            "root/item3": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/item2",
+              "src": "item",
+              "input": 2
+            },
+            {
+              "actor": "root/item3",
+              "src": "item",
+              "input": 3
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.item2",
+                    "output": 2,
+                    "actorId": "item2"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {
+                      "items": [
+                        0,
+                        1,
+                        2,
+                        3
+                      ],
+                      "count": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "start",
+                      "start.start"
+                    ],
+                    "children": {
+                      "item0": "item",
+                      "item1": "item",
+                      "item2": "item",
+                      "item3": "item"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/item0": "done",
+            "root/item1": "done",
+            "root/item2": "done",
+            "root/item3": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/item3",
+              "src": "item",
+              "input": 3
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.item3",
+                    "output": 3,
+                    "actorId": "item3"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {
+                      "items": [
+                        0,
+                        1,
+                        2,
+                        3
+                      ],
+                      "count": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "start",
+                      "start.start"
+                    ],
+                    "children": {
+                      "item0": "item",
+                      "item1": "item",
+                      "item2": "item",
+                      "item3": "item"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/item0": "done",
+            "root/item1": "done",
+            "root/item2": "done",
+            "root/item3": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child invoked in the parent's initial state spawns its promise once when the parent starts",
+      "steps": [
+        {
+          "actors": {
+            "root/0.(machine).foo": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "bar",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).bar"
+                    ],
+                    "children": {
+                      "promise": "answer"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "foo",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).foo"
+                    ],
+                    "children": {
+                      "0.(machine).foo": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).foo": "active",
+            "root/0.(machine).foo/promise": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).foo/promise",
+              "src": "answer"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root/0.(machine).foo": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.promise",
+                    "output": "answer",
+                    "actorId": "promise"
+                  },
+                  "snapshot": {
+                    "value": "bar",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).bar"
+                    ],
+                    "children": {
+                      "promise": "answer"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).foo": "active",
+            "root/0.(machine).foo/promise": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a machine spawned on start that pings its parent from its entry takes the parent to done",
+      "steps": [
+        {
+          "actors": {
+            "root/another": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "hello",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).hello"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "testing",
+                    "context": {
+                      "count": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).testing"
+                    ],
+                    "children": {
+                      "another": "anotherMachine"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "ping"
+                  },
+                  "snapshot": {
+                    "value": "done",
+                    "context": {
+                      "count": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).done"
+                    ],
+                    "children": {
+                      "another": "anotherMachine"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/another": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a promise spawned by the root's entry fulfills with 42 and its done event completes the parent",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pending"
+                    ],
+                    "children": {
+                      "test": "countPromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/test": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/test",
+              "src": "countPromise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.test",
+                    "output": 42,
+                    "actorId": "test"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).success",
+                      "(machine)"
+                    ],
+                    "children": {
+                      "test": "countPromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/test": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a promise spawned on start rejects and its error event completes the parent",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pending"
+                    ],
+                    "children": {
+                      "test": "countPromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/test": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/test",
+              "src": "countPromise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.test",
+                    "error": "An error occurred",
+                    "actorId": "test"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).success",
+                      "(machine)"
+                    ],
+                    "children": {
+                      "test": "countPromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/test": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a machine spawned on start sends TEST to its parent from its entry and the parent completes",
+      "steps": [
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "waiting",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).waiting"
+                    ],
+                    "children": {
+                      "child": "childMachine"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "TEST"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).success",
+                      "(machine)"
+                    ],
+                    "children": {
+                      "child": "childMachine"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/child": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child spawned by the root's entry that is done at once leaves its parent active",
+      "steps": [
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "stopped",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).stopped",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "child": null
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "child": "childMachine"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.done.actor.child",
+                    "actorId": "child"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "child": null
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "child": "childMachine"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a promise spawned on an event rejects and its unhandled error fails the parent with that error",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "event"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "promise": "failing"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/promise": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/promise",
+              "src": "failing"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.promise",
+                    "error": {
+                      "message": "uh oh"
+                    },
+                    "actorId": "promise"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "error",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "error": {
+                      "message": "uh oh"
+                    },
+                    "children": {
+                      "promise": "failing"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "error",
+            "root/promise": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a promise spawned by the root's entry that settles with null right after start leaves its parent active",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "child": null
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "child": "promiseLogic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/child",
+              "src": "promiseLogic"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.child",
+                    "output": null,
+                    "actorId": "child"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "child": null
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "child": "promiseLogic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "done"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

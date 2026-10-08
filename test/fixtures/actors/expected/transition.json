@@ -1,0 +1,163 @@
+{
+  "source": "transition.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "a workflow of two invoked promises ends in finish",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "sendingWelcomeEmail",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).sendingWelcomeEmail"
+                    ],
+                    "children": {
+                      "0.(machine).sendingWelcomeEmail": "sendWelcomeEmail"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).sendingWelcomeEmail": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).sendingWelcomeEmail",
+              "src": "sendWelcomeEmail",
+              "input": {
+                "message": "hello world",
+                "subject": "hi"
+              }
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.(machine).sendingWelcomeEmail",
+                    "output": {
+                      "status": "sent"
+                    },
+                    "actorId": "0.(machine).sendingWelcomeEmail"
+                  },
+                  "snapshot": {
+                    "value": "logSent",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).logSent"
+                    ],
+                    "children": {
+                      "0.(machine).logSent": "logSentPromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).sendingWelcomeEmail": "done",
+            "root/0.(machine).logSent": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).logSent",
+              "src": "logSentPromise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "sent"
+                  },
+                  "snapshot": {
+                    "value": "logSent",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).logSent"
+                    ],
+                    "children": {
+                      "0.(machine).logSent": "logSentPromise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).sendingWelcomeEmail": "done",
+            "root/0.(machine).logSent": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).logSent",
+              "src": "logSentPromise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.(machine).logSent",
+                    "output": null,
+                    "actorId": "0.(machine).logSent"
+                  },
+                  "snapshot": {
+                    "value": "finish",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).finish"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).sendingWelcomeEmail": "done",
+            "root/0.(machine).logSent": "done"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "source": "clock.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "an invoked child's after timer runs on the root's clock",
+      "steps": [
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "child": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.10000.(machine).a"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).b"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "active"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

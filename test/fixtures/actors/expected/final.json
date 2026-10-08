@@ -1,0 +1,381 @@
+{
+  "source": "final.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "a child's exit actions run once when it ends and its parent then stops it",
+      "steps": [
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).start"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).start"
+                    ],
+                    "children": {
+                      "child": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "CHILD_CANCELED"
+                  },
+                  "snapshot": {
+                    "value": "canceled",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).canceled"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.done.actor.child",
+                    "actorId": "child"
+                  },
+                  "snapshot": {
+                    "value": "canceled",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).canceled"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "CANCEL"
+                  },
+                  "snapshot": {
+                    "value": "canceled",
+                    "context": {
+                      "log": [
+                        "exit"
+                      ]
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).canceled",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": [
+                {
+                  "type": "exitCalled"
+                }
+              ]
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a final state's entry sendParent reaches the parent before the child's done event",
+      "steps": [
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).start"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).start"
+                    ],
+                    "children": {
+                      "child": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "CHILD_CANCELED"
+                  },
+                  "snapshot": {
+                    "value": "canceled",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).canceled"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.done.actor.child",
+                    "actorId": "child"
+                  },
+                  "snapshot": {
+                    "value": "canceled",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).canceled"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "CANCEL"
+                  },
+                  "snapshot": {
+                    "value": "canceled",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).canceled",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child root's exit sendParent reaches the parent before the child's done event",
+      "steps": [
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).start"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).start"
+                    ],
+                    "children": {
+                      "child": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "CHILD_CANCELED"
+                  },
+                  "snapshot": {
+                    "value": "canceled",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).canceled"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.done.actor.child",
+                    "actorId": "child"
+                  },
+                  "snapshot": {
+                    "value": "canceled",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).canceled"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "CANCEL"
+                  },
+                  "snapshot": {
+                    "value": "canceled",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).canceled",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "done"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

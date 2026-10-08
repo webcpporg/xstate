@@ -1,0 +1,682 @@
+{
+  "source": "predictableExec.test.ts",
+  "cases": [
+    {
+      "name": "entry actions standing for a custom action and an assign push in their definition order",
+      "test": "predictableExec.test.ts > predictableExec > should call mixed custom and builtin actions in the definitions order",
+      "machine": {
+        "initial": "a",
+        "context": {
+          "log": []
+        },
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "custom"
+                }
+              },
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "assign"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an initial entry action has run once the actor has started",
+      "test": "predictableExec.test.ts > predictableExec > should call initial custom actions when starting a service (the flag once the actor has started; the check that it is still false comes before the actor is created, where there is nothing a step could record; the custom action is a set of the context)",
+      "machine": {
+        "context": {
+          "called": false
+        },
+        "entry": [
+          {
+            "type": "set",
+            "params": {
+              "key": "called",
+              "value": true
+            }
+          }
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "the actions of a transition taken on a raised event receive the raised event",
+      "test": "predictableExec.test.ts > predictableExec > should call raised transition custom actions with raised event",
+      "machine": {
+        "context": {
+          "events": []
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "on": {
+              "RAISED": {
+                "target": "c",
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "events"
+                    }
+                  }
+                ]
+              }
+            },
+            "entry": [
+              "raise_raised"
+            ]
+          },
+          "c": {}
+        }
+      },
+      "actions": {
+        "raise_raised": {
+          "kind": "raise",
+          "event": {
+            "type": "RAISED"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "the assign of a transition taken on a raised event receives the raised event",
+      "test": "predictableExec.test.ts > predictableExec > should call raised transition builtin actions with raised event",
+      "machine": {
+        "context": {
+          "events": []
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "on": {
+              "RAISED": {
+                "target": "c",
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "events"
+                    }
+                  }
+                ]
+              }
+            },
+            "entry": [
+              "raise_raised"
+            ]
+          },
+          "c": {}
+        }
+      },
+      "actions": {
+        "raise_raised": {
+          "kind": "raise",
+          "event": {
+            "type": "RAISED"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a custom action between two assigns sees the context the first assign left",
+      "test": "predictableExec.test.ts > predictableExec > should correctly provide intermediate context value to a custom action executed in between assign actions (a spawnChild of a host actor stands for the custom action, so the input of its pending request shows the context it saw)",
+      "machine": {
+        "context": {
+          "counter": 0
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              {
+                "type": "set",
+                "params": {
+                  "key": "counter",
+                  "value": 1
+                }
+              },
+              "record_counter",
+              {
+                "type": "set",
+                "params": {
+                  "key": "counter",
+                  "value": 2
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "record_counter": {
+          "kind": "spawn_child",
+          "src": "seen",
+          "id": "calledWith",
+          "input_from_context": "counter"
+        }
+      },
+      "actors": {
+        "seen": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "three initial custom actions each see the context only the assigns before them left",
+      "test": "predictableExec.test.ts > predictableExec > initial actions should receive context updated only by preceding assign actions (a spawnChild of a host actor stands for each custom action, with the ids first, second and third in their order, so the input of each pending request shows the context that action saw)",
+      "machine": {
+        "context": {
+          "count": 0
+        },
+        "entry": [
+          "record_first",
+          {
+            "type": "set",
+            "params": {
+              "key": "count",
+              "value": 1
+            }
+          },
+          "record_second",
+          {
+            "type": "set",
+            "params": {
+              "key": "count",
+              "value": 2
+            }
+          },
+          "record_third"
+        ]
+      },
+      "actions": {
+        "record_first": {
+          "kind": "spawn_child",
+          "src": "seen",
+          "id": "first",
+          "input_from_context": "count"
+        },
+        "record_second": {
+          "kind": "spawn_child",
+          "src": "seen",
+          "id": "second",
+          "input_from_context": "count"
+        },
+        "record_third": {
+          "kind": "spawn_child",
+          "src": "seen",
+          "id": "third",
+          "input_from_context": "count"
+        }
+      },
+      "actors": {
+        "seen": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "an entry sendTo reaches the child its state invokes, which answers before the start returns",
+      "test": "predictableExec.test.ts > predictableExec > should be possible to send immediate events to initially invoked actors (the first test of this name, at line 337)",
+      "machine": {
+        "initial": "waiting",
+        "states": {
+          "waiting": {
+            "invoke": {
+              "id": "ponger",
+              "src": "child"
+            },
+            "entry": [
+              "ping"
+            ],
+            "on": {
+              "PONG": "done"
+            }
+          },
+          "done": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "ping": {
+          "kind": "send_to",
+          "target": "ponger",
+          "event": {
+            "type": "PING"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "on": {
+              "PING": {
+                "actions": [
+                  "pong"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "pong": {
+              "kind": "send_parent",
+              "event": {
+                "type": "PONG"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "an entry sendTo reaches a child machine invoked by the same state",
+      "test": "predictableExec.test.ts > predictableExec > should deliver events sent from the entry actions to a service invoked in the same state",
+      "machine": {
+        "context": {
+          "updated": false
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              "knock"
+            ],
+            "invoke": {
+              "id": "myChild",
+              "src": "child"
+            }
+          }
+        }
+      },
+      "actions": {
+        "knock": {
+          "kind": "send_to",
+          "target": "myChild",
+          "event": {
+            "type": "KNOCK_KNOCK"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "context": {
+              "received": []
+            },
+            "on": {
+              "*": {
+                "actions": [
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "received"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an entry sendTo reaches the child its state invokes, the second test of that name",
+      "test": "predictableExec.test.ts > predictableExec > should be possible to send immediate events to initially invoked actors (the second test of this name, at line 507, a copy of the one at line 337)",
+      "machine": {
+        "initial": "waiting",
+        "states": {
+          "waiting": {
+            "invoke": {
+              "id": "ponger",
+              "src": "child"
+            },
+            "entry": [
+              "ping"
+            ],
+            "on": {
+              "PONG": "done"
+            }
+          },
+          "done": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "ping": {
+          "kind": "send_to",
+          "target": "ponger",
+          "event": {
+            "type": "PING"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "on": {
+              "PING": {
+                "actions": [
+                  "pong"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "pong": {
+              "kind": "send_parent",
+              "event": {
+                "type": "PONG"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "an exit action's sendTo reaches the child the state invokes before the child stops",
+      "test": "predictableExec.test.ts > predictableExec > should deliver events sent from the exit actions to a service invoked in the same state (the callback that resolves on MY_EVENT is a machine that records it)",
+      "machine": {
+        "initial": "active",
+        "states": {
+          "active": {
+            "invoke": {
+              "id": "my-service",
+              "src": "service"
+            },
+            "exit": [
+              "tell"
+            ],
+            "on": {
+              "TOGGLE": "inactive"
+            }
+          },
+          "inactive": {}
+        }
+      },
+      "actions": {
+        "tell": {
+          "kind": "send_to",
+          "target": "my-service",
+          "event": {
+            "type": "MY_EVENT"
+          }
+        }
+      },
+      "actors": {
+        "service": {
+          "kind": "machine",
+          "machine": {
+            "context": {
+              "log": []
+            },
+            "on": {
+              "MY_EVENT": {
+                "actions": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "log",
+                      "value": "MY_EVENT"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TOGGLE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an invoke's input is computed from the context the entry assign of its state left",
+      "test": "predictableExec.test.ts > predictableExec > should create invoke based on context updated by entry actions of the same state (the expect on input.updated is the pending request's input)",
+      "machine": {
+        "context": {
+          "updated": false
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              {
+                "type": "set",
+                "params": {
+                  "key": "updated",
+                  "value": true
+                }
+              }
+            ],
+            "invoke": {
+              "src": "promise"
+            }
+          }
+        }
+      },
+      "inputs": {
+        "0.(machine).b": {
+          "updated": {
+            "$context": "updated"
+          }
+        }
+      },
+      "actors": {
+        "promise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an invoke's input is computed from the raised event that entered its state",
+      "test": "predictableExec.test.ts > predictableExec > should call invoke creator with raised event (the fromCallback child is a host actor here, whose pending request shows the input the callback would read)",
+      "machine": {
+        "context": {},
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "on": {
+              "RAISED": "c"
+            },
+            "entry": [
+              "raise_raised"
+            ]
+          },
+          "c": {
+            "invoke": {
+              "src": "cb"
+            }
+          }
+        }
+      },
+      "actions": {
+        "raise_raised": {
+          "kind": "raise",
+          "event": {
+            "type": "RAISED"
+          }
+        }
+      },
+      "actors": {
+        "cb": {
+          "kind": "host"
+        }
+      },
+      "inputs": {
+        "0.(machine).c": {
+          "event": {
+            "$event": ""
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "predictableExec.test.ts > predictableExec > should resolve initial assign actions before starting a service",
+      "reason": "the only assertion reads the snapshot of an actor created and never started (createActor(machine).getSnapshot().context.called). A create step now creates the root without starting it, but the oracle records a snapshot only when an actor processes an event (the first at start()), so a create step writes nothing of the context; and xstate constructs the root only on the host's start (doc: #differences-construction), so before start there is no resolved context to compare. It would need a step that reads a created root's snapshot and a root constructed by create_actor"
+    },
+    {
+      "test": "predictableExec.test.ts > predictableExec > invoked child should be available on the new state",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the invoked child is fromCallback(() => {})"
+    },
+    {
+      "test": "predictableExec.test.ts > predictableExec > invoked child should not be available on the state after leaving invoking state",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the invoked child is fromCallback(() => {})"
+    },
+    {
+      "test": "predictableExec.test.ts > predictableExec > parent should be able to read the updated state of a child when receiving an event from it (the first test of this name, at line 271)",
+      "reason": "the guard reads the child's snapshot through the parent's actor reference (service.getSnapshot().children.myChild.getSnapshot().value === 'b'), a function of another actor that no guard of the vocabulary stands for; without it the transition to success holds whatever the child's state, so the record would not show what the test asserts"
+    },
+    {
+      "test": "predictableExec.test.ts > predictableExec > parent should be able to read the updated state of a child when receiving an event from it (the second test of this name, at line 444)",
+      "reason": "the guard reads the child's snapshot through the parent's actor reference (service.getSnapshot().children.myChild.getSnapshot().value === 'b'), a function of another actor that no guard of the vocabulary stands for; without it the transition to success holds whatever the child's state, so the record would not show what the test asserts"
+    }
+  ]
+}

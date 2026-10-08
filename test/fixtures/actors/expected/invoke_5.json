@@ -1,0 +1,1075 @@
+{
+  "source": "invoke.test.ts (lines 2537 to 3534)",
+  "cases": [
+    {
+      "name": "a child machine invoked in a nested state answers the entry's ping and the parent finishes",
+      "steps": [
+        {
+          "actors": {
+            "root/pong": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "pong",
+                      "pong.active"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "PING"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "pong",
+                      "pong.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "innerMachine": "active"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "ping",
+                      "ping.innerMachine",
+                      "ping.innerMachine.active"
+                    ],
+                    "children": {
+                      "pong": "pongMachine"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "PONG"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "ping.success",
+                      "ping"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/pong": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a host actor receives the invoke's static input and its output finishes the machine",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "searching",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).searching"
+                    ],
+                    "children": {
+                      "0.(machine).searching": "search"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).searching": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).searching",
+              "src": "search",
+              "input": {
+                "endpoint": "example.com"
+              }
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.(machine).searching",
+                    "output": 42,
+                    "actorId": "0.(machine).searching"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).success",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.(machine).searching": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an invoke without an id is named after its index and state, and its done event carries that name",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).a"
+                    ],
+                    "children": {
+                      "0.(machine).a": "someSrc"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).a": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).a",
+              "src": "someSrc"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.(machine).a",
+                    "actorId": "0.(machine).a"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).b",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.(machine).a": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an invoke of a machine given in place registers a child under its generated id",
+      "steps": [
+        {
+          "actors": {
+            "root/0.machine.a": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "someId"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "machine",
+                      "machine.a"
+                    ],
+                    "children": {
+                      "0.machine.a": "someId"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.machine.a": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "the done of one of two invokes of the same src selects only its own state's onDone",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "first": "fetch",
+                      "second": "fetch"
+                    },
+                    "context": {
+                      "counter": 0
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).first",
+                      "(machine).first.fetch",
+                      "(machine).second",
+                      "(machine).second.fetch"
+                    ],
+                    "children": {
+                      "0.(machine).first.fetch": "fetchSmth",
+                      "0.(machine).second.fetch": "fetchSmth"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).first.fetch": "active",
+            "root/0.(machine).second.fetch": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).first.fetch",
+              "src": "fetchSmth"
+            },
+            {
+              "actor": "root/0.(machine).second.fetch",
+              "src": "fetchSmth"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.(machine).first.fetch",
+                    "output": 42,
+                    "actorId": "0.(machine).first.fetch"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "first": "fetch",
+                      "second": "fetch"
+                    },
+                    "context": {
+                      "counter": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).first",
+                      "(machine).first.fetch",
+                      "(machine).second",
+                      "(machine).second.fetch"
+                    ],
+                    "children": {
+                      "0.(machine).first.fetch": "fetchSmth",
+                      "0.(machine).second.fetch": "fetchSmth"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).first.fetch": "done",
+            "root/0.(machine).second.fetch": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).second.fetch",
+              "src": "fetchSmth"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "two invokes of one machine report their done under their own invoke ids",
+      "steps": [
+        {
+          "actors": {
+            "root/0.(machine).first.fetch": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.a"
+                    ],
+                    "children": {
+                      "0.child.a": "answer"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/0.(machine).second.fetch": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.a"
+                    ],
+                    "children": {
+                      "0.child.a": "answer"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "first": "fetch",
+                      "second": "fetch"
+                    },
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).first",
+                      "(machine).first.fetch",
+                      "(machine).second",
+                      "(machine).second.fetch"
+                    ],
+                    "children": {
+                      "0.(machine).first.fetch": "childMachine",
+                      "0.(machine).second.fetch": "childMachine"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).first.fetch": "active",
+            "root/0.(machine).first.fetch/0.child.a": "active",
+            "root/0.(machine).second.fetch": "active",
+            "root/0.(machine).second.fetch/0.child.a": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).first.fetch/0.child.a",
+              "src": "answer"
+            },
+            {
+              "actor": "root/0.(machine).second.fetch/0.child.a",
+              "src": "answer"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.(machine).first.fetch",
+                    "actorId": "0.(machine).first.fetch"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "first": "fetch",
+                      "second": "fetch"
+                    },
+                    "context": {
+                      "log": [
+                        "xstate.done.actor.0.(machine).first.fetch"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).first",
+                      "(machine).first.fetch",
+                      "(machine).second",
+                      "(machine).second.fetch"
+                    ],
+                    "children": {
+                      "0.(machine).first.fetch": "childMachine",
+                      "0.(machine).second.fetch": "childMachine"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/0.(machine).first.fetch": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.child.a",
+                    "output": 42,
+                    "actorId": "0.child.a"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "child.b",
+                      "child"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).first.fetch": "done",
+            "root/0.(machine).first.fetch/0.child.a": "done",
+            "root/0.(machine).second.fetch": "active",
+            "root/0.(machine).second.fetch/0.child.a": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).second.fetch/0.child.a",
+              "src": "answer"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.(machine).second.fetch",
+                    "actorId": "0.(machine).second.fetch"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "first": "fetch",
+                      "second": "fetch"
+                    },
+                    "context": {
+                      "log": [
+                        "xstate.done.actor.0.(machine).first.fetch",
+                        "xstate.done.actor.0.(machine).second.fetch"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).first",
+                      "(machine).first.fetch",
+                      "(machine).second",
+                      "(machine).second.fetch"
+                    ],
+                    "children": {
+                      "0.(machine).first.fetch": "childMachine",
+                      "0.(machine).second.fetch": "childMachine"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/0.(machine).second.fetch": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.child.a",
+                    "output": 42,
+                    "actorId": "0.child.a"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "child.b",
+                      "child"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).first.fetch": "done",
+            "root/0.(machine).first.fetch/0.child.a": "done",
+            "root/0.(machine).second.fetch": "done",
+            "root/0.(machine).second.fetch/0.child.a": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a delayed event the invoking state's entry sends reaches the invoked child, whose answer finishes the parent",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/foo": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "NEXT"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).b"
+                    ],
+                    "children": {
+                      "foo": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/foo": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "PONG"
+                  },
+                  "snapshot": {
+                    "value": "c",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).c",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/foo": {
+              "events": [
+                {
+                  "event": {
+                    "type": "PING"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/foo": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a host actor receives the invoke's input computed from the context and its output finishes the machine",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "searching",
+                    "context": {
+                      "url": "example.com"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).searching"
+                    ],
+                    "children": {
+                      "0.(machine).searching": "search"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).searching": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).searching",
+              "src": "search",
+              "input": {
+                "endpoint": "example.com"
+              }
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.(machine).searching",
+                    "output": 42,
+                    "actorId": "0.(machine).searching"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {
+                      "url": "example.com"
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).success",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.(machine).searching": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a root reentering transition stops the root's pending invoke and starts it again",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "one",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.one"
+                    ],
+                    "children": {
+                      "0.root": "promise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.root": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.root",
+              "src": "promise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "EVENT"
+                  },
+                  "snapshot": {
+                    "value": "two",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "two"
+                    ],
+                    "children": {
+                      "0.root": "promise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.root": "stopped",
+            "root/0.root#2": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.root#2",
+              "src": "promise"
+            }
+          ]
+        },
+        {
+          "refused": true,
+          "actors": {},
+          "statuses": {
+            "root": "active",
+            "root/0.root": "stopped",
+            "root/0.root#2": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.root#2",
+              "src": "promise"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.root",
+                    "output": 42,
+                    "actorId": "0.root"
+                  },
+                  "snapshot": {
+                    "value": "two",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "two"
+                    ],
+                    "children": {
+                      "0.root": "promise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.root": "stopped",
+            "root/0.root#2": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a host actor receives an input of a fixed member and one computed from the context",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {
+                      "count": 42
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).pending"
+                    ],
+                    "children": {
+                      "0.(machine).pending": "stringService"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine).pending": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/0.(machine).pending",
+              "src": "stringService",
+              "input": {
+                "staticVal": "hello",
+                "newCount": 84
+              }
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.(machine).pending",
+                    "output": true,
+                    "actorId": "0.(machine).pending"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {
+                      "count": 42
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).success",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.(machine).pending": "done"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

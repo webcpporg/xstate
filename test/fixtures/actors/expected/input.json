@@ -1,0 +1,335 @@
+{
+  "source": "input.test.ts",
+  "cases": [
+    {
+      "name": "an invoked machine's context and initial event carry the invoke's input",
+      "steps": [
+        {
+          "actors": {
+            "root/0.(machine)": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": {
+                      "greeting": "hello"
+                    }
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "greeting": "hello",
+                      "input": {
+                        "greeting": "hello"
+                      }
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "0.(machine)": "invokedMachine"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine)": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a spawned machine's context and initial event carry the spawn's input",
+      "steps": [
+        {
+          "actors": {
+            "root/spawned": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": {
+                      "greeting": "hello"
+                    }
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "greeting": "hello",
+                      "input": {
+                        "greeting": "hello"
+                      }
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "spawned": "spawnedMachine"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/spawned": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a host actor receives its input and is done with the output it is answered",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "promise": "promiseLogic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/promise": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/promise",
+              "src": "promiseLogic",
+              "input": {
+                "count": 42
+              }
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.promise",
+                    "output": {
+                      "count": 42
+                    },
+                    "actorId": "promise"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "output": {
+                        "count": 42
+                      }
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "promise": "promiseLogic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/promise": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a referenced child receives the invoke's static input",
+      "steps": [
+        {
+          "actors": {
+            "root/0.(machine)": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": 42
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "input": 42
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "0.(machine)": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine)": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a referenced child receives the invoke's input computed from the context",
+      "steps": [
+        {
+          "actors": {
+            "root/0.(machine)": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": 142
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "input": 142
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": {
+                      "count": 42
+                    }
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "count": 42
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "0.(machine)": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.(machine)": "active"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

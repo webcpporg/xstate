@@ -1,0 +1,208 @@
+{
+  "source": "final.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "a child's exit actions run once when it ends and its parent then stops it",
+      "test": "final.test.ts > final states > should only call exit actions once when a child machine reaches its final state and sends an event to its parent that ends up stopping that child (the exit spy as a push into the child's context and an emitted exitCalled: the push shows the one call in the child's done snapshot; webcpp::xstate's recorder hears every emit, so a second call when the parent stops the child would show there as a second exitCalled, while XState clears a done actor's listeners, so its record shows only the calls up to the child's done, and makes none after it, a stop running no exit action)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "invoke": {
+              "id": "child",
+              "src": "child",
+              "onDone": "completed"
+            },
+            "on": {
+              "CHILD_CANCELED": "canceled"
+            }
+          },
+          "canceled": {},
+          "completed": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "context": {
+              "log": []
+            },
+            "initial": "start",
+            "exit": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "exit"
+                }
+              },
+              "emitExit"
+            ],
+            "states": {
+              "start": {
+                "on": {
+                  "CANCEL": "canceled"
+                }
+              },
+              "canceled": {
+                "type": "final",
+                "entry": [
+                  "sendCanceled"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "sendCanceled": {
+              "kind": "send_parent",
+              "event": {
+                "type": "CHILD_CANCELED"
+              }
+            },
+            "emitExit": {
+              "kind": "emit",
+              "event": {
+                "type": "exitCalled"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "CANCEL"
+          },
+          "to": "root/child"
+        }
+      ]
+    },
+    {
+      "name": "a final state's entry sendParent reaches the parent before the child's done event",
+      "test": "final.test.ts > final states > should deliver final outgoing events (from final entry action) to the parent before delivering the `xstate.done.actor.*` event",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "invoke": {
+              "id": "child",
+              "src": "child",
+              "onDone": "completed"
+            },
+            "on": {
+              "CHILD_CANCELED": "canceled"
+            }
+          },
+          "canceled": {},
+          "completed": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "initial": "start",
+            "states": {
+              "start": {
+                "on": {
+                  "CANCEL": "canceled"
+                }
+              },
+              "canceled": {
+                "type": "final",
+                "entry": [
+                  "sendCanceled"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "sendCanceled": {
+              "kind": "send_parent",
+              "event": {
+                "type": "CHILD_CANCELED"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "CANCEL"
+          },
+          "to": "root/child"
+        }
+      ]
+    },
+    {
+      "name": "a child root's exit sendParent reaches the parent before the child's done event",
+      "test": "final.test.ts > final states > should deliver final outgoing events (from root exit action) to the parent before delivering the `xstate.done.actor.*` event",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "invoke": {
+              "id": "child",
+              "src": "child",
+              "onDone": "completed"
+            },
+            "on": {
+              "CHILD_CANCELED": "canceled"
+            }
+          },
+          "canceled": {},
+          "completed": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "initial": "start",
+            "states": {
+              "start": {
+                "on": {
+                  "CANCEL": "canceled"
+                }
+              },
+              "canceled": {
+                "type": "final"
+              }
+            },
+            "exit": [
+              "sendCanceled"
+            ]
+          },
+          "actions": {
+            "sendCanceled": {
+              "kind": "send_parent",
+              "event": {
+                "type": "CHILD_CANCELED"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "CANCEL"
+          },
+          "to": "root/child"
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

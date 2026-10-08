@@ -1,0 +1,10 @@
+{
+  "source": "order.test.ts",
+  "cases": [],
+  "excluded": [
+    {
+      "test": "order.test.ts > document order > should specify the correct document order for each state node",
+      "reason": "inspects StateNode.order and StateNode.key directly via a manual tree walk; the oracle reports only snapshot value/context/tags/nodes and transitions, with no query for a node's document order (the same definition-shape category json.test.ts covers)"
+    }
+  ]
+}

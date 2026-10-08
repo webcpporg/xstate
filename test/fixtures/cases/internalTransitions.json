@@ -1,0 +1,496 @@
+{
+  "source": "internalTransitions.test.ts",
+  "cases": [
+    {
+      "name": "child transition does not re-enter parent",
+      "test": "internalTransitions.test.ts > internal transitions > parent state should enter child state without re-entering self",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "initial": "a",
+            "states": {
+              "a": {
+                "exit": "exitA"
+              },
+              "b": {
+                "entry": "enterB"
+              }
+            },
+            "entry": "enterFoo",
+            "exit": "exitFoo",
+            "on": {
+              "CLICK": ".b"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "CLICK"
+          }
+        },
+        {
+          "query": {
+            "matches": {
+              "foo": "b"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "reentering transition re-enters parent and child",
+      "test": "internalTransitions.test.ts > internal transitions > parent state should re-enter self upon transitioning to child state if transition is reentering",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "initial": "left",
+            "states": {
+              "left": {
+                "exit": "exitLeft"
+              },
+              "right": {
+                "entry": "enterRight"
+              }
+            },
+            "entry": "enterFoo",
+            "exit": "exitFoo",
+            "on": {
+              "NEXT": {
+                "target": ".right",
+                "reenter": true
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "query": {
+            "matches": {
+              "foo": "right"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "explicit self-transition re-enters parent",
+      "test": "internalTransitions.test.ts > internal transitions > parent state should only exit/reenter if there is an explicit self-transition",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "initial": "a",
+            "states": {
+              "a": {
+                "entry": "enterA",
+                "on": {
+                  "NEXT": "b"
+                }
+              },
+              "b": {
+                "exit": "exitB"
+              }
+            },
+            "entry": "enterFoo",
+            "exit": "exitFoo",
+            "on": {
+              "RESET": {
+                "target": "foo",
+                "reenter": true
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "RESET"
+          }
+        },
+        {
+          "query": {
+            "matches": {
+              "foo": "a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "explicit self-transition to child re-enters parent",
+      "test": "internalTransitions.test.ts > internal transitions > parent state should only exit/reenter if there is an explicit self-transition (to child)",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "initial": "a",
+            "states": {
+              "a": {
+                "exit": "exitA"
+              },
+              "b": {
+                "entry": "enterB"
+              }
+            },
+            "entry": "enterFoo",
+            "exit": "exitFoo",
+            "on": {
+              "RESET_TO_B": {
+                "target": "foo.b",
+                "reenter": true
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "RESET_TO_B"
+          }
+        },
+        {
+          "query": {
+            "matches": {
+              "foo": "b"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "top-level event targets nested child",
+      "test": "internalTransitions.test.ts > internal transitions > should listen to events declared at top state",
+      "machine": {
+        "initial": "foo",
+        "on": {
+          "CLICKED": ".bar"
+        },
+        "states": {
+          "foo": {},
+          "bar": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "CLICKED"
+          }
+        },
+        {
+          "query": {
+            "matches": "bar"
+          }
+        }
+      ]
+    },
+    {
+      "name": "targetless transition array still runs actions",
+      "test": "internalTransitions.test.ts > internal transitions > should work with targetless transitions (in conditional array)",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "on": {
+              "TARGETLESS_ARRAY": [
+                {
+                  "actions": [
+                    "spy"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TARGETLESS_ARRAY"
+          }
+        }
+      ]
+    },
+    {
+      "name": "targetless transition object still runs actions",
+      "test": "internalTransitions.test.ts > internal transitions > should work with targetless transitions (in object)",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "on": {
+              "TARGETLESS_OBJECT": {
+                "actions": [
+                  "spy"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TARGETLESS_OBJECT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parent targetless transition array still runs actions",
+      "test": "internalTransitions.test.ts > internal transitions > should work on parent with targetless transitions (in conditional array)",
+      "machine": {
+        "on": {
+          "TARGETLESS_ARRAY": [
+            {
+              "actions": [
+                "spy"
+              ]
+            }
+          ]
+        },
+        "initial": "foo",
+        "states": {
+          "foo": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TARGETLESS_ARRAY"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parent targetless transition object still runs actions",
+      "test": "internalTransitions.test.ts > internal transitions > should work on parent with targetless transitions (in object)",
+      "machine": {
+        "on": {
+          "TARGETLESS_OBJECT": {
+            "actions": [
+              "spy"
+            ]
+          }
+        },
+        "initial": "foo",
+        "states": {
+          "foo": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TARGETLESS_OBJECT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parent targetless transition keeps child state",
+      "test": "internalTransitions.test.ts > internal transitions > should maintain the child state when targetless transition is handled by parent",
+      "machine": {
+        "initial": "foo",
+        "on": {
+          "PARENT_EVENT": {
+            "actions": "noop"
+          }
+        },
+        "states": {
+          "foo": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PARENT_EVENT"
+          }
+        },
+        {
+          "query": {
+            "matches": "foo"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reentering a descendant re-enters its ancestors up to the source",
+      "test": "internalTransitions.test.ts > internal transitions > should reenter proper descendants of a source state of an internal transition",
+      "machine": {
+        "context": {
+          "sourceStateEntries": 0,
+          "directDescendantEntries": 0,
+          "deepDescendantEntries": 0
+        },
+        "initial": "a1",
+        "states": {
+          "a1": {
+            "initial": "a11",
+            "entry": {
+              "type": "increment",
+              "params": {
+                "key": "sourceStateEntries"
+              }
+            },
+            "states": {
+              "a11": {
+                "initial": "a111",
+                "entry": {
+                  "type": "increment",
+                  "params": {
+                    "key": "directDescendantEntries"
+                  }
+                },
+                "states": {
+                  "a111": {
+                    "entry": {
+                      "type": "increment",
+                      "params": {
+                        "key": "deepDescendantEntries"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "on": {
+              "REENTER": ".a11.a111"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "REENTER"
+          }
+        },
+        {
+          "query": {
+            "matches": {
+              "a1": {
+                "a11": "a111"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "reentering a descendant exits its ancestors up to the source",
+      "test": "internalTransitions.test.ts > internal transitions > should exit proper descendants of a source state of an internal transition",
+      "machine": {
+        "context": {
+          "sourceStateExits": 0,
+          "directDescendantExits": 0,
+          "deepDescendantExits": 0
+        },
+        "initial": "a1",
+        "states": {
+          "a1": {
+            "initial": "a11",
+            "exit": {
+              "type": "increment",
+              "params": {
+                "key": "sourceStateExits"
+              }
+            },
+            "states": {
+              "a11": {
+                "initial": "a111",
+                "exit": {
+                  "type": "increment",
+                  "params": {
+                    "key": "directDescendantExits"
+                  }
+                },
+                "states": {
+                  "a111": {
+                    "exit": {
+                      "type": "increment",
+                      "params": {
+                        "key": "deepDescendantExits"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "on": {
+              "REENTER": ".a11.a111"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "REENTER"
+          }
+        },
+        {
+          "query": {
+            "matches": {
+              "a1": {
+                "a11": "a111"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

@@ -1,0 +1,1326 @@
+{
+  "source": "actions.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "an invoked child that starts final runs its own exit actions and the parent completes",
+      "test": "actions.test.ts > entry/exit actions > when reaching a final state > exit actions should be called when invoked machine reaches its final state (the two exit spies as pushes into the child's context; the parent's complete observer as its status done)",
+      "machine": {
+        "initial": "active",
+        "states": {
+          "active": {
+            "invoke": {
+              "src": "child",
+              "onDone": "finished"
+            }
+          },
+          "finished": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "context": {
+              "log": []
+            },
+            "exit": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "exit child root"
+                }
+              }
+            ],
+            "initial": "a",
+            "states": {
+              "a": {
+                "type": "final",
+                "exit": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "log",
+                      "value": "exit a"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "stopping a parent whose child sends from its exit action stops both quietly",
+      "test": "actions.test.ts > entry/exit actions > when stopped > stopping an interpreter that receives events from its children exit handlers should not throw (the absence of a throw as both actors stopped and no event processed)",
+      "machine": {
+        "id": "parent",
+        "invoke": {
+          "src": "child"
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "exit": [
+                  "sendExit"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "sendExit": {
+              "kind": "send_parent",
+              "event": {
+                "type": "EXIT"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "stop": true
+        }
+      ]
+    },
+    {
+      "name": "a done child's exit action reaches its parent",
+      "test": "actions.test.ts > entry/exit actions > when stopped > sent events from exit handlers of a done child should be received by the parent  (the child is spawned by a spawnChild in the root's entry under an id and named by it, since a case's context cannot spawn and holds no actor reference; the parent's spy as a push into its context)",
+      "machine": {
+        "id": "parent",
+        "context": {
+          "log": []
+        },
+        "entry": [
+          "spawnTheChild"
+        ],
+        "on": {
+          "FINISH_CHILD": {
+            "actions": [
+              "finishTheChild"
+            ]
+          },
+          "CHILD_DONE": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "CHILD_DONE received"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawnTheChild": {
+          "kind": "spawn_child",
+          "src": "child",
+          "id": "child"
+        },
+        "finishTheChild": {
+          "kind": "send_to",
+          "target": "child",
+          "event": {
+            "type": "FINISH"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "initial": "active",
+            "states": {
+              "active": {
+                "on": {
+                  "FINISH": "done"
+                }
+              },
+              "done": {
+                "type": "final"
+              }
+            },
+            "exit": [
+              "sendChildDone"
+            ]
+          },
+          "actions": {
+            "sendChildDone": {
+              "kind": "send_parent",
+              "event": {
+                "type": "CHILD_DONE"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FINISH_CHILD"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a stopped child runs no exit action, so its own child hears nothing",
+      "test": "actions.test.ts > entry/exit actions > when stopped > sent events from exit handlers of a stopped child should not be received by its children (the grandchild's spy as a push into its context)",
+      "machine": {
+        "id": "parent",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "child"
+            },
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "invoke": {
+              "id": "myChild",
+              "src": "grandchild"
+            },
+            "exit": [
+              "tellStopped"
+            ]
+          },
+          "actions": {
+            "tellStopped": {
+              "kind": "send_to",
+              "target": "myChild",
+              "event": {
+                "type": "STOPPED"
+              }
+            }
+          },
+          "actors": {
+            "grandchild": {
+              "kind": "machine",
+              "machine": {
+                "id": "grandchild",
+                "context": {
+                  "log": []
+                },
+                "on": {
+                  "STOPPED": {
+                    "actions": [
+                      {
+                        "type": "push",
+                        "params": {
+                          "key": "log",
+                          "value": "STOPPED received"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a root stopped from outside runs no exit action and so spawns nothing",
+      "test": "actions.test.ts > entry/exit actions > when stopped > actors spawned in exit handlers of a stopped child should not be started (the spawn is a spawnChild under an id in place of an assign that stores the reference; the throwing entry is the vocabulary's fail)",
+      "machine": {
+        "id": "parent",
+        "context": {},
+        "exit": [
+          "spawnGrandchild"
+        ]
+      },
+      "actions": {
+        "spawnGrandchild": {
+          "kind": "spawn_child",
+          "src": "grandchild",
+          "id": "grandchild"
+        }
+      },
+      "actors": {
+        "grandchild": {
+          "kind": "machine",
+          "machine": {
+            "id": "grandchild",
+            "entry": [
+              {
+                "type": "fail"
+              }
+            ]
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "stop": true
+        }
+      ]
+    },
+    {
+      "name": "forwardTo hands the event to an invoked child, which answers its parent",
+      "test": "actions.test.ts > forwardTo() > should forward an event to a service (the complete observer as the root's status done)",
+      "machine": {
+        "id": "parent",
+        "initial": "first",
+        "states": {
+          "first": {
+            "invoke": {
+              "src": "child",
+              "id": "myChild"
+            },
+            "on": {
+              "EVENT": {
+                "actions": [
+                  "forwardToChild"
+                ]
+              },
+              "SUCCESS": "last"
+            }
+          },
+          "last": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "forwardToChild": {
+          "kind": "forward_to",
+          "target": "myChild"
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "initial": "active",
+            "states": {
+              "active": {
+                "on": {
+                  "EVENT": {
+                    "actions": [
+                      "sendSuccess"
+                    ],
+                    "guard": {
+                      "type": "event_equals",
+                      "params": {
+                        "key": "value",
+                        "value": 42
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "actions": {
+            "sendSuccess": {
+              "kind": "send_parent",
+              "event": {
+                "type": "SUCCESS"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT",
+            "value": 42
+          }
+        }
+      ]
+    },
+    {
+      "name": "a sendTo by id reaches a child the root's entry spawned",
+      "test": "actions.test.ts > sendTo > should be able to send an event to a named actor (the child is spawned by a spawnChild in the root's entry under the same id, since a case's context cannot spawn; the child's resolve as a push into its context)",
+      "machine": {
+        "entry": [
+          "spawnTheChild",
+          "sendEvent"
+        ]
+      },
+      "actions": {
+        "spawnTheChild": {
+          "kind": "spawn_child",
+          "src": "childMachine",
+          "id": "child"
+        },
+        "sendEvent": {
+          "kind": "send_to",
+          "target": "child",
+          "event": {
+            "type": "EVENT"
+          }
+        }
+      },
+      "actors": {
+        "childMachine": {
+          "kind": "machine",
+          "machine": {
+            "context": {
+              "log": []
+            },
+            "initial": "waiting",
+            "states": {
+              "waiting": {
+                "on": {
+                  "EVENT": {
+                    "actions": [
+                      {
+                        "type": "push",
+                        "params": {
+                          "key": "log",
+                          "value": "EVENT received"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a delayed sendTo does not reach the spawned child that took a stopped child's id",
+      "test": "actions.test.ts > sendTo > should not attempt to deliver a delayed event to the spawned actor's ID that was stopped since the event was scheduled (the two spies as pushes into each child's context; the console.warn about the stopped actor is not ported)",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "START": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              "spawnChild1",
+              "pingLater",
+              "stopMyChild",
+              "spawnChild2"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawnChild1": {
+          "kind": "spawn_child",
+          "src": "child1",
+          "id": "myChild"
+        },
+        "pingLater": {
+          "kind": "send_to",
+          "target": "myChild",
+          "event": {
+            "type": "PING"
+          },
+          "delay": 1
+        },
+        "stopMyChild": {
+          "kind": "stop_child",
+          "id": "myChild"
+        },
+        "spawnChild2": {
+          "kind": "spawn_child",
+          "src": "child2",
+          "id": "myChild"
+        }
+      },
+      "actors": {
+        "child1": {
+          "kind": "machine",
+          "machine": {
+            "context": {
+              "log": []
+            },
+            "on": {
+              "PING": {
+                "actions": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "log",
+                      "value": "child1 PING"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "child2": {
+          "kind": "machine",
+          "machine": {
+            "context": {
+              "log": []
+            },
+            "on": {
+              "PING": {
+                "actions": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "log",
+                      "value": "child2 PING"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "START"
+          }
+        },
+        {
+          "advance": 10
+        }
+      ]
+    },
+    {
+      "name": "a delayed sendTo does not reach the invoked child that took a stopped child's id",
+      "test": "actions.test.ts > sendTo > should not attempt to deliver a delayed event to the invoked actor's ID that was stopped since the event was scheduled (the two spies as pushes into each child's context; the console.warn about the stopped actor is not ported)",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "START": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              "pingLater"
+            ],
+            "invoke": {
+              "src": "child1",
+              "id": "myChild"
+            },
+            "on": {
+              "NEXT": "c"
+            }
+          },
+          "c": {
+            "invoke": {
+              "src": "child2",
+              "id": "myChild"
+            }
+          }
+        }
+      },
+      "actions": {
+        "pingLater": {
+          "kind": "send_to",
+          "target": "myChild",
+          "event": {
+            "type": "PING"
+          },
+          "delay": 1
+        }
+      },
+      "actors": {
+        "child1": {
+          "kind": "machine",
+          "machine": {
+            "context": {
+              "log": []
+            },
+            "on": {
+              "PING": {
+                "actions": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "log",
+                      "value": "child1 PING"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "child2": {
+          "kind": "machine",
+          "machine": {
+            "context": {
+              "log": []
+            },
+            "on": {
+              "PING": {
+                "actions": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "log",
+                      "value": "child2 PING"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "START"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "advance": 10
+        }
+      ]
+    },
+    {
+      "name": "the first child cancels only its own delayed event of a shared id",
+      "test": "actions.test.ts > cancel > should cancel only the delayed event in the machine that scheduled it when canceling the event with the same ID in the machine that sent it first (the two spies as pushes into each child's context)",
+      "machine": {
+        "invoke": [
+          {
+            "id": "foo",
+            "src": "foo"
+          },
+          {
+            "id": "bar",
+            "src": "bar"
+          }
+        ],
+        "on": {
+          "cancelFoo": {
+            "actions": [
+              "tellCanceller"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "tellCanceller": {
+          "kind": "send_to",
+          "target": "foo",
+          "event": {
+            "type": "cancel"
+          }
+        }
+      },
+      "actors": {
+        "foo": {
+          "kind": "machine",
+          "machine": {
+            "id": "foo",
+            "context": {
+              "log": []
+            },
+            "entry": [
+              "raiseLater"
+            ],
+            "on": {
+              "event": {
+                "actions": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "log",
+                      "value": "event"
+                    }
+                  }
+                ]
+              },
+              "cancel": {
+                "actions": [
+                  "cancelSameId"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "raiseLater": {
+              "kind": "raise",
+              "event": {
+                "type": "event"
+              },
+              "id": "sameId",
+              "delay": 100
+            },
+            "cancelSameId": {
+              "kind": "cancel",
+              "id": "sameId"
+            }
+          }
+        },
+        "bar": {
+          "kind": "machine",
+          "machine": {
+            "id": "bar",
+            "context": {
+              "log": []
+            },
+            "entry": [
+              "raiseLater"
+            ],
+            "on": {
+              "event": {
+                "actions": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "log",
+                      "value": "event"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "actions": {
+            "raiseLater": {
+              "kind": "raise",
+              "event": {
+                "type": "event"
+              },
+              "id": "sameId",
+              "delay": 100
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 50
+        },
+        {
+          "send": {
+            "type": "cancelFoo"
+          }
+        },
+        {
+          "advance": 55
+        }
+      ]
+    },
+    {
+      "name": "the second child cancels only its own delayed event of a shared id",
+      "test": "actions.test.ts > cancel > should cancel only the delayed event in the machine that scheduled it when canceling the event with the same ID in the machine that sent it second (the two spies as pushes into each child's context)",
+      "machine": {
+        "invoke": [
+          {
+            "id": "foo",
+            "src": "foo"
+          },
+          {
+            "id": "bar",
+            "src": "bar"
+          }
+        ],
+        "on": {
+          "cancelBar": {
+            "actions": [
+              "tellCanceller"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "tellCanceller": {
+          "kind": "send_to",
+          "target": "bar",
+          "event": {
+            "type": "cancel"
+          }
+        }
+      },
+      "actors": {
+        "foo": {
+          "kind": "machine",
+          "machine": {
+            "id": "foo",
+            "context": {
+              "log": []
+            },
+            "entry": [
+              "raiseLater"
+            ],
+            "on": {
+              "event": {
+                "actions": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "log",
+                      "value": "event"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "actions": {
+            "raiseLater": {
+              "kind": "raise",
+              "event": {
+                "type": "event"
+              },
+              "id": "sameId",
+              "delay": 100
+            }
+          }
+        },
+        "bar": {
+          "kind": "machine",
+          "machine": {
+            "id": "bar",
+            "context": {
+              "log": []
+            },
+            "entry": [
+              "raiseLater"
+            ],
+            "on": {
+              "event": {
+                "actions": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "log",
+                      "value": "event"
+                    }
+                  }
+                ]
+              },
+              "cancel": {
+                "actions": [
+                  "cancelSameId"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "raiseLater": {
+              "kind": "raise",
+              "event": {
+                "type": "event"
+              },
+              "id": "sameId",
+              "delay": 100
+            },
+            "cancelSameId": {
+              "kind": "cancel",
+              "id": "sameId"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 50
+        },
+        {
+          "send": {
+            "type": "cancelBar"
+          }
+        },
+        {
+          "advance": 55
+        }
+      ]
+    },
+    {
+      "name": "a delayed sendTo to a child invoked in the same entry can be cancelled",
+      "test": "actions.test.ts > cancel > should be able to cancel a just scheduled delayed event to a just invoked child (the spy as a push into the child's context)",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "START": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              "pingLater",
+              "cancelPing"
+            ],
+            "invoke": {
+              "src": "child",
+              "id": "myChild"
+            }
+          }
+        }
+      },
+      "actions": {
+        "pingLater": {
+          "kind": "send_to",
+          "target": "myChild",
+          "event": {
+            "type": "PING"
+          },
+          "id": "myEvent",
+          "delay": 0
+        },
+        "cancelPing": {
+          "kind": "cancel",
+          "id": "myEvent"
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "context": {
+              "log": []
+            },
+            "on": {
+              "PING": {
+                "actions": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "log",
+                      "value": "PING"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "START"
+          }
+        },
+        {
+          "advance": 10
+        }
+      ]
+    },
+    {
+      "name": "a sendTo without a delay to a child invoked in the same entry cannot be cancelled",
+      "test": "actions.test.ts > cancel > should not be able to cancel a just scheduled non-delayed event to a just invoked child (the spy as a push into the child's context)",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "START": "b"
+            }
+          },
+          "b": {
+            "entry": [
+              "pingNow",
+              "cancelPing"
+            ],
+            "invoke": {
+              "src": "child",
+              "id": "myChild"
+            }
+          }
+        }
+      },
+      "actions": {
+        "pingNow": {
+          "kind": "send_to",
+          "target": "myChild",
+          "event": {
+            "type": "PING"
+          },
+          "id": "myEvent"
+        },
+        "cancelPing": {
+          "kind": "cancel",
+          "id": "myEvent"
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "context": {
+              "log": []
+            },
+            "on": {
+              "PING": {
+                "actions": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "log",
+                      "value": "PING"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "START"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a done child's exit sends its own child an event that the grandchild handles before it stops",
+      "test": "actions.test.ts > entry/exit actions > when stopped > sent events from exit handlers of a done child should be received by its children (the spy as a push into the grandchild's context)",
+      "machine": {
+        "id": "parent",
+        "invoke": {
+          "id": "myChild",
+          "src": "child"
+        },
+        "on": {
+          "NEXT": {
+            "actions": [
+              "finish_child"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "finish_child": {
+          "kind": "send_to",
+          "target": "myChild",
+          "event": {
+            "type": "FINISH"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "initial": "a",
+            "invoke": {
+              "id": "myChild",
+              "src": "grandchild"
+            },
+            "states": {
+              "a": {
+                "on": {
+                  "FINISH": "b"
+                }
+              },
+              "b": {
+                "type": "final"
+              }
+            },
+            "exit": [
+              "tell_stopped"
+            ]
+          },
+          "actions": {
+            "tell_stopped": {
+              "kind": "send_to",
+              "target": "myChild",
+              "event": {
+                "type": "STOPPED"
+              }
+            }
+          },
+          "actors": {
+            "grandchild": {
+              "kind": "machine",
+              "machine": {
+                "id": "grandchild",
+                "context": {
+                  "log": []
+                },
+                "on": {
+                  "STOPPED": {
+                    "actions": [
+                      {
+                        "type": "push",
+                        "params": {
+                          "key": "log",
+                          "value": "stopped"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a root stopped from outside runs neither its own exit action nor its state's",
+      "test": "actions.test.ts > entry/exit actions > when stopped > exit actions should not be called when stopping a machine (the two spies as emits, which the record would show had the exit actions run: a stop leaves no snapshot in the record, so a push into the context would not show)",
+      "machine": {
+        "exit": [
+          "rootExit"
+        ],
+        "initial": "a",
+        "states": {
+          "a": {
+            "exit": [
+              "childExit"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "rootExit": {
+          "kind": "emit",
+          "event": {
+            "type": "rootExit"
+          }
+        },
+        "childExit": {
+          "kind": "emit",
+          "event": {
+            "type": "childExit"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "stop": true
+        }
+      ]
+    },
+    {
+      "name": "a root stopped from outside does not run its referenced exit action",
+      "test": "actions.test.ts > entry/exit actions > when stopped > should note execute referenced custom actions correctly when stopping an interpreter (the spy as a referenced emit, which the record would show had it run: a custom action leaves no trace in the actor record, and a stop leaves no snapshot)",
+      "machine": {
+        "id": "parent",
+        "context": {},
+        "exit": [
+          "referencedAction"
+        ]
+      },
+      "actions": {
+        "referencedAction": {
+          "kind": "emit",
+          "event": {
+            "type": "referencedAction"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "stop": true
+        }
+      ]
+    },
+    {
+      "name": "a root stopped from outside runs none of its exit assigns",
+      "test": "actions.test.ts > entry/exit actions > when stopped > should not execute builtin actions when stopping an interpreter (the referenced and the inline assign are both pushes named by reference, since a case's machine names every action; the context after the stop is not in the record, which holds no snapshot a stop leaves, so a third exit action emits the context the two assigns leave, which the record would show had the exit actions run)",
+      "machine": {
+        "context": {
+          "executedAssigns": []
+        },
+        "exit": [
+          {
+            "type": "push",
+            "params": {
+              "key": "executedAssigns",
+              "value": "referenced"
+            }
+          },
+          {
+            "type": "push",
+            "params": {
+              "key": "executedAssigns",
+              "value": "inline"
+            }
+          },
+          "reportAssigns"
+        ]
+      },
+      "actions": {
+        "reportAssigns": {
+          "kind": "emit",
+          "event": {
+            "type": "exited",
+            "executedAssigns": {
+              "$context": "executedAssigns"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "stop": true
+        }
+      ]
+    },
+    {
+      "name": "a forwardTo whose target resolves to no actor fails the actor",
+      "test": "actions.test.ts > forwardTo() > should not cause an infinite loop when forwarding to undefined (the error status; the error's message is not in the record; the guard () => true is left out, as it changes nothing)",
+      "machine": {
+        "on": {
+          "*": {
+            "actions": [
+              "forward_nowhere"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "forward_nowhere": {
+          "kind": "forward_to",
+          "target": "#system:nobody"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TEST"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "actions.test.ts > forwardTo() > should forward an event to a service (dynamic)",
+      "reason": "the test's subject is a forwardTo whose target is a function of the context, the ActorRef an assign stored there from spawn; an actor reference as data is not expressible, and a forward by the child's id is this file's port of 'should forward an event to a service'"
+    },
+    {
+      "test": "actions.test.ts > enqueueActions > should be able to communicate with the parent using params",
+      "reason": "enqueueActions is not ported; the child also holds its parent's self, passed as the invoke's input by a function, and sends to it from the context (an actor reference as data is not expressible)"
+    },
+    {
+      "test": "actions.test.ts > enqueueActions > should enqueue.sendParent",
+      "reason": "enqueueActions is not ported: the child's entry is enqueue.sendParent inside an enqueueActions"
+    },
+    {
+      "test": "actions.test.ts > sendTo > should be able to send an event to an actor",
+      "reason": "the target is the ActorRef the context function spawned and holds, sendTo(({ context }) => context.child); a context that spawns and an actor reference as data is not expressible; a sendTo by the child's id is this file's port of 'should be able to send an event to a named actor'"
+    },
+    {
+      "test": "actions.test.ts > sendTo > should be able to send an event from expression to an actor",
+      "reason": "the target is the ActorRef the context function spawned and holds, sendTo(({ context }) => context.child), and an actor reference as data is not expressible; the event alone, ({ context }) => ({ type: 'EVENT', count: context.count }), is a computed event now"
+    },
+    {
+      "test": "actions.test.ts > sendTo > should report a type error for an invalid event",
+      "reason": "TypeScript's type checker: the test only creates a machine whose sendTo names an event the child does not accept (@ts-expect-error) and never runs it"
+    },
+    {
+      "test": "actions.test.ts > sendTo > should be able to send an event directly to an ActorRef",
+      "reason": "the test's subject is a sendTo whose target is the ActorRef the context function spawned and holds; a context that spawns and an actor reference as data is not expressible; a sendTo by the child's id is this file's port of 'should be able to send an event to a named actor'"
+    },
+    {
+      "test": "actions.test.ts > sendTo > should be able to read from event",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback's receive is the assertion; the target is also read from the context by a member of the event, context[event.value], an ActorRef the context function spawned (an actor reference as data is not expressible)"
+    },
+    {
+      "test": "actions.test.ts > sendTo > should error if given a string",
+      "reason": "ported with the core cases, fixtures/cases/actions.json (\"sendTo of a string fails the initial macrostep\"), the failure XState's initial macrostep throws; here the child is fromCallback, which is not ported (out of scope for the actor layer)"
+    }
+  ]
+}

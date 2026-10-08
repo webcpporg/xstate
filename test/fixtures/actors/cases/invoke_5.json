@@ -1,0 +1,618 @@
+{
+  "source": "invoke.test.ts (lines 2537 to 3534)",
+  "cases": [
+    {
+      "name": "a child machine invoked in a nested state answers the entry's ping and the parent finishes",
+      "test": "invoke.test.ts > invoke > with machines > should create invocations from machines in nested states",
+      "machine": {
+        "id": "ping",
+        "initial": "innerMachine",
+        "states": {
+          "innerMachine": {
+            "initial": "active",
+            "states": {
+              "active": {
+                "invoke": {
+                  "id": "pong",
+                  "src": "pongMachine"
+                },
+                "entry": [
+                  "ping"
+                ],
+                "on": {
+                  "PONG": "innerSuccess"
+                }
+              },
+              "innerSuccess": {
+                "type": "final"
+              }
+            },
+            "onDone": "success"
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "ping": {
+          "kind": "send_to",
+          "target": "pong",
+          "event": {
+            "type": "PING"
+          }
+        }
+      },
+      "actors": {
+        "pongMachine": {
+          "kind": "machine",
+          "machine": {
+            "id": "pong",
+            "initial": "active",
+            "states": {
+              "active": {
+                "on": {
+                  "PING": {
+                    "actions": [
+                      "pong"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "actions": {
+            "pong": {
+              "kind": "send_parent",
+              "event": {
+                "type": "PONG"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a host actor receives the invoke's static input and its output finishes the machine",
+      "test": "invoke.test.ts > invoke > invoke `src` can be used with invoke `input`",
+      "machine": {
+        "initial": "searching",
+        "states": {
+          "searching": {
+            "invoke": {
+              "src": "search",
+              "input": {
+                "endpoint": "example.com"
+              },
+              "onDone": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "search": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "search",
+            "output": 42
+          }
+        }
+      ]
+    },
+    {
+      "name": "an invoke without an id is named after its index and state, and its done event carries that name",
+      "test": "invoke.test.ts > invoke > invoke generated ID should be predictable based on the state node where it is defined",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "someSrc",
+              "onDone": {
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "type",
+                    "value": "xstate.done.actor.0.(machine).a"
+                  }
+                },
+                "target": "b"
+              }
+            }
+          },
+          "b": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "someSrc": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "someSrc"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an invoke of a machine given in place registers a child under its generated id",
+      "test": "invoke.test.ts > invoke > invoke config defined as src containing a machine directly should register unique and predictable child in state (the children are read after start, which the format always runs first)",
+      "machine": {
+        "id": "machine",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "someId"
+            }
+          }
+        }
+      },
+      "actors": {
+        "someId": {
+          "kind": "machine",
+          "machine": {
+            "id": "someId"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "the done of one of two invokes of the same src selects only its own state's onDone",
+      "test": "invoke.test.ts > invoke > xstate.done.actor events should only select onDone transition on the invoking state when invokee is referenced using a string",
+      "machine": {
+        "type": "parallel",
+        "context": {
+          "counter": 0
+        },
+        "states": {
+          "first": {
+            "initial": "fetch",
+            "states": {
+              "fetch": {
+                "invoke": {
+                  "src": "fetchSmth",
+                  "onDone": {
+                    "actions": [
+                      {
+                        "type": "increment",
+                        "params": {
+                          "key": "counter"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "second": {
+            "initial": "fetch",
+            "states": {
+              "fetch": {
+                "invoke": {
+                  "src": "fetchSmth",
+                  "onDone": {
+                    "actions": [
+                      {
+                        "type": "increment",
+                        "params": {
+                          "key": "counter"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "fetchSmth": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "fetchSmth",
+            "output": 42
+          }
+        }
+      ]
+    },
+    {
+      "name": "two invokes of one machine report their done under their own invoke ids",
+      "test": "invoke.test.ts > invoke > xstate.done.actor events should have unique names when invokee is a machine with an id property",
+      "machine": {
+        "type": "parallel",
+        "context": {
+          "log": []
+        },
+        "states": {
+          "first": {
+            "initial": "fetch",
+            "states": {
+              "fetch": {
+                "invoke": {
+                  "src": "childMachine"
+                }
+              }
+            }
+          },
+          "second": {
+            "initial": "fetch",
+            "states": {
+              "fetch": {
+                "invoke": {
+                  "src": "childMachine"
+                }
+              }
+            }
+          }
+        },
+        "on": {
+          "*": {
+            "actions": [
+              {
+                "type": "push_event",
+                "params": {
+                  "key": "log"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actors": {
+        "childMachine": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "initial": "a",
+            "states": {
+              "a": {
+                "invoke": {
+                  "src": "answer",
+                  "onDone": "b"
+                }
+              },
+              "b": {
+                "type": "final"
+              }
+            }
+          },
+          "actors": {
+            "answer": {
+              "kind": "host"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "answer",
+            "output": 42
+          }
+        },
+        {
+          "resolve": {
+            "src": "answer",
+            "output": 42
+          }
+        }
+      ]
+    },
+    {
+      "name": "a delayed event the invoking state's entry sends reaches the invoked child, whose answer finishes the parent",
+      "test": "invoke.test.ts > invoke > should be able to receive a delayed event sent by the entry action of the invoking state (the child answers with sendParent: the origin the PING carried is the parent itself, an actor reference the event cannot hold)",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "invoke": {
+              "id": "foo",
+              "src": "child"
+            },
+            "entry": [
+              "ping"
+            ],
+            "on": {
+              "PONG": "c"
+            }
+          },
+          "c": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "ping": {
+          "kind": "send_to",
+          "target": "foo",
+          "event": {
+            "type": "PING"
+          },
+          "delay": 1
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "on": {
+              "PING": {
+                "actions": [
+                  "pong"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "pong": {
+              "kind": "send_parent",
+              "event": {
+                "type": "PONG"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "advance": 1
+        }
+      ]
+    },
+    {
+      "name": "a host actor receives the invoke's input computed from the context and its output finishes the machine",
+      "test": "invoke.test.ts > invoke > invoke `src` can be used with dynamic invoke `input` (the expect on input.endpoint is the pending request's input; the completion is the status after the resolve)",
+      "machine": {
+        "initial": "searching",
+        "context": {
+          "url": "example.com"
+        },
+        "states": {
+          "searching": {
+            "invoke": {
+              "src": "search",
+              "onDone": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "inputs": {
+        "0.(machine).searching": {
+          "endpoint": {
+            "$context": "url"
+          }
+        }
+      },
+      "actors": {
+        "search": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "search",
+            "output": 42
+          }
+        }
+      ]
+    },
+    {
+      "name": "a root reentering transition stops the root's pending invoke and starts it again",
+      "test": "invoke.test.ts > invoke > root invocations should restart on root reentering transitions (the count of the promise's starts is the two host actors created at root/0.root: the first stopped by EVENT while its request is pending, its later answer refused, and the second, root/0.root#2, pending after EVENT)",
+      "machine": {
+        "id": "root",
+        "invoke": {
+          "src": "promise"
+        },
+        "on": {
+          "EVENT": {
+            "target": "#two",
+            "reenter": true
+          }
+        },
+        "initial": "one",
+        "states": {
+          "one": {},
+          "two": {
+            "id": "two"
+          }
+        }
+      },
+      "actors": {
+        "promise": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        },
+        {
+          "resolve": {
+            "actor": "root/0.root",
+            "output": 42
+          }
+        },
+        {
+          "resolve": {
+            "src": "promise",
+            "output": 42
+          }
+        }
+      ]
+    },
+    {
+      "name": "a host actor receives an input of a fixed member and one computed from the context",
+      "test": "invoke.test.ts > invoke input > should provide input to an actor creator (the expect on the input is the pending request's input; the completion is the status after the resolve)",
+      "machine": {
+        "initial": "pending",
+        "context": {
+          "count": 42
+        },
+        "states": {
+          "pending": {
+            "invoke": {
+              "src": "stringService",
+              "onDone": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "inputs": {
+        "0.(machine).pending": {
+          "staticVal": "hello",
+          "newCount": {
+            "$product": [
+              {
+                "$context": "count"
+              },
+              2
+            ]
+          }
+        }
+      },
+      "actors": {
+        "stringService": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "stringService",
+            "output": true
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "invoke.test.ts > invoke > with machines > should emit onSnapshot",
+      "reason": "onSnapshot is not ported to the actor layer (the actor layer leaves syncSnapshot out; xstate's README lists syncSnapshot and onSnapshot under 'Not yet'): actor_system never sends a parent the xstate.snapshot.<id> event, so XState's record would hold snapshot events xstate cannot produce. The action itself is now expressible (a compare guard on {\"$event\": \"snapshot.value\"} == \"b\" and a push); what it still needs is the actor layer relaying a child's snapshots to a parent whose invoke has onSnapshot"
+    },
+    {
+      "test": "invoke.test.ts > invoke > multiple simultaneous services > should start all services at once",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the two callbacks reach the parent through sendBack"
+    },
+    {
+      "test": "invoke.test.ts > invoke > multiple simultaneous services > should run services in parallel",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the two callbacks reach the parent through sendBack"
+    },
+    {
+      "test": "invoke.test.ts > invoke > multiple simultaneous services > should not invoke an actor if it gets stopped immediately by transitioning away in immediate microstep",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback only records that it started, and the test asserts that it never did"
+    },
+    {
+      "test": "invoke.test.ts > invoke > multiple simultaneous services > should not invoke an actor if it gets stopped immediately by transitioning away in subsequent microstep",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback only records that it started, and the test asserts that it never did"
+    },
+    {
+      "test": "invoke.test.ts > invoke > multiple simultaneous services > should invoke a service if other service gets stopped in subsequent microstep (#1180)",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback, which does nothing, is the service that the raised STOP_ONE stops in the macrostep that invokes the promise"
+    },
+    {
+      "test": "invoke.test.ts > invoke > multiple simultaneous services > should invoke an actor when reentering invoking state within a single macrostep",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback only counts its starts, and the test asserts that it started once"
+    },
+    {
+      "test": "invoke.test.ts > invoke > invoke config defined as src with string reference should register unique and predictable child in state",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): someSrc is a callback that does nothing, and the test reads the child 0.machine.a in the snapshot of an actor it never starts"
+    },
+    {
+      "test": "invoke.test.ts > invoke > invoke config defined as src containing a callback actor directly should register unique and predictable child in state",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the src is a callback given in place that does nothing, and the test reads the child 0.machine.a in the snapshot of an actor it never starts"
+    },
+    {
+      "test": "invoke.test.ts > invoke > should get reinstantiated after reentering the invoking state in a microstep",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback only counts its starts, and the test asserts that it started twice"
+    },
+    {
+      "test": "invoke.test.ts > invoke > invocations should be stopped when the machine reaches done state",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the test spies on the disposal function the root's invoked callback returns"
+    },
+    {
+      "test": "invoke.test.ts > invoke > deep invocations should be stopped when the machine reaches done state",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the test spies on the disposal function returned by the callback that the invoked child machine invokes"
+    },
+    {
+      "test": "invoke.test.ts > invoke > should be able to restart an invoke when reentering the invoking state",
+      "reason": "fromCallback is not ported (out of scope for the actor layer): the callback logs its start and its stop, and the test asserts the exact order ['stop 1', 'start 2'], an order between two actors that the record does not hold"
+    },
+    {
+      "test": "invoke.test.ts > invoke input > should provide self to input mapper",
+      "reason": "self as data: the input mapper passes the parent's actor reference, which JSON cannot hold; and fromCallback is not ported (out of scope for the actor layer)"
+    }
+  ]
+}

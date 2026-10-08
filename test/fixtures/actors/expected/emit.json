@@ -1,0 +1,265 @@
+{
+  "source": "emit.test.ts",
+  "cases": [
+    {
+      "name": "an event's emit reaches the actor's listeners with its members",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "someEvent"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": [
+                {
+                  "type": "emitted",
+                  "foo": "bar"
+                }
+              ]
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an emit on a transition is emitted once by the actor that reached the target",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "ev"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).b"
+                    ]
+                  }
+                }
+              ],
+              "emitted": [
+                {
+                  "type": "someEvent"
+                }
+              ]
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "every emitted event reaches a wildcard listener once",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "event"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": [
+                {
+                  "type": "emitted"
+                }
+              ]
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an emit whose event is computed from the context reaches the listeners with the context's count",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "count": 10
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "someEvent"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "count": 10
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": [
+                {
+                  "type": "emitted",
+                  "count": 10
+                }
+              ]
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

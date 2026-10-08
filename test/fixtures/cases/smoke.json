@@ -1,0 +1,19 @@
+{
+  "source": "the oracle's own smoke test",
+  "cases": [
+    {
+      "name": "a machine moves from a to b on NEXT",
+      "machine": {
+        "id": "light",
+        "initial": "a",
+        "context": { "count": 0 },
+        "states": {
+          "a": { "entry": ["entered_a"], "on": { "NEXT": { "target": "b", "actions": ["moving"] } } },
+          "b": { "entry": [{ "type": "increment", "params": { "key": "count" } }] }
+        }
+      },
+      "steps": [{ "start": true }, { "send": { "type": "NEXT" } }, { "send": { "type": "NOTHING" } }]
+    }
+  ],
+  "excluded": []
+}

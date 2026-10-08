@@ -1,0 +1,5324 @@
+{
+  "source": "multiple.test.ts",
+  "cases": [
+    {
+      "name": "entering a parallel state enters its regions' initial states",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).simple"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "simple": {
+            "id": "(machine).simple",
+            "key": "simple",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).simple",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "DEEP_M": [
+                {
+                  "target": [
+                    "#(machine).para.K.M"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_M"
+                }
+              ],
+              "DEEP_CM": [
+                {
+                  "target": [
+                    "#(machine).para.A.C",
+                    "#(machine).para.K.M"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_CM"
+                }
+              ],
+              "DEEP_MR": [
+                {
+                  "target": [
+                    "#(machine).para.K.M",
+                    "#(machine).para.P.R"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_MR"
+                }
+              ],
+              "DEEP_CMR": [
+                {
+                  "target": [
+                    "#(machine).para.A.C",
+                    "#(machine).para.K.M",
+                    "#(machine).para.P.R"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_CMR"
+                }
+              ],
+              "INITIAL": [
+                {
+                  "target": [
+                    "#(machine).para"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "INITIAL"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).para.K.M"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_M"
+              },
+              {
+                "target": [
+                  "#(machine).para.A.C",
+                  "#(machine).para.K.M"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_CM"
+              },
+              {
+                "target": [
+                  "#(machine).para.K.M",
+                  "#(machine).para.P.R"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_MR"
+              },
+              {
+                "target": [
+                  "#(machine).para.A.C",
+                  "#(machine).para.K.M",
+                  "#(machine).para.P.R"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_CMR"
+              },
+              {
+                "target": [
+                  "#(machine).para"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "INITIAL"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "other": {
+            "id": "(machine).other",
+            "key": "other",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).other.X"
+              ],
+              "source": "#(machine).other",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "X": {
+                "id": "(machine).other.X",
+                "key": "X",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).other.X",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "para": {
+            "id": "(machine).para",
+            "key": "para",
+            "type": "parallel",
+            "initial": {
+              "target": [],
+              "source": "#(machine).para",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "A": {
+                "id": "(machine).para.A",
+                "key": "A",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.A.B"
+                  ],
+                  "source": "#(machine).para.A",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "B": {
+                    "id": "(machine).para.A.B",
+                    "key": "B",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.A.B",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 6,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "C": {
+                    "id": "(machine).para.A.C",
+                    "key": "C",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.A.C",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 7,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "K": {
+                "id": "(machine).para.K",
+                "key": "K",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.K.L"
+                  ],
+                  "source": "#(machine).para.K",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "L": {
+                    "id": "(machine).para.K.L",
+                    "key": "L",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.K.L",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 9,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "M": {
+                    "id": "(machine).para.K.M",
+                    "key": "M",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.K.M",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 10,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 8,
+                "invoke": [],
+                "tags": []
+              },
+              "P": {
+                "id": "(machine).para.P",
+                "key": "P",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.P.Q"
+                  ],
+                  "source": "#(machine).para.P",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "Q": {
+                    "id": "(machine).para.P.Q",
+                    "key": "Q",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.P.Q",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 12,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "R": {
+                    "id": "(machine).para.P.R",
+                    "key": "R",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.P.R",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 13,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 11,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          },
+          "para2": {
+            "id": "(machine).para2",
+            "key": "para2",
+            "type": "parallel",
+            "initial": {
+              "target": [],
+              "source": "#(machine).para2",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "A2": {
+                "id": "(machine).para2.A2",
+                "key": "A2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.A2.B2"
+                  ],
+                  "source": "#(machine).para2.A2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "B2": {
+                    "id": "(machine).para2.A2.B2",
+                    "key": "B2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.A2.B2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 16,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "C2": {
+                    "id": "(machine).para2.A2.C2",
+                    "key": "C2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.A2.C2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 17,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 15,
+                "invoke": [],
+                "tags": []
+              },
+              "K2": {
+                "id": "(machine).para2.K2",
+                "key": "K2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.K2.L2"
+                  ],
+                  "source": "#(machine).para2.K2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "L2": {
+                    "id": "(machine).para2.K2.L2",
+                    "key": "L2",
+                    "type": "parallel",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.K2.L2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "L2A": {
+                        "id": "(machine).para2.K2.L2.L2A",
+                        "key": "L2A",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2A.L2B"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2A",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2B": {
+                            "id": "(machine).para2.K2.L2.L2A.L2B",
+                            "key": "L2B",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2A.L2B",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 21,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2C": {
+                            "id": "(machine).para2.K2.L2.L2A.L2C",
+                            "key": "L2C",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2A.L2C",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 22,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 20,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "L2K": {
+                        "id": "(machine).para2.K2.L2.L2K",
+                        "key": "L2K",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2K.L2L"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2K",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2L": {
+                            "id": "(machine).para2.K2.L2.L2K.L2L",
+                            "key": "L2L",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2K.L2L",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 24,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2M": {
+                            "id": "(machine).para2.K2.L2.L2K.L2M",
+                            "key": "L2M",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2K.L2M",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 25,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 23,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "L2P": {
+                        "id": "(machine).para2.K2.L2.L2P",
+                        "key": "L2P",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2P.L2Q"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2P",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2Q": {
+                            "id": "(machine).para2.K2.L2.L2P.L2Q",
+                            "key": "L2Q",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2P.L2Q",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 27,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2R": {
+                            "id": "(machine).para2.K2.L2.L2P.L2R",
+                            "key": "L2R",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2P.L2R",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 28,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 26,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 19,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "M2": {
+                    "id": "(machine).para2.K2.M2",
+                    "key": "M2",
+                    "type": "parallel",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.K2.M2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "M2A": {
+                        "id": "(machine).para2.K2.M2.M2A",
+                        "key": "M2A",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2A.M2B"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2A",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2B": {
+                            "id": "(machine).para2.K2.M2.M2A.M2B",
+                            "key": "M2B",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2A.M2B",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 31,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2C": {
+                            "id": "(machine).para2.K2.M2.M2A.M2C",
+                            "key": "M2C",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2A.M2C",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 32,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 30,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "M2K": {
+                        "id": "(machine).para2.K2.M2.M2K",
+                        "key": "M2K",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2K.M2L"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2K",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2L": {
+                            "id": "(machine).para2.K2.M2.M2K.M2L",
+                            "key": "M2L",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2K.M2L",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 34,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2M": {
+                            "id": "(machine).para2.K2.M2.M2K.M2M",
+                            "key": "M2M",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2K.M2M",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 35,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 33,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "M2P": {
+                        "id": "(machine).para2.K2.M2.M2P",
+                        "key": "M2P",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2P.M2Q"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2P",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2Q": {
+                            "id": "(machine).para2.K2.M2.M2P.M2Q",
+                            "key": "M2Q",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2P.M2Q",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 37,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2R": {
+                            "id": "(machine).para2.K2.M2.M2P.M2R",
+                            "key": "M2R",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2P.M2R",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 38,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 36,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 29,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 18,
+                "invoke": [],
+                "tags": []
+              },
+              "P2": {
+                "id": "(machine).para2.P2",
+                "key": "P2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.P2.Q2"
+                  ],
+                  "source": "#(machine).para2.P2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "Q2": {
+                    "id": "(machine).para2.P2.Q2",
+                    "key": "Q2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.P2.Q2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 40,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "R2": {
+                    "id": "(machine).para2.P2.R2",
+                    "key": "R2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.P2.R2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 41,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 39,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 14,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "simple",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).simple"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "INITIAL"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).simple",
+                  "eventType": "INITIAL",
+                  "target": [
+                    "#(machine).para"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "para": {
+                    "A": "B",
+                    "K": "L",
+                    "P": "Q"
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).para",
+                  "(machine).para.A",
+                  "(machine).para.A.B",
+                  "(machine).para.K",
+                  "(machine).para.K.L",
+                  "(machine).para.P",
+                  "(machine).para.P.Q"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a deep target in one region",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).simple"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "simple": {
+            "id": "(machine).simple",
+            "key": "simple",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).simple",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "DEEP_M": [
+                {
+                  "target": [
+                    "#(machine).para.K.M"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_M"
+                }
+              ],
+              "DEEP_CM": [
+                {
+                  "target": [
+                    "#(machine).para.A.C",
+                    "#(machine).para.K.M"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_CM"
+                }
+              ],
+              "DEEP_MR": [
+                {
+                  "target": [
+                    "#(machine).para.K.M",
+                    "#(machine).para.P.R"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_MR"
+                }
+              ],
+              "DEEP_CMR": [
+                {
+                  "target": [
+                    "#(machine).para.A.C",
+                    "#(machine).para.K.M",
+                    "#(machine).para.P.R"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_CMR"
+                }
+              ],
+              "INITIAL": [
+                {
+                  "target": [
+                    "#(machine).para"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "INITIAL"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).para.K.M"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_M"
+              },
+              {
+                "target": [
+                  "#(machine).para.A.C",
+                  "#(machine).para.K.M"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_CM"
+              },
+              {
+                "target": [
+                  "#(machine).para.K.M",
+                  "#(machine).para.P.R"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_MR"
+              },
+              {
+                "target": [
+                  "#(machine).para.A.C",
+                  "#(machine).para.K.M",
+                  "#(machine).para.P.R"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_CMR"
+              },
+              {
+                "target": [
+                  "#(machine).para"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "INITIAL"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "other": {
+            "id": "(machine).other",
+            "key": "other",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).other.X"
+              ],
+              "source": "#(machine).other",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "X": {
+                "id": "(machine).other.X",
+                "key": "X",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).other.X",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "para": {
+            "id": "(machine).para",
+            "key": "para",
+            "type": "parallel",
+            "initial": {
+              "target": [],
+              "source": "#(machine).para",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "A": {
+                "id": "(machine).para.A",
+                "key": "A",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.A.B"
+                  ],
+                  "source": "#(machine).para.A",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "B": {
+                    "id": "(machine).para.A.B",
+                    "key": "B",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.A.B",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 6,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "C": {
+                    "id": "(machine).para.A.C",
+                    "key": "C",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.A.C",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 7,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "K": {
+                "id": "(machine).para.K",
+                "key": "K",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.K.L"
+                  ],
+                  "source": "#(machine).para.K",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "L": {
+                    "id": "(machine).para.K.L",
+                    "key": "L",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.K.L",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 9,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "M": {
+                    "id": "(machine).para.K.M",
+                    "key": "M",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.K.M",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 10,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 8,
+                "invoke": [],
+                "tags": []
+              },
+              "P": {
+                "id": "(machine).para.P",
+                "key": "P",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.P.Q"
+                  ],
+                  "source": "#(machine).para.P",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "Q": {
+                    "id": "(machine).para.P.Q",
+                    "key": "Q",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.P.Q",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 12,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "R": {
+                    "id": "(machine).para.P.R",
+                    "key": "R",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.P.R",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 13,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 11,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          },
+          "para2": {
+            "id": "(machine).para2",
+            "key": "para2",
+            "type": "parallel",
+            "initial": {
+              "target": [],
+              "source": "#(machine).para2",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "A2": {
+                "id": "(machine).para2.A2",
+                "key": "A2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.A2.B2"
+                  ],
+                  "source": "#(machine).para2.A2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "B2": {
+                    "id": "(machine).para2.A2.B2",
+                    "key": "B2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.A2.B2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 16,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "C2": {
+                    "id": "(machine).para2.A2.C2",
+                    "key": "C2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.A2.C2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 17,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 15,
+                "invoke": [],
+                "tags": []
+              },
+              "K2": {
+                "id": "(machine).para2.K2",
+                "key": "K2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.K2.L2"
+                  ],
+                  "source": "#(machine).para2.K2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "L2": {
+                    "id": "(machine).para2.K2.L2",
+                    "key": "L2",
+                    "type": "parallel",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.K2.L2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "L2A": {
+                        "id": "(machine).para2.K2.L2.L2A",
+                        "key": "L2A",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2A.L2B"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2A",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2B": {
+                            "id": "(machine).para2.K2.L2.L2A.L2B",
+                            "key": "L2B",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2A.L2B",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 21,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2C": {
+                            "id": "(machine).para2.K2.L2.L2A.L2C",
+                            "key": "L2C",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2A.L2C",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 22,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 20,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "L2K": {
+                        "id": "(machine).para2.K2.L2.L2K",
+                        "key": "L2K",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2K.L2L"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2K",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2L": {
+                            "id": "(machine).para2.K2.L2.L2K.L2L",
+                            "key": "L2L",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2K.L2L",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 24,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2M": {
+                            "id": "(machine).para2.K2.L2.L2K.L2M",
+                            "key": "L2M",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2K.L2M",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 25,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 23,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "L2P": {
+                        "id": "(machine).para2.K2.L2.L2P",
+                        "key": "L2P",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2P.L2Q"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2P",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2Q": {
+                            "id": "(machine).para2.K2.L2.L2P.L2Q",
+                            "key": "L2Q",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2P.L2Q",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 27,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2R": {
+                            "id": "(machine).para2.K2.L2.L2P.L2R",
+                            "key": "L2R",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2P.L2R",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 28,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 26,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 19,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "M2": {
+                    "id": "(machine).para2.K2.M2",
+                    "key": "M2",
+                    "type": "parallel",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.K2.M2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "M2A": {
+                        "id": "(machine).para2.K2.M2.M2A",
+                        "key": "M2A",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2A.M2B"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2A",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2B": {
+                            "id": "(machine).para2.K2.M2.M2A.M2B",
+                            "key": "M2B",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2A.M2B",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 31,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2C": {
+                            "id": "(machine).para2.K2.M2.M2A.M2C",
+                            "key": "M2C",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2A.M2C",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 32,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 30,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "M2K": {
+                        "id": "(machine).para2.K2.M2.M2K",
+                        "key": "M2K",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2K.M2L"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2K",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2L": {
+                            "id": "(machine).para2.K2.M2.M2K.M2L",
+                            "key": "M2L",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2K.M2L",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 34,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2M": {
+                            "id": "(machine).para2.K2.M2.M2K.M2M",
+                            "key": "M2M",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2K.M2M",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 35,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 33,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "M2P": {
+                        "id": "(machine).para2.K2.M2.M2P",
+                        "key": "M2P",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2P.M2Q"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2P",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2Q": {
+                            "id": "(machine).para2.K2.M2.M2P.M2Q",
+                            "key": "M2Q",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2P.M2Q",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 37,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2R": {
+                            "id": "(machine).para2.K2.M2.M2P.M2R",
+                            "key": "M2R",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2P.M2R",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 38,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 36,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 29,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 18,
+                "invoke": [],
+                "tags": []
+              },
+              "P2": {
+                "id": "(machine).para2.P2",
+                "key": "P2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.P2.Q2"
+                  ],
+                  "source": "#(machine).para2.P2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "Q2": {
+                    "id": "(machine).para2.P2.Q2",
+                    "key": "Q2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.P2.Q2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 40,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "R2": {
+                    "id": "(machine).para2.P2.R2",
+                    "key": "R2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.P2.R2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 41,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 39,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 14,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "simple",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).simple"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "DEEP_M"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).simple",
+                  "eventType": "DEEP_M",
+                  "target": [
+                    "#(machine).para.K.M"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "para": {
+                    "A": "B",
+                    "K": "M",
+                    "P": "Q"
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).para",
+                  "(machine).para.A",
+                  "(machine).para.A.B",
+                  "(machine).para.K",
+                  "(machine).para.K.M",
+                  "(machine).para.P",
+                  "(machine).para.P.Q"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "deep targets in all regions",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).simple"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "simple": {
+            "id": "(machine).simple",
+            "key": "simple",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).simple",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "DEEP_M": [
+                {
+                  "target": [
+                    "#(machine).para.K.M"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_M"
+                }
+              ],
+              "DEEP_CM": [
+                {
+                  "target": [
+                    "#(machine).para.A.C",
+                    "#(machine).para.K.M"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_CM"
+                }
+              ],
+              "DEEP_MR": [
+                {
+                  "target": [
+                    "#(machine).para.K.M",
+                    "#(machine).para.P.R"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_MR"
+                }
+              ],
+              "DEEP_CMR": [
+                {
+                  "target": [
+                    "#(machine).para.A.C",
+                    "#(machine).para.K.M",
+                    "#(machine).para.P.R"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_CMR"
+                }
+              ],
+              "INITIAL": [
+                {
+                  "target": [
+                    "#(machine).para"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "INITIAL"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).para.K.M"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_M"
+              },
+              {
+                "target": [
+                  "#(machine).para.A.C",
+                  "#(machine).para.K.M"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_CM"
+              },
+              {
+                "target": [
+                  "#(machine).para.K.M",
+                  "#(machine).para.P.R"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_MR"
+              },
+              {
+                "target": [
+                  "#(machine).para.A.C",
+                  "#(machine).para.K.M",
+                  "#(machine).para.P.R"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_CMR"
+              },
+              {
+                "target": [
+                  "#(machine).para"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "INITIAL"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "other": {
+            "id": "(machine).other",
+            "key": "other",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).other.X"
+              ],
+              "source": "#(machine).other",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "X": {
+                "id": "(machine).other.X",
+                "key": "X",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).other.X",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "para": {
+            "id": "(machine).para",
+            "key": "para",
+            "type": "parallel",
+            "initial": {
+              "target": [],
+              "source": "#(machine).para",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "A": {
+                "id": "(machine).para.A",
+                "key": "A",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.A.B"
+                  ],
+                  "source": "#(machine).para.A",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "B": {
+                    "id": "(machine).para.A.B",
+                    "key": "B",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.A.B",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 6,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "C": {
+                    "id": "(machine).para.A.C",
+                    "key": "C",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.A.C",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 7,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "K": {
+                "id": "(machine).para.K",
+                "key": "K",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.K.L"
+                  ],
+                  "source": "#(machine).para.K",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "L": {
+                    "id": "(machine).para.K.L",
+                    "key": "L",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.K.L",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 9,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "M": {
+                    "id": "(machine).para.K.M",
+                    "key": "M",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.K.M",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 10,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 8,
+                "invoke": [],
+                "tags": []
+              },
+              "P": {
+                "id": "(machine).para.P",
+                "key": "P",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.P.Q"
+                  ],
+                  "source": "#(machine).para.P",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "Q": {
+                    "id": "(machine).para.P.Q",
+                    "key": "Q",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.P.Q",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 12,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "R": {
+                    "id": "(machine).para.P.R",
+                    "key": "R",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.P.R",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 13,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 11,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          },
+          "para2": {
+            "id": "(machine).para2",
+            "key": "para2",
+            "type": "parallel",
+            "initial": {
+              "target": [],
+              "source": "#(machine).para2",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "A2": {
+                "id": "(machine).para2.A2",
+                "key": "A2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.A2.B2"
+                  ],
+                  "source": "#(machine).para2.A2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "B2": {
+                    "id": "(machine).para2.A2.B2",
+                    "key": "B2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.A2.B2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 16,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "C2": {
+                    "id": "(machine).para2.A2.C2",
+                    "key": "C2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.A2.C2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 17,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 15,
+                "invoke": [],
+                "tags": []
+              },
+              "K2": {
+                "id": "(machine).para2.K2",
+                "key": "K2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.K2.L2"
+                  ],
+                  "source": "#(machine).para2.K2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "L2": {
+                    "id": "(machine).para2.K2.L2",
+                    "key": "L2",
+                    "type": "parallel",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.K2.L2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "L2A": {
+                        "id": "(machine).para2.K2.L2.L2A",
+                        "key": "L2A",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2A.L2B"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2A",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2B": {
+                            "id": "(machine).para2.K2.L2.L2A.L2B",
+                            "key": "L2B",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2A.L2B",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 21,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2C": {
+                            "id": "(machine).para2.K2.L2.L2A.L2C",
+                            "key": "L2C",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2A.L2C",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 22,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 20,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "L2K": {
+                        "id": "(machine).para2.K2.L2.L2K",
+                        "key": "L2K",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2K.L2L"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2K",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2L": {
+                            "id": "(machine).para2.K2.L2.L2K.L2L",
+                            "key": "L2L",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2K.L2L",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 24,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2M": {
+                            "id": "(machine).para2.K2.L2.L2K.L2M",
+                            "key": "L2M",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2K.L2M",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 25,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 23,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "L2P": {
+                        "id": "(machine).para2.K2.L2.L2P",
+                        "key": "L2P",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2P.L2Q"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2P",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2Q": {
+                            "id": "(machine).para2.K2.L2.L2P.L2Q",
+                            "key": "L2Q",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2P.L2Q",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 27,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2R": {
+                            "id": "(machine).para2.K2.L2.L2P.L2R",
+                            "key": "L2R",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2P.L2R",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 28,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 26,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 19,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "M2": {
+                    "id": "(machine).para2.K2.M2",
+                    "key": "M2",
+                    "type": "parallel",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.K2.M2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "M2A": {
+                        "id": "(machine).para2.K2.M2.M2A",
+                        "key": "M2A",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2A.M2B"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2A",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2B": {
+                            "id": "(machine).para2.K2.M2.M2A.M2B",
+                            "key": "M2B",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2A.M2B",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 31,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2C": {
+                            "id": "(machine).para2.K2.M2.M2A.M2C",
+                            "key": "M2C",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2A.M2C",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 32,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 30,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "M2K": {
+                        "id": "(machine).para2.K2.M2.M2K",
+                        "key": "M2K",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2K.M2L"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2K",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2L": {
+                            "id": "(machine).para2.K2.M2.M2K.M2L",
+                            "key": "M2L",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2K.M2L",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 34,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2M": {
+                            "id": "(machine).para2.K2.M2.M2K.M2M",
+                            "key": "M2M",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2K.M2M",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 35,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 33,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "M2P": {
+                        "id": "(machine).para2.K2.M2.M2P",
+                        "key": "M2P",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2P.M2Q"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2P",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2Q": {
+                            "id": "(machine).para2.K2.M2.M2P.M2Q",
+                            "key": "M2Q",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2P.M2Q",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 37,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2R": {
+                            "id": "(machine).para2.K2.M2.M2P.M2R",
+                            "key": "M2R",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2P.M2R",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 38,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 36,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 29,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 18,
+                "invoke": [],
+                "tags": []
+              },
+              "P2": {
+                "id": "(machine).para2.P2",
+                "key": "P2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.P2.Q2"
+                  ],
+                  "source": "#(machine).para2.P2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "Q2": {
+                    "id": "(machine).para2.P2.Q2",
+                    "key": "Q2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.P2.Q2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 40,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "R2": {
+                    "id": "(machine).para2.P2.R2",
+                    "key": "R2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.P2.R2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 41,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 39,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 14,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "simple",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).simple"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "DEEP_CMR"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).simple",
+                  "eventType": "DEEP_CMR",
+                  "target": [
+                    "#(machine).para.A.C",
+                    "#(machine).para.K.M",
+                    "#(machine).para.P.R"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "para": {
+                    "A": "C",
+                    "K": "M",
+                    "P": "R"
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).para",
+                  "(machine).para.A",
+                  "(machine).para.A.C",
+                  "(machine).para.K",
+                  "(machine).para.K.M",
+                  "(machine).para.P",
+                  "(machine).para.P.R"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "deep targets in some regions",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).simple"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "simple": {
+            "id": "(machine).simple",
+            "key": "simple",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).simple",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "DEEP_M": [
+                {
+                  "target": [
+                    "#(machine).para.K.M"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_M"
+                }
+              ],
+              "DEEP_CM": [
+                {
+                  "target": [
+                    "#(machine).para.A.C",
+                    "#(machine).para.K.M"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_CM"
+                }
+              ],
+              "DEEP_MR": [
+                {
+                  "target": [
+                    "#(machine).para.K.M",
+                    "#(machine).para.P.R"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_MR"
+                }
+              ],
+              "DEEP_CMR": [
+                {
+                  "target": [
+                    "#(machine).para.A.C",
+                    "#(machine).para.K.M",
+                    "#(machine).para.P.R"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_CMR"
+                }
+              ],
+              "INITIAL": [
+                {
+                  "target": [
+                    "#(machine).para"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "INITIAL"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).para.K.M"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_M"
+              },
+              {
+                "target": [
+                  "#(machine).para.A.C",
+                  "#(machine).para.K.M"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_CM"
+              },
+              {
+                "target": [
+                  "#(machine).para.K.M",
+                  "#(machine).para.P.R"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_MR"
+              },
+              {
+                "target": [
+                  "#(machine).para.A.C",
+                  "#(machine).para.K.M",
+                  "#(machine).para.P.R"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_CMR"
+              },
+              {
+                "target": [
+                  "#(machine).para"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "INITIAL"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "other": {
+            "id": "(machine).other",
+            "key": "other",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).other.X"
+              ],
+              "source": "#(machine).other",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "X": {
+                "id": "(machine).other.X",
+                "key": "X",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).other.X",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "para": {
+            "id": "(machine).para",
+            "key": "para",
+            "type": "parallel",
+            "initial": {
+              "target": [],
+              "source": "#(machine).para",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "A": {
+                "id": "(machine).para.A",
+                "key": "A",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.A.B"
+                  ],
+                  "source": "#(machine).para.A",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "B": {
+                    "id": "(machine).para.A.B",
+                    "key": "B",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.A.B",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 6,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "C": {
+                    "id": "(machine).para.A.C",
+                    "key": "C",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.A.C",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 7,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "K": {
+                "id": "(machine).para.K",
+                "key": "K",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.K.L"
+                  ],
+                  "source": "#(machine).para.K",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "L": {
+                    "id": "(machine).para.K.L",
+                    "key": "L",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.K.L",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 9,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "M": {
+                    "id": "(machine).para.K.M",
+                    "key": "M",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.K.M",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 10,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 8,
+                "invoke": [],
+                "tags": []
+              },
+              "P": {
+                "id": "(machine).para.P",
+                "key": "P",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.P.Q"
+                  ],
+                  "source": "#(machine).para.P",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "Q": {
+                    "id": "(machine).para.P.Q",
+                    "key": "Q",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.P.Q",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 12,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "R": {
+                    "id": "(machine).para.P.R",
+                    "key": "R",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.P.R",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 13,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 11,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          },
+          "para2": {
+            "id": "(machine).para2",
+            "key": "para2",
+            "type": "parallel",
+            "initial": {
+              "target": [],
+              "source": "#(machine).para2",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "A2": {
+                "id": "(machine).para2.A2",
+                "key": "A2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.A2.B2"
+                  ],
+                  "source": "#(machine).para2.A2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "B2": {
+                    "id": "(machine).para2.A2.B2",
+                    "key": "B2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.A2.B2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 16,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "C2": {
+                    "id": "(machine).para2.A2.C2",
+                    "key": "C2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.A2.C2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 17,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 15,
+                "invoke": [],
+                "tags": []
+              },
+              "K2": {
+                "id": "(machine).para2.K2",
+                "key": "K2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.K2.L2"
+                  ],
+                  "source": "#(machine).para2.K2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "L2": {
+                    "id": "(machine).para2.K2.L2",
+                    "key": "L2",
+                    "type": "parallel",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.K2.L2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "L2A": {
+                        "id": "(machine).para2.K2.L2.L2A",
+                        "key": "L2A",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2A.L2B"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2A",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2B": {
+                            "id": "(machine).para2.K2.L2.L2A.L2B",
+                            "key": "L2B",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2A.L2B",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 21,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2C": {
+                            "id": "(machine).para2.K2.L2.L2A.L2C",
+                            "key": "L2C",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2A.L2C",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 22,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 20,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "L2K": {
+                        "id": "(machine).para2.K2.L2.L2K",
+                        "key": "L2K",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2K.L2L"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2K",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2L": {
+                            "id": "(machine).para2.K2.L2.L2K.L2L",
+                            "key": "L2L",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2K.L2L",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 24,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2M": {
+                            "id": "(machine).para2.K2.L2.L2K.L2M",
+                            "key": "L2M",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2K.L2M",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 25,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 23,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "L2P": {
+                        "id": "(machine).para2.K2.L2.L2P",
+                        "key": "L2P",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2P.L2Q"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2P",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2Q": {
+                            "id": "(machine).para2.K2.L2.L2P.L2Q",
+                            "key": "L2Q",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2P.L2Q",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 27,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2R": {
+                            "id": "(machine).para2.K2.L2.L2P.L2R",
+                            "key": "L2R",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2P.L2R",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 28,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 26,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 19,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "M2": {
+                    "id": "(machine).para2.K2.M2",
+                    "key": "M2",
+                    "type": "parallel",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.K2.M2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "M2A": {
+                        "id": "(machine).para2.K2.M2.M2A",
+                        "key": "M2A",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2A.M2B"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2A",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2B": {
+                            "id": "(machine).para2.K2.M2.M2A.M2B",
+                            "key": "M2B",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2A.M2B",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 31,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2C": {
+                            "id": "(machine).para2.K2.M2.M2A.M2C",
+                            "key": "M2C",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2A.M2C",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 32,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 30,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "M2K": {
+                        "id": "(machine).para2.K2.M2.M2K",
+                        "key": "M2K",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2K.M2L"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2K",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2L": {
+                            "id": "(machine).para2.K2.M2.M2K.M2L",
+                            "key": "M2L",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2K.M2L",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 34,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2M": {
+                            "id": "(machine).para2.K2.M2.M2K.M2M",
+                            "key": "M2M",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2K.M2M",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 35,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 33,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "M2P": {
+                        "id": "(machine).para2.K2.M2.M2P",
+                        "key": "M2P",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2P.M2Q"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2P",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2Q": {
+                            "id": "(machine).para2.K2.M2.M2P.M2Q",
+                            "key": "M2Q",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2P.M2Q",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 37,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2R": {
+                            "id": "(machine).para2.K2.M2.M2P.M2R",
+                            "key": "M2R",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2P.M2R",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 38,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 36,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 29,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 18,
+                "invoke": [],
+                "tags": []
+              },
+              "P2": {
+                "id": "(machine).para2.P2",
+                "key": "P2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.P2.Q2"
+                  ],
+                  "source": "#(machine).para2.P2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "Q2": {
+                    "id": "(machine).para2.P2.Q2",
+                    "key": "Q2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.P2.Q2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 40,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "R2": {
+                    "id": "(machine).para2.P2.R2",
+                    "key": "R2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.P2.R2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 41,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 39,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 14,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "simple",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).simple"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "DEEP_MR"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).simple",
+                  "eventType": "DEEP_MR",
+                  "target": [
+                    "#(machine).para.K.M",
+                    "#(machine).para.P.R"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "para": {
+                    "A": "B",
+                    "K": "M",
+                    "P": "R"
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).para",
+                  "(machine).para.A",
+                  "(machine).para.A.B",
+                  "(machine).para.K",
+                  "(machine).para.K.M",
+                  "(machine).para.P",
+                  "(machine).para.P.R"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "deep targets in two regions",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).simple"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "simple": {
+            "id": "(machine).simple",
+            "key": "simple",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).simple",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "DEEP_M": [
+                {
+                  "target": [
+                    "#(machine).para.K.M"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_M"
+                }
+              ],
+              "DEEP_CM": [
+                {
+                  "target": [
+                    "#(machine).para.A.C",
+                    "#(machine).para.K.M"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_CM"
+                }
+              ],
+              "DEEP_MR": [
+                {
+                  "target": [
+                    "#(machine).para.K.M",
+                    "#(machine).para.P.R"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_MR"
+                }
+              ],
+              "DEEP_CMR": [
+                {
+                  "target": [
+                    "#(machine).para.A.C",
+                    "#(machine).para.K.M",
+                    "#(machine).para.P.R"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "DEEP_CMR"
+                }
+              ],
+              "INITIAL": [
+                {
+                  "target": [
+                    "#(machine).para"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).simple",
+                  "reenter": false,
+                  "eventType": "INITIAL"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).para.K.M"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_M"
+              },
+              {
+                "target": [
+                  "#(machine).para.A.C",
+                  "#(machine).para.K.M"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_CM"
+              },
+              {
+                "target": [
+                  "#(machine).para.K.M",
+                  "#(machine).para.P.R"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_MR"
+              },
+              {
+                "target": [
+                  "#(machine).para.A.C",
+                  "#(machine).para.K.M",
+                  "#(machine).para.P.R"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "DEEP_CMR"
+              },
+              {
+                "target": [
+                  "#(machine).para"
+                ],
+                "actions": [],
+                "source": "#(machine).simple",
+                "reenter": false,
+                "eventType": "INITIAL"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "other": {
+            "id": "(machine).other",
+            "key": "other",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).other.X"
+              ],
+              "source": "#(machine).other",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "X": {
+                "id": "(machine).other.X",
+                "key": "X",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).other.X",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "para": {
+            "id": "(machine).para",
+            "key": "para",
+            "type": "parallel",
+            "initial": {
+              "target": [],
+              "source": "#(machine).para",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "A": {
+                "id": "(machine).para.A",
+                "key": "A",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.A.B"
+                  ],
+                  "source": "#(machine).para.A",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "B": {
+                    "id": "(machine).para.A.B",
+                    "key": "B",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.A.B",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 6,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "C": {
+                    "id": "(machine).para.A.C",
+                    "key": "C",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.A.C",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 7,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "K": {
+                "id": "(machine).para.K",
+                "key": "K",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.K.L"
+                  ],
+                  "source": "#(machine).para.K",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "L": {
+                    "id": "(machine).para.K.L",
+                    "key": "L",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.K.L",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 9,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "M": {
+                    "id": "(machine).para.K.M",
+                    "key": "M",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.K.M",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 10,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 8,
+                "invoke": [],
+                "tags": []
+              },
+              "P": {
+                "id": "(machine).para.P",
+                "key": "P",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para.P.Q"
+                  ],
+                  "source": "#(machine).para.P",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "Q": {
+                    "id": "(machine).para.P.Q",
+                    "key": "Q",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.P.Q",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 12,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "R": {
+                    "id": "(machine).para.P.R",
+                    "key": "R",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para.P.R",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 13,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 11,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          },
+          "para2": {
+            "id": "(machine).para2",
+            "key": "para2",
+            "type": "parallel",
+            "initial": {
+              "target": [],
+              "source": "#(machine).para2",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "A2": {
+                "id": "(machine).para2.A2",
+                "key": "A2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.A2.B2"
+                  ],
+                  "source": "#(machine).para2.A2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "B2": {
+                    "id": "(machine).para2.A2.B2",
+                    "key": "B2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.A2.B2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 16,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "C2": {
+                    "id": "(machine).para2.A2.C2",
+                    "key": "C2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.A2.C2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 17,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 15,
+                "invoke": [],
+                "tags": []
+              },
+              "K2": {
+                "id": "(machine).para2.K2",
+                "key": "K2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.K2.L2"
+                  ],
+                  "source": "#(machine).para2.K2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "L2": {
+                    "id": "(machine).para2.K2.L2",
+                    "key": "L2",
+                    "type": "parallel",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.K2.L2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "L2A": {
+                        "id": "(machine).para2.K2.L2.L2A",
+                        "key": "L2A",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2A.L2B"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2A",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2B": {
+                            "id": "(machine).para2.K2.L2.L2A.L2B",
+                            "key": "L2B",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2A.L2B",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 21,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2C": {
+                            "id": "(machine).para2.K2.L2.L2A.L2C",
+                            "key": "L2C",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2A.L2C",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 22,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 20,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "L2K": {
+                        "id": "(machine).para2.K2.L2.L2K",
+                        "key": "L2K",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2K.L2L"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2K",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2L": {
+                            "id": "(machine).para2.K2.L2.L2K.L2L",
+                            "key": "L2L",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2K.L2L",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 24,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2M": {
+                            "id": "(machine).para2.K2.L2.L2K.L2M",
+                            "key": "L2M",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2K.L2M",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 25,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 23,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "L2P": {
+                        "id": "(machine).para2.K2.L2.L2P",
+                        "key": "L2P",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.L2.L2P.L2Q"
+                          ],
+                          "source": "#(machine).para2.K2.L2.L2P",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "L2Q": {
+                            "id": "(machine).para2.K2.L2.L2P.L2Q",
+                            "key": "L2Q",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2P.L2Q",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 27,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "L2R": {
+                            "id": "(machine).para2.K2.L2.L2P.L2R",
+                            "key": "L2R",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.L2.L2P.L2R",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 28,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 26,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 19,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "M2": {
+                    "id": "(machine).para2.K2.M2",
+                    "key": "M2",
+                    "type": "parallel",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.K2.M2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "M2A": {
+                        "id": "(machine).para2.K2.M2.M2A",
+                        "key": "M2A",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2A.M2B"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2A",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2B": {
+                            "id": "(machine).para2.K2.M2.M2A.M2B",
+                            "key": "M2B",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2A.M2B",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 31,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2C": {
+                            "id": "(machine).para2.K2.M2.M2A.M2C",
+                            "key": "M2C",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2A.M2C",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 32,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 30,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "M2K": {
+                        "id": "(machine).para2.K2.M2.M2K",
+                        "key": "M2K",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2K.M2L"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2K",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2L": {
+                            "id": "(machine).para2.K2.M2.M2K.M2L",
+                            "key": "M2L",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2K.M2L",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 34,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2M": {
+                            "id": "(machine).para2.K2.M2.M2K.M2M",
+                            "key": "M2M",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2K.M2M",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 35,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 33,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "M2P": {
+                        "id": "(machine).para2.K2.M2.M2P",
+                        "key": "M2P",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#(machine).para2.K2.M2.M2P.M2Q"
+                          ],
+                          "source": "#(machine).para2.K2.M2.M2P",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "M2Q": {
+                            "id": "(machine).para2.K2.M2.M2P.M2Q",
+                            "key": "M2Q",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2P.M2Q",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 37,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "M2R": {
+                            "id": "(machine).para2.K2.M2.M2P.M2R",
+                            "key": "M2R",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#(machine).para2.K2.M2.M2P.M2R",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 38,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 36,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 29,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 18,
+                "invoke": [],
+                "tags": []
+              },
+              "P2": {
+                "id": "(machine).para2.P2",
+                "key": "P2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#(machine).para2.P2.Q2"
+                  ],
+                  "source": "#(machine).para2.P2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "Q2": {
+                    "id": "(machine).para2.P2.Q2",
+                    "key": "Q2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.P2.Q2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 40,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "R2": {
+                    "id": "(machine).para2.P2.R2",
+                    "key": "R2",
+                    "type": "atomic",
+                    "initial": {
+                      "target": [],
+                      "source": "#(machine).para2.P2.R2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {},
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 41,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 39,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 14,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "simple",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).simple"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "DEEP_CM"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).simple",
+                  "eventType": "DEEP_CM",
+                  "target": [
+                    "#(machine).para.A.C",
+                    "#(machine).para.K.M"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "para": {
+                    "A": "C",
+                    "K": "M",
+                    "P": "Q"
+                  }
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).para",
+                  "(machine).para.A",
+                  "(machine).para.A.C",
+                  "(machine).para.K",
+                  "(machine).para.K.M",
+                  "(machine).para.P",
+                  "(machine).para.P.Q"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

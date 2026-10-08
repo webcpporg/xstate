@@ -1,0 +1,254 @@
+{
+  "source": "input.test.ts",
+  "cases": [
+    {
+      "name": "a machine's context from its input",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "atomic",
+        "initial": {
+          "target": [],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {},
+        "on": {},
+        "transitions": [],
+        "entry": [
+          {
+            "type": "recordCount"
+          }
+        ],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init",
+                "input": {
+                  "startCount": 42
+                }
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "recordCount"
+                }
+              ],
+              "snapshot": {
+                "value": {},
+                "context": {
+                  "count": 42
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the initial event carries the input",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "atomic",
+        "initial": {
+          "target": [],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {},
+        "on": {},
+        "transitions": [],
+        "entry": [
+          {
+            "type": "set_from_event",
+            "params": {
+              "key": "input",
+              "from": "input"
+            }
+          }
+        ],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init",
+                "input": {
+                  "greeting": "hello"
+                }
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {},
+                "context": {
+                  "input": {
+                    "greeting": "hello"
+                  }
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a missing input fails the context it computes",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "atomic",
+        "initial": {
+          "target": [],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {},
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "a failed initial context keeps the snapshot's interface",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).saving"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "saving": {
+            "id": "(machine).saving",
+            "key": "saving",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).saving",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "error": true
+        },
+        {
+          "query": {
+            "matches": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "a machine without a context function ignores no input",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "atomic",
+        "initial": {
+          "target": [],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {},
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {},
+                "context": {
+                  "count": 42
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

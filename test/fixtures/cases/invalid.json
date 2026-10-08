@@ -1,0 +1,230 @@
+{
+  "source": "invalid.test.ts",
+  "cases": [
+    {
+      "name": "a sibling target on the root node is refused",
+      "test": "invalid.test.ts > invalid transition > should throw when attempting to create a machine with a sibling target on the root node",
+      "machine": {
+        "id": "direction",
+        "initial": "left",
+        "states": {
+          "left": {},
+          "right": {}
+        },
+        "on": {
+          "LEFT_CLICK": "left",
+          "RIGHT_CLICK": "right"
+        }
+      },
+      "expect_create_error": true,
+      "steps": []
+    },
+    {
+      "name": "a compound state without initial is refused",
+      "test": "StateNode.ts constructor: No initial state specified for compound state node",
+      "machine": {
+        "id": "m",
+        "states": {
+          "a": {}
+        }
+      },
+      "expect_create_error": true,
+      "steps": []
+    },
+    {
+      "name": "an on key of the empty string is refused",
+      "test": "stateUtils.ts formatTransitions: Null events cannot be specified as a transition key",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "": "a"
+            }
+          }
+        }
+      },
+      "expect_create_error": true,
+      "steps": []
+    },
+    {
+      "name": "resolves a partial string state value to its full default expansion",
+      "test": "invalid.test.ts > invalid or resolved states > should resolve a String state",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "A": {
+            "initial": "A1",
+            "states": {
+              "A1": {},
+              "A2": {}
+            }
+          },
+          "B": {
+            "initial": "B1",
+            "states": {
+              "B1": {},
+              "B2": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": "A"
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ]
+    },
+    {
+      "name": "resolves empty region objects to their default child states",
+      "test": "invalid.test.ts > invalid or resolved states > should resolve transitions from empty states",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "A": {
+            "initial": "A1",
+            "states": {
+              "A1": {},
+              "A2": {}
+            }
+          },
+          "B": {
+            "initial": "B1",
+            "states": {
+              "B1": {},
+              "B2": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": {
+            "A": {},
+            "B": {}
+          }
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ]
+    },
+    {
+      "name": "allows transitioning from an already fully valid state",
+      "test": "invalid.test.ts > invalid or resolved states > should allow transitioning from valid states",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "A": {
+            "initial": "A1",
+            "states": {
+              "A1": {},
+              "A2": {}
+            }
+          },
+          "B": {
+            "initial": "B1",
+            "states": {
+              "B1": {},
+              "B2": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": {
+            "A": "A1",
+            "B": "B1"
+          }
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ]
+    },
+    {
+      "name": "rejects a state value naming children that do not exist",
+      "test": "invalid.test.ts > invalid or resolved states > should reject transitioning from bad state configs",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "A": {
+            "initial": "A1",
+            "states": {
+              "A1": {},
+              "A2": {}
+            }
+          },
+          "B": {
+            "initial": "B1",
+            "states": {
+              "B1": {},
+              "B2": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": {
+            "A": "A3",
+            "B": "B3"
+          }
+        }
+      ]
+    },
+    {
+      "name": "resolves a partially valid state value, filling in the rest with defaults",
+      "test": "invalid.test.ts > invalid or resolved states > should resolve transitioning from partially valid states",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "A": {
+            "initial": "A1",
+            "states": {
+              "A1": {},
+              "A2": {}
+            }
+          },
+          "B": {
+            "initial": "B1",
+            "states": {
+              "B1": {},
+              "B2": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "resolve": {
+            "A": "A1",
+            "B": {}
+          }
+        },
+        {
+          "send": {
+            "type": "E"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "stateUtils.ts formatInitialTransition: Initial state node not found",
+      "reason": "XState computes a node's initial transition lazily and throws only when the machine starts; xstate refuses the config at creation (doc: #differences-refused). Measured on XState 5.33.2: with \"initial\": \"nope\" a case's expect_create_error fails because XState creates the machine, and its start step throws 'Initial state node \"nope\" not found on parent state node #m' out of getInitialSnapshot. A case would need a form that expects the refusal at creation on xstate and at start on XState. The refusal rows of test/xstate/machine_test.cpp cover xstate's side."
+    }
+  ]
+}

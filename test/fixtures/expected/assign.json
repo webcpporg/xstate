@@ -1,0 +1,2421 @@
+{
+  "source": "assign.test.ts",
+  "cases": [
+    {
+      "name": "decrement twice (property assignment)",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).counting"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "counting": {
+            "id": "(machine).counting",
+            "key": "counting",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).counting",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "INC": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "increment",
+                      "params": {
+                        "key": "count",
+                        "by": 1
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "INC"
+                }
+              ],
+              "DEC": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "increment",
+                      "params": {
+                        "key": "count",
+                        "by": -1
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "DEC"
+                }
+              ],
+              "WIN_PROP": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "count",
+                        "value": 100
+                      }
+                    },
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "foo",
+                        "value": "win"
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "WIN_PROP"
+                }
+              ],
+              "WIN_STATIC": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "count",
+                        "value": 100
+                      }
+                    },
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "foo",
+                        "value": "win"
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "WIN_STATIC"
+                }
+              ],
+              "WIN_MIX": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "count",
+                        "value": 100
+                      }
+                    },
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "foo",
+                        "value": "win"
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "WIN_MIX"
+                }
+              ],
+              "WIN": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "count",
+                        "value": 100
+                      }
+                    },
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "foo",
+                        "value": "win"
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "WIN"
+                }
+              ],
+              "SET_MAYBE": [
+                {
+                  "actions": [
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "maybe",
+                        "value": "defined"
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "SET_MAYBE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "count",
+                      "by": 1
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "INC"
+              },
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "count",
+                      "by": -1
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "DEC"
+              },
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "WIN_PROP"
+              },
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "WIN_STATIC"
+              },
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "WIN_MIX"
+              },
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "WIN"
+              },
+              {
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "maybe",
+                      "value": "defined"
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "SET_MAYBE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 0,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "DEC"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "DEC",
+                  "target": [
+                    "#(machine).counting"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": -1,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "DEC"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "DEC",
+                  "target": [
+                    "#(machine).counting"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": -2,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "increment twice",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).counting"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "counting": {
+            "id": "(machine).counting",
+            "key": "counting",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).counting",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "INC": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "increment",
+                      "params": {
+                        "key": "count",
+                        "by": 1
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "INC"
+                }
+              ],
+              "DEC": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "increment",
+                      "params": {
+                        "key": "count",
+                        "by": -1
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "DEC"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "count",
+                      "by": 1
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "INC"
+              },
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "count",
+                      "by": -1
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "DEC"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 0,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "INC"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "INC",
+                  "target": [
+                    "#(machine).counting"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 1,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "INC"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "INC",
+                  "target": [
+                    "#(machine).counting"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 2,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "multiple properties (property assignment)",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).counting"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "counting": {
+            "id": "(machine).counting",
+            "key": "counting",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).counting",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "WIN_PROP": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "count",
+                        "value": 100
+                      }
+                    },
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "foo",
+                        "value": "win"
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "WIN_PROP"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "WIN_PROP"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 0,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "WIN_PROP"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "WIN_PROP",
+                  "target": [
+                    "#(machine).counting"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 100,
+                  "foo": "win"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "multiple properties (static)",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).counting"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "counting": {
+            "id": "(machine).counting",
+            "key": "counting",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).counting",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "WIN_STATIC": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "count",
+                        "value": 100
+                      }
+                    },
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "foo",
+                        "value": "win"
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "WIN_STATIC"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "WIN_STATIC"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 0,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "WIN_STATIC"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "WIN_STATIC",
+                  "target": [
+                    "#(machine).counting"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 100,
+                  "foo": "win"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "multiple properties (static and property assignment mixed)",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).counting"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "counting": {
+            "id": "(machine).counting",
+            "key": "counting",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).counting",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "WIN_MIX": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "count",
+                        "value": 100
+                      }
+                    },
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "foo",
+                        "value": "win"
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "WIN_MIX"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "WIN_MIX"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 0,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "WIN_MIX"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "WIN_MIX",
+                  "target": [
+                    "#(machine).counting"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 100,
+                  "foo": "win"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "multiple properties (whole object assigner)",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).counting"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "counting": {
+            "id": "(machine).counting",
+            "key": "counting",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).counting",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "WIN": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "count",
+                        "value": 100
+                      }
+                    },
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "foo",
+                        "value": "win"
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "WIN"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "WIN"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 0,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "WIN"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "WIN",
+                  "target": [
+                    "#(machine).counting"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 100,
+                  "foo": "win"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "explicit context, decrement twice (property assignment)",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).counting"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "counting": {
+            "id": "(machine).counting",
+            "key": "counting",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).counting",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "DEC": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "increment",
+                      "params": {
+                        "key": "count",
+                        "by": -1
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "DEC"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "count",
+                      "by": -1
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "DEC"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 50,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "DEC"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "DEC",
+                  "target": [
+                    "#(machine).counting"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 49,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "DEC"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "DEC",
+                  "target": [
+                    "#(machine).counting"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 48,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "explicit context, decrement once, second machine (property assignment)",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).counting"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "counting": {
+            "id": "(machine).counting",
+            "key": "counting",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).counting",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "DEC": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "increment",
+                      "params": {
+                        "key": "count",
+                        "by": -1
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "DEC"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "count",
+                      "by": -1
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "DEC"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 100,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "DEC"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "DEC",
+                  "target": [
+                    "#(machine).counting"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 99,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "explicit context, increment twice",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).counting"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "counting": {
+            "id": "(machine).counting",
+            "key": "counting",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).counting",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "INC": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "increment",
+                      "params": {
+                        "key": "count",
+                        "by": 1
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "INC"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "count",
+                      "by": 1
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "INC"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 50,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "INC"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "INC",
+                  "target": [
+                    "#(machine).counting"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 51,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "INC"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "INC",
+                  "target": [
+                    "#(machine).counting"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 52,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "explicit context, increment once, second machine",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).counting"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "counting": {
+            "id": "(machine).counting",
+            "key": "counting",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).counting",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "INC": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "increment",
+                      "params": {
+                        "key": "count",
+                        "by": 1
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "INC"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "count",
+                      "by": 1
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "INC"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 102,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "INC"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "INC",
+                  "target": [
+                    "#(machine).counting"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 103,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "context is unchanged after an unhandled event",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).counting"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "counting": {
+            "id": "(machine).counting",
+            "key": "counting",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).counting",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "INC": [
+                {
+                  "target": [
+                    "#(machine).counting"
+                  ],
+                  "actions": [
+                    {
+                      "type": "increment",
+                      "params": {
+                        "key": "count",
+                        "by": 1
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "INC"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).counting"
+                ],
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "count",
+                      "by": 1
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "INC"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 0,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "FAKE_EVENT"
+              },
+              "transitions": [],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 0,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sets an undefined property",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).counting"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "counting": {
+            "id": "(machine).counting",
+            "key": "counting",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).counting",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "SET_MAYBE": [
+                {
+                  "actions": [
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "maybe",
+                        "value": "defined"
+                      }
+                    }
+                  ],
+                  "source": "#(machine).counting",
+                  "reenter": false,
+                  "eventType": "SET_MAYBE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "maybe",
+                      "value": "defined"
+                    }
+                  }
+                ],
+                "source": "#(machine).counting",
+                "reenter": false,
+                "eventType": "SET_MAYBE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 0,
+                  "foo": "bar"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "SET_MAYBE"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).counting",
+                  "eventType": "SET_MAYBE"
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "counting",
+                "context": {
+                  "count": 0,
+                  "foo": "bar",
+                  "maybe": "defined"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).counting"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "parametrized action resolves to the whole-object assigner",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "atomic",
+        "initial": {
+          "target": [],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {},
+        "on": {},
+        "transitions": [],
+        "entry": [
+          {
+            "type": "increment",
+            "params": {
+              "key": "count",
+              "by": 10
+            }
+          }
+        ],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {},
+                "context": {
+                  "count": 11
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "parametrized action resolves to the partial assigner",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "atomic",
+        "initial": {
+          "target": [],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {},
+        "on": {},
+        "transitions": [],
+        "entry": [
+          {
+            "type": "increment",
+            "params": {
+              "key": "count",
+              "by": 10
+            }
+          }
+        ],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {},
+                "context": {
+                  "count": 11
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "assign from an event field",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).active"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "active": {
+            "id": "(machine).active",
+            "key": "active",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).active",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "INC": [
+                {
+                  "actions": [
+                    {
+                      "type": "set_from_event",
+                      "params": {
+                        "key": "count",
+                        "from": "value"
+                      }
+                    }
+                  ],
+                  "source": "#(machine).active",
+                  "reenter": false,
+                  "eventType": "INC"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  {
+                    "type": "set_from_event",
+                    "params": {
+                      "key": "count",
+                      "from": "value"
+                    }
+                  }
+                ],
+                "source": "#(machine).active",
+                "reenter": false,
+                "eventType": "INC"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "active",
+                "context": {
+                  "count": 0
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).active"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "INC",
+                "value": 30
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).active",
+                  "eventType": "INC"
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "active",
+                "context": {
+                  "count": 30
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).active"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

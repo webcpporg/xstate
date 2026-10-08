@@ -1,0 +1,195 @@
+{
+  "source": "the oracle's own smoke test",
+  "cases": [
+    {
+      "name": "a machine moves from a to b on NEXT",
+      "definition": {
+        "id": "light",
+        "key": "light",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#light.a"
+          ],
+          "source": "#light",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "light.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#light.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "NEXT": [
+                {
+                  "target": [
+                    "#light.b"
+                  ],
+                  "actions": [
+                    "moving"
+                  ],
+                  "source": "#light.a",
+                  "reenter": false,
+                  "eventType": "NEXT"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#light.b"
+                ],
+                "actions": [
+                  "moving"
+                ],
+                "source": "#light.a",
+                "reenter": false,
+                "eventType": "NEXT"
+              }
+            ],
+            "entry": [
+              {
+                "type": "entered_a"
+              }
+            ],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "b": {
+            "id": "light.b",
+            "key": "b",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#light.b",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "increment",
+                "params": {
+                  "key": "count"
+                }
+              }
+            ],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "entered_a"
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {
+                  "count": 0
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "light",
+                  "light.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "NEXT"
+              },
+              "transitions": [
+                {
+                  "source": "#light.a",
+                  "eventType": "NEXT",
+                  "target": [
+                    "#light.b"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "moving"
+                }
+              ],
+              "snapshot": {
+                "value": "b",
+                "context": {
+                  "count": 1
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "light",
+                  "light.b"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "NOTHING"
+              },
+              "transitions": [],
+              "actions": [],
+              "snapshot": {
+                "value": "b",
+                "context": {
+                  "count": 1
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "light",
+                  "light.b"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

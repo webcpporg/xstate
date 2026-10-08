@@ -1,0 +1,98 @@
+{
+  "source": "after.test.ts (the tests the core's cases/after.json excludes)",
+  "cases": [
+    {
+      "name": "a delay computed from the context sets when the delayed transition fires",
+      "test": "after.test.ts > delayed transitions > delay expressions > should evaluate the expression (function) to determine the delay (the spy on the context the delay receives is the delay it reads from it, 500)",
+      "machine": {
+        "initial": "inactive",
+        "context": {
+          "delay": 500
+        },
+        "states": {
+          "inactive": {
+            "after": {
+              "myDelay": "active"
+            }
+          },
+          "active": {}
+        }
+      },
+      "delays": {
+        "myDelay": {
+          "$context": "delay"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 300
+        },
+        {
+          "advance": 200
+        }
+      ]
+    },
+    {
+      "name": "a delay computed from the event that entered the state sets when the delayed transition fires",
+      "test": "after.test.ts > delayed transitions > delay expressions > should evaluate the expression (string) to determine the delay (the spy on the event the delay receives is the delay it reads from it, 500)",
+      "machine": {
+        "initial": "inactive",
+        "states": {
+          "inactive": {
+            "on": {
+              "ACTIVATE": "active"
+            }
+          },
+          "active": {
+            "after": {
+              "someDelay": "inactive"
+            }
+          }
+        }
+      },
+      "delays": {
+        "someDelay": {
+          "$event": "delay"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "ACTIVATE",
+            "delay": 500
+          }
+        },
+        {
+          "advance": 300
+        },
+        {
+          "advance": 200
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "after.test.ts > delayed transitions > should format transitions properly",
+      "reason": "inspects the internal transitions Map of a state node directly (the keys of lightMachine.states.green.transitions), without any actor; no step or query of the actor cases exposes a state node's definition"
+    },
+    {
+      "test": "after.test.ts > delayed transitions > should execute an after transition after starting from a state resolved using `.getPersistedSnapshot`",
+      "reason": "it.skip in XState's own suite"
+    },
+    {
+      "test": "after.test.ts > delayed transitions > should execute an after transition after starting from a persisted state",
+      "reason": "restores an actor from a persisted snapshot (createActor with the snapshot option, after a JSON round trip of getSnapshot()); restoring a snapshot is out of scope, and no step starts an actor from one"
+    },
+    {
+      "test": "after.test.ts > delayed transitions > should not try to clear an undefined timeout when exiting source state of a delayed transition",
+      "reason": "what it asserts is the clock: XState's scheduler must not call the clock's clearTimeout when the exit of the source state cancels a delayed event that has already fired (a custom clock with a clearTimeout spy); the oracle runs every case on its SimulatedClock and records no clock call, while the value it also checks is what the core's 'transition after delay through yellow' shows; it would need a record of the clock's clearTimeout calls"
+    }
+  ]
+}

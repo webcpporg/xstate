@@ -1,0 +1,423 @@
+{
+  "source": "resolve.test.ts",
+  "cases": [
+    {
+      "name": "resolves a flat parallel state value shorthand",
+      "definition": {
+        "id": "fp",
+        "key": "fp",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#fp.p1"
+          ],
+          "source": "#fp",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "p1": {
+            "id": "fp.p1",
+            "key": "p1",
+            "type": "parallel",
+            "initial": {
+              "target": [],
+              "source": "#fp.p1",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "s1": {
+                "id": "fp.p1.s1",
+                "key": "s1",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#fp.p1.s1.p2"
+                  ],
+                  "source": "#fp.p1.s1",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "p2": {
+                    "id": "fp.p1.s1.p2",
+                    "key": "p2",
+                    "type": "parallel",
+                    "initial": {
+                      "target": [],
+                      "source": "#fp.p1.s1.p2",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "s3": {
+                        "id": "fp.p1.s1.p2.s3",
+                        "key": "s3",
+                        "type": "compound",
+                        "initial": {
+                          "target": [
+                            "#fp.p1.s1.p2.s3.s3.1"
+                          ],
+                          "source": "#fp.p1.s1.p2.s3",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {
+                          "s3.1": {
+                            "id": "fp.p1.s1.p2.s3.s3.1",
+                            "key": "s3.1",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#fp.p1.s1.p2.s3.s3.1",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 5,
+                            "invoke": [],
+                            "tags": []
+                          },
+                          "s3.2": {
+                            "id": "fp.p1.s1.p2.s3.s3.2",
+                            "key": "s3.2",
+                            "type": "atomic",
+                            "initial": {
+                              "target": [],
+                              "source": "#fp.p1.s1.p2.s3.s3.2",
+                              "actions": [],
+                              "eventType": null
+                            },
+                            "history": false,
+                            "states": {},
+                            "on": {},
+                            "transitions": [],
+                            "entry": [],
+                            "exit": [],
+                            "order": 6,
+                            "invoke": [],
+                            "tags": []
+                          }
+                        },
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 4,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "s4": {
+                        "id": "fp.p1.s1.p2.s4",
+                        "key": "s4",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#fp.p1.s1.p2.s4",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 7,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 3,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "p3": {
+                    "id": "fp.p1.s1.p3",
+                    "key": "p3",
+                    "type": "parallel",
+                    "initial": {
+                      "target": [],
+                      "source": "#fp.p1.s1.p3",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "s5": {
+                        "id": "fp.p1.s1.p3.s5",
+                        "key": "s5",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#fp.p1.s1.p3.s5",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 9,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "s6": {
+                        "id": "fp.p1.s1.p3.s6",
+                        "key": "s6",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#fp.p1.s1.p3.s6",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 10,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 8,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "s2": {
+                "id": "fp.p1.s2",
+                "key": "s2",
+                "type": "compound",
+                "initial": {
+                  "target": [
+                    "#fp.p1.s2.p4"
+                  ],
+                  "source": "#fp.p1.s2",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "p4": {
+                    "id": "fp.p1.s2.p4",
+                    "key": "p4",
+                    "type": "parallel",
+                    "initial": {
+                      "target": [],
+                      "source": "#fp.p1.s2.p4",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "s7": {
+                        "id": "fp.p1.s2.p4.s7",
+                        "key": "s7",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#fp.p1.s2.p4.s7",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 13,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "s8": {
+                        "id": "fp.p1.s2.p4.s8",
+                        "key": "s8",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#fp.p1.s2.p4.s8",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 14,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 12,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "p5": {
+                    "id": "fp.p1.s2.p5",
+                    "key": "p5",
+                    "type": "parallel",
+                    "initial": {
+                      "target": [],
+                      "source": "#fp.p1.s2.p5",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "s9": {
+                        "id": "fp.p1.s2.p5.s9",
+                        "key": "s9",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#fp.p1.s2.p5.s9",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 16,
+                        "invoke": [],
+                        "tags": []
+                      },
+                      "s10": {
+                        "id": "fp.p1.s2.p5.s10",
+                        "key": "s10",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#fp.p1.s2.p5.s10",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 17,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 15,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 11,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": {
+              "p1": {
+                "s1": {
+                  "p2": {
+                    "s4": {},
+                    "s3": "s3.1"
+                  }
+                },
+                "s2": {
+                  "p4": {
+                    "s8": {},
+                    "s7": {}
+                  }
+                }
+              }
+            },
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "fp",
+              "fp.p1",
+              "fp.p1.s1",
+              "fp.p1.s2",
+              "fp.p1.s1.p2",
+              "fp.p1.s1.p2.s4",
+              "fp.p1.s1.p2.s3",
+              "fp.p1.s1.p2.s3.s3.1",
+              "fp.p1.s2.p4",
+              "fp.p1.s2.p4.s8",
+              "fp.p1.s2.p4.s7"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

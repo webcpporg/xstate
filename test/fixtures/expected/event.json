@@ -1,0 +1,300 @@
+{
+  "source": "event.test.ts",
+  "cases": [
+    {
+      "name": "the innermost transition for an event is taken over its parent's",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).passwordField"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "passwordField": {
+            "id": "(machine).passwordField",
+            "key": "passwordField",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).passwordField.hidden"
+              ],
+              "source": "#(machine).passwordField",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "hidden": {
+                "id": "(machine).passwordField.hidden",
+                "key": "hidden",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).passwordField.hidden",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "changePassword": [
+                    {
+                      "actions": [
+                        {
+                          "type": "set_from_event",
+                          "params": {
+                            "key": "password",
+                            "from": "password"
+                          }
+                        }
+                      ],
+                      "source": "#(machine).passwordField.hidden",
+                      "reenter": false,
+                      "eventType": "changePassword"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "actions": [
+                      {
+                        "type": "set_from_event",
+                        "params": {
+                          "key": "password",
+                          "from": "password"
+                        }
+                      }
+                    ],
+                    "source": "#(machine).passwordField.hidden",
+                    "reenter": false,
+                    "eventType": "changePassword"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "valid": {
+                "id": "(machine).passwordField.valid",
+                "key": "valid",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).passwordField.valid",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              },
+              "invalid": {
+                "id": "(machine).passwordField.invalid",
+                "key": "invalid",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).passwordField.invalid",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "changePassword": [
+                {
+                  "guard": {
+                    "type": "compare",
+                    "params": {
+                      "left": {
+                        "$event": "password.length"
+                      },
+                      "op": ">=",
+                      "right": 10
+                    }
+                  },
+                  "target": [
+                    "#(machine).passwordField.invalid"
+                  ],
+                  "actions": [
+                    {
+                      "type": "set_from_event",
+                      "params": {
+                        "key": "password",
+                        "from": "password"
+                      }
+                    }
+                  ],
+                  "source": "#(machine).passwordField",
+                  "reenter": false,
+                  "eventType": "changePassword"
+                },
+                {
+                  "target": [
+                    "#(machine).passwordField.valid"
+                  ],
+                  "actions": [
+                    {
+                      "type": "set_from_event",
+                      "params": {
+                        "key": "password",
+                        "from": "password"
+                      }
+                    }
+                  ],
+                  "source": "#(machine).passwordField",
+                  "reenter": false,
+                  "eventType": "changePassword"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "guard": {
+                  "type": "compare",
+                  "params": {
+                    "left": {
+                      "$event": "password.length"
+                    },
+                    "op": ">=",
+                    "right": 10
+                  }
+                },
+                "target": [
+                  "#(machine).passwordField.invalid"
+                ],
+                "actions": [
+                  {
+                    "type": "set_from_event",
+                    "params": {
+                      "key": "password",
+                      "from": "password"
+                    }
+                  }
+                ],
+                "source": "#(machine).passwordField",
+                "reenter": false,
+                "eventType": "changePassword"
+              },
+              {
+                "target": [
+                  "#(machine).passwordField.valid"
+                ],
+                "actions": [
+                  {
+                    "type": "set_from_event",
+                    "params": {
+                      "key": "password",
+                      "from": "password"
+                    }
+                  }
+                ],
+                "source": "#(machine).passwordField",
+                "reenter": false,
+                "eventType": "changePassword"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "passwordField": "hidden"
+                },
+                "context": {
+                  "email": "",
+                  "password": ""
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).passwordField",
+                  "(machine).passwordField.hidden"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "changePassword",
+                "password": "xstate123"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).passwordField.hidden",
+                  "eventType": "changePassword"
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "passwordField": "hidden"
+                },
+                "context": {
+                  "email": "",
+                  "password": "xstate123"
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).passwordField",
+                  "(machine).passwordField.hidden"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

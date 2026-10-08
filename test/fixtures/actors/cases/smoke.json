@@ -1,0 +1,484 @@
+{
+  "source": "smoke",
+  "cases": [
+    {
+      "name": "a parent invokes a child machine and a host actor",
+      "test": "smoke: invoke, input, host resolve, a child's done",
+      "machine": {
+        "id": "app",
+        "context": {},
+        "initial": "loading",
+        "states": {
+          "loading": {
+            "invoke": [
+              {
+                "src": "fetchUser",
+                "id": "fetch",
+                "input": {
+                  "userId": 42
+                },
+                "onDone": {
+                  "target": "ready",
+                  "actions": [
+                    {
+                      "type": "set_from_event",
+                      "params": {
+                        "key": "user",
+                        "from": "output"
+                      }
+                    }
+                  ]
+                },
+                "onError": "failed"
+              }
+            ]
+          },
+          "ready": {
+            "invoke": {
+              "src": "counter",
+              "id": "counter",
+              "onDone": {
+                "target": "finished",
+                "actions": [
+                  {
+                    "type": "set_from_event",
+                    "params": {
+                      "key": "counted",
+                      "from": "output"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "failed": {},
+          "finished": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "fetchUser": {
+          "kind": "host"
+        },
+        "counter": {
+          "kind": "machine",
+          "machine": {
+            "id": "counter",
+            "context": {
+              "count": 0
+            },
+            "initial": "counting",
+            "output": {
+              "done": true
+            },
+            "states": {
+              "counting": {
+                "on": {
+                  "TICK": {
+                    "actions": [
+                      {
+                        "type": "increment",
+                        "params": {
+                          "key": "count"
+                        }
+                      }
+                    ]
+                  },
+                  "STOP": "stopped"
+                }
+              },
+              "stopped": {
+                "type": "final"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "fetchUser",
+            "output": {
+              "name": "ana"
+            }
+          }
+        },
+        {
+          "send": {
+            "type": "TICK"
+          },
+          "to": "root/counter"
+        },
+        {
+          "send": {
+            "type": "TICK"
+          },
+          "to": "root/counter"
+        },
+        {
+          "send": {
+            "type": "STOP"
+          },
+          "to": "root/counter"
+        }
+      ]
+    },
+    {
+      "name": "a child's after timer and its done event",
+      "test": "smoke: after in a child, advance",
+      "machine": {
+        "id": "parent",
+        "initial": "waiting",
+        "states": {
+          "waiting": {
+            "invoke": {
+              "src": "sleeper",
+              "id": "sleeper",
+              "onDone": "woken"
+            }
+          },
+          "woken": {}
+        }
+      },
+      "actors": {
+        "sleeper": {
+          "kind": "machine",
+          "machine": {
+            "id": "sleeper",
+            "initial": "asleep",
+            "states": {
+              "asleep": {
+                "after": {
+                  "100": "awake"
+                }
+              },
+              "awake": {
+                "type": "final"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 99
+        },
+        {
+          "advance": 1
+        }
+      ]
+    },
+    {
+      "name": "a rejected host request takes onError",
+      "test": "smoke: host reject",
+      "machine": {
+        "id": "app",
+        "context": {},
+        "initial": "loading",
+        "states": {
+          "loading": {
+            "invoke": {
+              "src": "fetchUser",
+              "id": "fetch",
+              "onError": {
+                "target": "failed",
+                "actions": [
+                  {
+                    "type": "set_from_event",
+                    "params": {
+                      "key": "reason",
+                      "from": "error"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "failed": {}
+        }
+      },
+      "actors": {
+        "fetchUser": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "reject": {
+            "src": "fetchUser",
+            "error": {
+              "message": "boom"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a host request answered after its state was left changes nothing",
+      "test": "smoke: a late resolve",
+      "machine": {
+        "id": "app",
+        "initial": "loading",
+        "states": {
+          "loading": {
+            "invoke": {
+              "src": "fetchUser",
+              "id": "fetch",
+              "onDone": "loaded"
+            },
+            "on": {
+              "CANCEL": "cancelled"
+            }
+          },
+          "loaded": {},
+          "cancelled": {}
+        }
+      },
+      "actors": {
+        "fetchUser": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "CANCEL"
+          }
+        },
+        {
+          "resolve": {
+            "actor": "root/fetch",
+            "output": {
+              "name": "ana"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a child emits and answers its parent",
+      "test": "smoke: sendTo, sendParent, emit",
+      "machine": {
+        "id": "parent",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "echo",
+              "id": "echo"
+            },
+            "on": {
+              "GO": {
+                "actions": [
+                  "ping"
+                ]
+              },
+              "PONG": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actions": {
+        "ping": {
+          "kind": "send_to",
+          "target": "echo",
+          "event": {
+            "type": "PING",
+            "n": 1
+          }
+        }
+      },
+      "actors": {
+        "echo": {
+          "kind": "machine",
+          "machine": {
+            "id": "echo",
+            "on": {
+              "PING": {
+                "actions": [
+                  "shout",
+                  "pong"
+                ]
+              }
+            }
+          },
+          "actions": {
+            "shout": {
+              "kind": "emit",
+              "event": {
+                "type": "HEARD"
+              }
+            },
+            "pong": {
+              "kind": "send_parent",
+              "event": {
+                "type": "PONG"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "stopping the root stops its children and their timers",
+      "test": "smoke: the root's stop",
+      "machine": {
+        "id": "parent",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "sleeper",
+              "id": "sleeper",
+              "onDone": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actors": {
+        "sleeper": {
+          "kind": "machine",
+          "machine": {
+            "id": "sleeper",
+            "initial": "asleep",
+            "states": {
+              "asleep": {
+                "after": {
+                  "100": "awake"
+                }
+              },
+              "awake": {
+                "type": "final"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "stop": true
+        },
+        {
+          "advance": 200
+        }
+      ]
+    },
+    {
+      "name": "a sendTo by systemId reaches the actor registered under it",
+      "test": "smoke: #system targets",
+      "machine": {
+        "id": "parent",
+        "context": {},
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "listener",
+              "id": "kid",
+              "systemId": "helper"
+            },
+            "on": {
+              "GO": {
+                "actions": [
+                  "tell"
+                ]
+              },
+              "NOBODY": {
+                "actions": [
+                  "tell_nobody"
+                ]
+              },
+              "TO_SELF": {
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "self",
+                      "value": true
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "tell": {
+          "kind": "send_to",
+          "target": "#system:helper",
+          "event": {
+            "type": "NOTE"
+          }
+        },
+        "tell_nobody": {
+          "kind": "send_to",
+          "target": "#system:nobody",
+          "event": {
+            "type": "TO_SELF"
+          }
+        }
+      },
+      "actors": {
+        "listener": {
+          "kind": "machine",
+          "machine": {
+            "id": "listener",
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "NOTE": "noted"
+                }
+              },
+              "noted": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        },
+        {
+          "send": {
+            "type": "NOBODY"
+          }
+        }
+      ]
+    }
+  ]
+}

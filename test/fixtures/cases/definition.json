@@ -1,0 +1,34 @@
+{
+  "source": "definition.test.ts",
+  "cases": [
+    {
+      "name": "a machine's definition lists both invokes of its root",
+      "test": "definition.test.ts > definition > should provide invoke definitions (foo and bar, which the test declares only as types, are host actors, as xstate refuses a src it does not know; the root's definition, its invoke list included, is the definition every case records)",
+      "machine": {
+        "id": "invoke",
+        "invoke": [
+          {
+            "src": "foo"
+          },
+          {
+            "src": "bar"
+          }
+        ],
+        "initial": "idle",
+        "states": {
+          "idle": {}
+        }
+      },
+      "actors": {
+        "foo": {
+          "kind": "host"
+        },
+        "bar": {
+          "kind": "host"
+        }
+      },
+      "steps": []
+    }
+  ],
+  "excluded": []
+}

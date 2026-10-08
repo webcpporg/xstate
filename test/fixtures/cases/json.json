@@ -1,0 +1,99 @@
+{
+  "source": "json.test.ts",
+  "cases": [
+    {
+      "name": "the definition of a machine with every kind of state",
+      "test": "json.test.ts > json > should serialize the machine (without invoke, inline functions and the schema validation; the definition is compared with XState's key for key)",
+      "machine": {
+        "initial": "foo",
+        "version": "1.0.0",
+        "context": {
+          "number": 0,
+          "string": "hello"
+        },
+        "states": {
+          "testActions": {
+            "entry": [
+              "stringActionType",
+              {
+                "type": "objectActionType"
+              },
+              {
+                "type": "set",
+                "params": {
+                  "key": "number",
+                  "value": 10
+                }
+              }
+            ],
+            "on": {
+              "TO_FOO": {
+                "target": [
+                  "foo",
+                  "bar"
+                ],
+                "guard": {
+                  "type": "context_equals",
+                  "params": {
+                    "key": "string",
+                    "value": "hello"
+                  }
+                }
+              }
+            },
+            "after": {
+              "1000": "bar"
+            }
+          },
+          "foo": {},
+          "bar": {},
+          "testHistory": {
+            "type": "history",
+            "history": "deep"
+          },
+          "testFinal": {
+            "type": "final",
+            "output": {
+              "something": "else"
+            }
+          },
+          "testParallel": {
+            "type": "parallel",
+            "states": {
+              "one": {
+                "initial": "inactive",
+                "states": {
+                  "inactive": {}
+                }
+              },
+              "two": {
+                "initial": "inactive",
+                "states": {
+                  "inactive": {}
+                }
+              }
+            }
+          }
+        },
+        "output": {
+          "result": 42
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "json.test.ts > json > should detect an invalid machine",
+      "reason": "validates a plain config against src/machine.schema.json with ajv, never through createMachine; the published package the oracle runs ships no machine.schema.json and xstate has no schema validation, and XState's createMachine accepts that config ({id, key, type: 'invalid type', states: {}}) and writes its definition, so neither a create error nor anything the oracle records shows the assertion. It would need a schema-validation step in the oracle and in xstate"
+    },
+    {
+      "test": "json.test.ts > json > should not double-serialize invoke transitions",
+      "reason": "the test revives a machine with createMachine(JSON.parse(JSON.stringify(machine))) and reads one state node's transitions without starting it. The revived config's initial is the serialized object {target: ['#active'], ...}, whose target names no child of the root: XState creates the machine anyway, resolving initial lazily, but its toJSON() and its start then throw ('Initial state node \"[object Object]\" not found on parent state node #(machine)'), so the oracle, which records every case's definition through toJSON(), fails the case whatever its steps (a resolve step to active with a next_transitions query would show the three transitions EVENT, xstate.done.actor.0.active and xstate.error.actor.0.active); and xstate refuses such an initial at creation, the difference 'A config is refused when it is created' (doc: #differences-refused). The actor cases leave it out too (fixtures/actors/cases/json.json). It would need an oracle that records a case without the definition of a machine XState cannot serialize, and a case that expects xstate's refusal where XState creates the machine"
+    }
+  ]
+}

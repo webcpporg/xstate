@@ -1,0 +1,10 @@
+{
+  "source": "scxml.test.ts",
+  "cases": [],
+  "excluded": [
+    {
+      "test": "scxml.test.ts > (every W3C SCXML test)",
+      "reason": "xstate@5.33.2 as published exports no scxml entry (exports: . guards actions dev graph actors), so the oracle cannot convert the W3C suite to machines with XState's toMachine; the suite's documents (@scion-scxml/test-framework) are not here either, and toMachine compiles their ECMAScript cond, expr, eventexpr and delayexpr attributes into functions over the datamodel (new Function), which the vocabulary's computed values and guards do not cover; it would need XState's scxml converter and the SCION documents in the oracle, and a vocabulary entry for each ECMAScript expression the documents hold (a hand translation of each document would test the translation, not toMachine)"
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "source": "spawnChild.test.ts",
+  "cases": [
+    {
+      "name": "an entry spawnChild of a promise adds the child",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "child": "promise"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/child",
+              "src": "promise"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an entry spawnChild of a named actor adds the child with its input",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "child": "fetchNum"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/child",
+              "src": "fetchNum",
+              "input": 21
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an entry spawnChild whose id is computed from the context names the child a later sendTo reaches",
+      "steps": [
+        {
+          "actors": {
+            "root/myChild": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "calls": 0
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "FOO"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "calls": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "childId": "myChild"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "myChild": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/myChild": "active"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

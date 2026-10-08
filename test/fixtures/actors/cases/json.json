@@ -1,0 +1,10 @@
+{
+  "source": "json.test.ts (the tests that need actors)",
+  "cases": [],
+  "excluded": [
+    {
+      "test": "json.test.ts > json > should not double-serialize invoke transitions",
+      "reason": "the test asserts the transitions of the state node active of a machine revived by createMachine(JSON.parse(JSON.stringify(machine))): exactly three, EVENT and xstate.done.actor.0.active to #(machine).foo and xstate.error.actor.0.active to #(machine).bar, which is the definition read back and not what an actor does; duplicates would select the same transitions, so no run shows their number, and the revived machine cannot run on XState at all, since its root's initial, written as a transition {target: ['#active']}, is looked up as a state key and the actor fails when it starts. It would need a core case whose machine is revived from its own definition (XState: createMachine(JSON.parse(JSON.stringify(machine))); xstate: create_machine_from_definition(to_json(machine))), resolved to active and queried with next_transitions, which on XState lists exactly those three transitions, and an oracle that records the definition of the machine it serialized rather than the revived one, whose toJSON throws on the same initial; the actor cases have no query step."
+    }
+  ]
+}

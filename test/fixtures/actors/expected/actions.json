@@ -1,0 +1,1783 @@
+{
+  "source": "actions.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "an invoked child that starts final runs its own exit actions and the parent completes",
+      "steps": [
+        {
+          "actors": {
+            "root/0.(machine).active": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {
+                      "log": [
+                        "exit a",
+                        "exit child root"
+                      ]
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).a",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).active"
+                    ],
+                    "children": {
+                      "0.(machine).active": "child"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.(machine).active",
+                    "actorId": "0.(machine).active"
+                  },
+                  "snapshot": {
+                    "value": "finished",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).finished",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.(machine).active": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "stopping a parent whose child sends from its exit action stops both quietly",
+      "steps": [
+        {
+          "actors": {
+            "root/0.parent": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent"
+                    ],
+                    "children": {
+                      "0.parent": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.parent": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped",
+            "root/0.parent": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a done child's exit action reaches its parent",
+      "steps": [
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent"
+                    ],
+                    "children": {
+                      "child": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "FINISH"
+                  },
+                  "snapshot": {
+                    "value": "done",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "child.done",
+                      "child"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "FINISH_CHILD"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent"
+                    ],
+                    "children": {
+                      "child": "child"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "CHILD_DONE"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": [
+                        "CHILD_DONE received"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent"
+                    ],
+                    "children": {
+                      "child": "child"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.done.actor.child",
+                    "actorId": "child"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": [
+                        "CHILD_DONE received"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent"
+                    ],
+                    "children": {
+                      "child": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a stopped child runs no exit action, so its own child hears nothing",
+      "steps": [
+        {
+          "actors": {
+            "root/0.parent.a/myChild": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "grandchild"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/0.parent.a": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child"
+                    ],
+                    "children": {
+                      "myChild": "grandchild"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.a"
+                    ],
+                    "children": {
+                      "0.parent.a": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.parent.a": "active",
+            "root/0.parent.a/myChild": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "NEXT"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.b"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/0.parent.a": "stopped",
+            "root/0.parent.a/myChild": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a root stopped from outside runs no exit action and so spawns nothing",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "forwardTo hands the event to an invoked child, which answers its parent",
+      "steps": [
+        {
+          "actors": {
+            "root/myChild": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "first",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.first"
+                    ],
+                    "children": {
+                      "myChild": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/myChild": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/myChild": {
+              "events": [
+                {
+                  "event": {
+                    "type": "EVENT",
+                    "value": 42
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "EVENT",
+                    "value": 42
+                  },
+                  "snapshot": {
+                    "value": "first",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.first"
+                    ],
+                    "children": {
+                      "myChild": "child"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "SUCCESS"
+                  },
+                  "snapshot": {
+                    "value": "last",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "parent.last",
+                      "parent"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/myChild": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a sendTo by id reaches a child the root's entry spawned",
+      "steps": [
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "waiting",
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).waiting"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "EVENT"
+                  },
+                  "snapshot": {
+                    "value": "waiting",
+                    "context": {
+                      "log": [
+                        "EVENT received"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).waiting"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "child": "childMachine"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a delayed sendTo does not reach the spawned child that took a stopped child's id",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/myChild#2": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "START"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).b"
+                    ],
+                    "children": {
+                      "myChild": "child2"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/myChild#2": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "active",
+            "root/myChild#2": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a delayed sendTo does not reach the invoked child that took a stopped child's id",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/myChild": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "START"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).b"
+                    ],
+                    "children": {
+                      "myChild": "child1"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/myChild": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/myChild#2": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "NEXT"
+                  },
+                  "snapshot": {
+                    "value": "c",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).c"
+                    ],
+                    "children": {
+                      "myChild": "child2"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/myChild": "stopped",
+            "root/myChild#2": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "active",
+            "root/myChild": "stopped",
+            "root/myChild#2": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "the first child cancels only its own delayed event of a shared id",
+      "steps": [
+        {
+          "actors": {
+            "root/foo": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "foo"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/bar": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "bar"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "foo": "foo",
+                      "bar": "bar"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/foo": "active",
+            "root/bar": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "active",
+            "root/foo": "active",
+            "root/bar": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/foo": {
+              "events": [
+                {
+                  "event": {
+                    "type": "cancel"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "foo"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "cancelFoo"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "foo": "foo",
+                      "bar": "bar"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/foo": "active",
+            "root/bar": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/bar": {
+              "events": [
+                {
+                  "event": {
+                    "type": "event"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": [
+                        "event"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "bar"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/foo": "active",
+            "root/bar": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "the second child cancels only its own delayed event of a shared id",
+      "steps": [
+        {
+          "actors": {
+            "root/foo": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "foo"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/bar": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "bar"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "foo": "foo",
+                      "bar": "bar"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/foo": "active",
+            "root/bar": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "active",
+            "root/foo": "active",
+            "root/bar": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/bar": {
+              "events": [
+                {
+                  "event": {
+                    "type": "cancel"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "bar"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "cancelBar"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ],
+                    "children": {
+                      "foo": "foo",
+                      "bar": "bar"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/foo": "active",
+            "root/bar": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/foo": {
+              "events": [
+                {
+                  "event": {
+                    "type": "event"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": [
+                        "event"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "foo"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/foo": "active",
+            "root/bar": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a delayed sendTo to a child invoked in the same entry can be cancelled",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/myChild": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "START"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).b"
+                    ],
+                    "children": {
+                      "myChild": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/myChild": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "active",
+            "root/myChild": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a sendTo without a delay to a child invoked in the same entry cannot be cancelled",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/myChild": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "PING"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": [
+                        "PING"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "START"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).b"
+                    ],
+                    "children": {
+                      "myChild": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/myChild": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a done child's exit sends its own child an event that the grandchild handles before it stops",
+      "steps": [
+        {
+          "actors": {
+            "root/myChild/myChild": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "grandchild"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/myChild": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.a"
+                    ],
+                    "children": {
+                      "myChild": "grandchild"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent"
+                    ],
+                    "children": {
+                      "myChild": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/myChild": "active",
+            "root/myChild/myChild": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/myChild/myChild": {
+              "events": [
+                {
+                  "event": {
+                    "type": "STOPPED"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": [
+                        "stopped"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "grandchild"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/myChild": {
+              "events": [
+                {
+                  "event": {
+                    "type": "FINISH"
+                  },
+                  "snapshot": {
+                    "value": "b",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "child.b",
+                      "child"
+                    ],
+                    "children": {
+                      "myChild": "grandchild"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "NEXT"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent"
+                    ],
+                    "children": {
+                      "myChild": "child"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.done.actor.myChild",
+                    "actorId": "myChild"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent"
+                    ],
+                    "children": {
+                      "myChild": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/myChild": "done",
+            "root/myChild/myChild": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a root stopped from outside runs neither its own exit action nor its state's",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a root stopped from outside does not run its referenced exit action",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a root stopped from outside runs none of its exit assigns",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "executedAssigns": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a forwardTo whose target resolves to no actor fails the actor",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "error"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

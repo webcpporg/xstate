@@ -1,0 +1,296 @@
+{
+  "source": "id.test.ts",
+  "cases": [
+    {
+      "name": "from A, NEXT goes to A bar",
+      "test": "id.test.ts > State node IDs > should go from A to {\"A\":\"bar\"} on NEXT",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "id": "A",
+            "initial": "foo",
+            "states": {
+              "foo": { "id": "A_foo", "on": { "NEXT": "#A_bar" } },
+              "bar": { "id": "A_bar", "on": { "NEXT": "#B_foo" } }
+            },
+            "on": { "NEXT_DOT_RESOLVE": "#B.bar" }
+          },
+          "B": {
+            "id": "B",
+            "initial": "foo",
+            "states": {
+              "foo": { "id": "B_foo", "on": { "NEXT": "#B_bar", "NEXT_DOT": "#B.dot" } },
+              "bar": { "id": "B_bar", "on": { "NEXT": "#A_foo" } },
+              "dot": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        { "resolve": "A" },
+        { "send": { "type": "NEXT" } }
+      ]
+    },
+    {
+      "name": "from A, NEXT_DOT_RESOLVE goes to B bar",
+      "test": "id.test.ts > State node IDs > should go from A to {\"B\":\"bar\"} on NEXT_DOT_RESOLVE",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "id": "A",
+            "initial": "foo",
+            "states": {
+              "foo": { "id": "A_foo", "on": { "NEXT": "#A_bar" } },
+              "bar": { "id": "A_bar", "on": { "NEXT": "#B_foo" } }
+            },
+            "on": { "NEXT_DOT_RESOLVE": "#B.bar" }
+          },
+          "B": {
+            "id": "B",
+            "initial": "foo",
+            "states": {
+              "foo": { "id": "B_foo", "on": { "NEXT": "#B_bar", "NEXT_DOT": "#B.dot" } },
+              "bar": { "id": "B_bar", "on": { "NEXT": "#A_foo" } },
+              "dot": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        { "resolve": "A" },
+        { "send": { "type": "NEXT_DOT_RESOLVE" } }
+      ]
+    },
+    {
+      "name": "from A.foo, NEXT goes to A bar",
+      "test": "id.test.ts > State node IDs > should go from {\"A\":\"foo\"} to {\"A\":\"bar\"} on NEXT",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "id": "A",
+            "initial": "foo",
+            "states": {
+              "foo": { "id": "A_foo", "on": { "NEXT": "#A_bar" } },
+              "bar": { "id": "A_bar", "on": { "NEXT": "#B_foo" } }
+            },
+            "on": { "NEXT_DOT_RESOLVE": "#B.bar" }
+          },
+          "B": {
+            "id": "B",
+            "initial": "foo",
+            "states": {
+              "foo": { "id": "B_foo", "on": { "NEXT": "#B_bar", "NEXT_DOT": "#B.dot" } },
+              "bar": { "id": "B_bar", "on": { "NEXT": "#A_foo" } },
+              "dot": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        { "resolve": { "A": "foo" } },
+        { "send": { "type": "NEXT" } }
+      ]
+    },
+    {
+      "name": "from A.bar, NEXT goes to B foo",
+      "test": "id.test.ts > State node IDs > should go from {\"A\":\"bar\"} to {\"B\":\"foo\"} on NEXT",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "id": "A",
+            "initial": "foo",
+            "states": {
+              "foo": { "id": "A_foo", "on": { "NEXT": "#A_bar" } },
+              "bar": { "id": "A_bar", "on": { "NEXT": "#B_foo" } }
+            },
+            "on": { "NEXT_DOT_RESOLVE": "#B.bar" }
+          },
+          "B": {
+            "id": "B",
+            "initial": "foo",
+            "states": {
+              "foo": { "id": "B_foo", "on": { "NEXT": "#B_bar", "NEXT_DOT": "#B.dot" } },
+              "bar": { "id": "B_bar", "on": { "NEXT": "#A_foo" } },
+              "dot": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        { "resolve": { "A": "bar" } },
+        { "send": { "type": "NEXT" } }
+      ]
+    },
+    {
+      "name": "from B.foo, NEXT then NEXT goes to A foo",
+      "test": "id.test.ts > State node IDs > should go from {\"B\":\"foo\"} to {\"A\":\"foo\"} on NEXT,NEXT",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "id": "A",
+            "initial": "foo",
+            "states": {
+              "foo": { "id": "A_foo", "on": { "NEXT": "#A_bar" } },
+              "bar": { "id": "A_bar", "on": { "NEXT": "#B_foo" } }
+            },
+            "on": { "NEXT_DOT_RESOLVE": "#B.bar" }
+          },
+          "B": {
+            "id": "B",
+            "initial": "foo",
+            "states": {
+              "foo": { "id": "B_foo", "on": { "NEXT": "#B_bar", "NEXT_DOT": "#B.dot" } },
+              "bar": { "id": "B_bar", "on": { "NEXT": "#A_foo" } },
+              "dot": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        { "resolve": { "B": "foo" } },
+        { "send": { "type": "NEXT" } },
+        { "send": { "type": "NEXT" } }
+      ]
+    },
+    {
+      "name": "from B.foo, NEXT_DOT goes to B dot",
+      "test": "id.test.ts > State node IDs > should go from {\"B\":\"foo\"} to {\"B\":\"dot\"} on NEXT_DOT",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "id": "A",
+            "initial": "foo",
+            "states": {
+              "foo": { "id": "A_foo", "on": { "NEXT": "#A_bar" } },
+              "bar": { "id": "A_bar", "on": { "NEXT": "#B_foo" } }
+            },
+            "on": { "NEXT_DOT_RESOLVE": "#B.bar" }
+          },
+          "B": {
+            "id": "B",
+            "initial": "foo",
+            "states": {
+              "foo": { "id": "B_foo", "on": { "NEXT": "#B_bar", "NEXT_DOT": "#B.dot" } },
+              "bar": { "id": "B_bar", "on": { "NEXT": "#A_foo" } },
+              "dot": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        { "resolve": { "B": "foo" } },
+        { "send": { "type": "NEXT_DOT" } }
+      ]
+    },
+    {
+      "name": "works with an ID plus a relative path",
+      "test": "id.test.ts > State node IDs > should work with ID + relative path",
+      "machine": {
+        "initial": "foo",
+        "on": { "ACTION": "#bar.qux.quux" },
+        "states": {
+          "foo": { "id": "foo" },
+          "bar": {
+            "id": "bar",
+            "initial": "baz",
+            "states": {
+              "baz": {},
+              "qux": { "initial": "quux", "states": { "quux": { "id": "#bar.qux.quux" } } }
+            }
+          }
+        }
+      },
+      "steps": [
+        { "start": true },
+        { "send": { "type": "ACTION" } }
+      ]
+    },
+    {
+      "name": "escaped period in a target key reaches the literal sibling key",
+      "test": "id.test.ts > State node IDs > should work with keys that have escaped periods (escaped)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": { "on": { "escaped": "foo\\.bar", "unescaped": "foo.bar" } },
+          "foo.bar": {},
+          "foo": { "initial": "bar", "states": { "bar": {} } }
+        }
+      },
+      "steps": [
+        { "start": true },
+        { "send": { "type": "escaped" } }
+      ]
+    },
+    {
+      "name": "unescaped period in a target key is read as a path",
+      "test": "id.test.ts > State node IDs > should work with keys that have escaped periods (unescaped)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": { "on": { "escaped": "foo\\.bar", "unescaped": "foo.bar" } },
+          "foo.bar": {},
+          "foo": { "initial": "bar", "states": { "bar": {} } }
+        }
+      },
+      "steps": [
+        { "start": true },
+        { "send": { "type": "unescaped" } }
+      ]
+    },
+    {
+      "name": "escaped period in an ID selector reaches the literal id",
+      "test": "id.test.ts > State node IDs > should work with IDs that have escaped periods (escaped)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": { "on": { "escaped": "#foo\\.bar", "unescaped": "#foo.bar" } },
+          "stateWithDot": { "id": "foo.bar" },
+          "foo": { "id": "foo", "initial": "bar", "states": { "bar": {} } }
+        }
+      },
+      "steps": [
+        { "start": true },
+        { "send": { "type": "escaped" } }
+      ]
+    },
+    {
+      "name": "unescaped period in an ID selector is read as a path",
+      "test": "id.test.ts > State node IDs > should work with IDs that have escaped periods (unescaped)",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": { "on": { "escaped": "#foo\\.bar", "unescaped": "#foo.bar" } },
+          "stateWithDot": { "id": "foo.bar" },
+          "foo": { "id": "foo", "initial": "bar", "states": { "bar": {} } }
+        }
+      },
+      "steps": [
+        { "start": true },
+        { "send": { "type": "unescaped" } }
+      ]
+    },
+    {
+      "name": "an escaped backslash is not treated as the period's escape",
+      "test": "id.test.ts > State node IDs > should not treat escaped backslash as period's escape",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": { "on": { "EV": "#some\\\\.thing" } },
+          "foo": { "id": "some\\.thing" },
+          "bar": { "id": "some\\", "initial": "baz", "states": { "baz": {}, "thing": {} } }
+        }
+      },
+      "steps": [
+        { "start": true },
+        { "send": { "type": "EV" } }
+      ]
+    }
+  ],
+  "excluded": []
+}

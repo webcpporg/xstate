@@ -1,0 +1,5 @@
+context null: {}, after ADD {"x":1}
+context false: {}, after ADD {"x":1}
+context 5: 5, after ADD {"x":1}
+context "ab": "ab", after ADD {"0":"a","1":"b","x":1}
+a context function that returns "ab": {"0":"a","1":"b"}

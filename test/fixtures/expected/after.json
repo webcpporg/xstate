@@ -1,0 +1,1728 @@
+{
+  "source": "after.test.ts",
+  "cases": [
+    {
+      "name": "transition after delay through yellow",
+      "definition": {
+        "id": "light",
+        "key": "light",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#light.green"
+          ],
+          "source": "#light",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "green": {
+            "id": "light.green",
+            "key": "green",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#light.green",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "xstate.after.1000.light.green": [
+                {
+                  "target": [
+                    "#light.yellow"
+                  ],
+                  "event": "xstate.after.1000.light.green",
+                  "delay": 1000,
+                  "actions": [],
+                  "source": "#light.green",
+                  "reenter": false,
+                  "eventType": "xstate.after.1000.light.green"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#light.yellow"
+                ],
+                "event": "xstate.after.1000.light.green",
+                "delay": 1000,
+                "actions": [],
+                "source": "#light.green",
+                "reenter": false,
+                "eventType": "xstate.after.1000.light.green"
+              }
+            ],
+            "entry": [
+              {
+                "type": "xstate.raise"
+              }
+            ],
+            "exit": [
+              {
+                "type": "xstate.cancel"
+              }
+            ],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "yellow": {
+            "id": "light.yellow",
+            "key": "yellow",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#light.yellow",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "xstate.after.1000.light.yellow": [
+                {
+                  "target": [
+                    "#light.red"
+                  ],
+                  "event": "xstate.after.1000.light.yellow",
+                  "delay": 1000,
+                  "actions": [],
+                  "source": "#light.yellow",
+                  "reenter": false,
+                  "eventType": "xstate.after.1000.light.yellow"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#light.red"
+                ],
+                "event": "xstate.after.1000.light.yellow",
+                "delay": 1000,
+                "actions": [],
+                "source": "#light.yellow",
+                "reenter": false,
+                "eventType": "xstate.after.1000.light.yellow"
+              }
+            ],
+            "entry": [
+              {
+                "type": "xstate.raise"
+              }
+            ],
+            "exit": [
+              {
+                "type": "xstate.cancel"
+              }
+            ],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "red": {
+            "id": "light.red",
+            "key": "red",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#light.red",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "xstate.after.1000.light.red": [
+                {
+                  "target": [
+                    "#light.green"
+                  ],
+                  "event": "xstate.after.1000.light.red",
+                  "delay": 1000,
+                  "actions": [],
+                  "source": "#light.red",
+                  "reenter": false,
+                  "eventType": "xstate.after.1000.light.red"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#light.green"
+                ],
+                "event": "xstate.after.1000.light.red",
+                "delay": 1000,
+                "actions": [],
+                "source": "#light.red",
+                "reenter": false,
+                "eventType": "xstate.after.1000.light.red"
+              }
+            ],
+            "entry": [
+              {
+                "type": "xstate.raise"
+              }
+            ],
+            "exit": [
+              {
+                "type": "xstate.cancel"
+              }
+            ],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "xstate.raise",
+                  "params": {
+                    "event": {
+                      "type": "xstate.after.1000.light.green"
+                    },
+                    "id": "xstate.after.1000.light.green",
+                    "delay": 1000
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "green",
+                "context": {
+                  "canTurnGreen": true
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "light",
+                  "light.green"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "query": {
+            "matches": true
+          }
+        },
+        {
+          "delivered": []
+        },
+        {
+          "query": {
+            "matches": true
+          }
+        },
+        {
+          "delivered": [
+            {
+              "microsteps": [
+                {
+                  "event": {
+                    "type": "xstate.after.1000.light.green"
+                  },
+                  "transitions": [
+                    {
+                      "source": "#light.green",
+                      "eventType": "xstate.after.1000.light.green",
+                      "target": [
+                        "#light.yellow"
+                      ]
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "xstate.cancel",
+                      "params": {
+                        "sendId": "xstate.after.1000.light.green"
+                      }
+                    },
+                    {
+                      "type": "xstate.raise",
+                      "params": {
+                        "event": {
+                          "type": "xstate.after.1000.light.yellow"
+                        },
+                        "id": "xstate.after.1000.light.yellow",
+                        "delay": 1000
+                      }
+                    }
+                  ],
+                  "snapshot": {
+                    "value": "yellow",
+                    "context": {
+                      "canTurnGreen": true
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "light",
+                      "light.yellow"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "query": {
+            "matches": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "nested initial delayed transition completes",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).nested"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "nested": {
+            "id": "(machine).nested",
+            "key": "nested",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).nested.wait"
+              ],
+              "source": "#(machine).nested",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "wait": {
+                "id": "(machine).nested.wait",
+                "key": "wait",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).nested.wait",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "xstate.after.10.(machine).nested.wait": [
+                    {
+                      "target": [
+                        "#end"
+                      ],
+                      "event": "xstate.after.10.(machine).nested.wait",
+                      "delay": 10,
+                      "actions": [],
+                      "source": "#(machine).nested.wait",
+                      "reenter": false,
+                      "eventType": "xstate.after.10.(machine).nested.wait"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#end"
+                    ],
+                    "event": "xstate.after.10.(machine).nested.wait",
+                    "delay": 10,
+                    "actions": [],
+                    "source": "#(machine).nested.wait",
+                    "reenter": false,
+                    "eventType": "xstate.after.10.(machine).nested.wait"
+                  }
+                ],
+                "entry": [
+                  {
+                    "type": "xstate.raise"
+                  }
+                ],
+                "exit": [
+                  {
+                    "type": "xstate.cancel"
+                  }
+                ],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "end": {
+            "id": "end",
+            "key": "end",
+            "type": "final",
+            "initial": {
+              "target": [],
+              "source": "#end",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "xstate.raise",
+                  "params": {
+                    "event": {
+                      "type": "xstate.after.10.(machine).nested.wait"
+                    },
+                    "id": "xstate.after.10.(machine).nested.wait",
+                    "delay": 10
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "nested": "wait"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).nested",
+                  "(machine).nested.wait"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "delivered": [
+            {
+              "microsteps": [
+                {
+                  "event": {
+                    "type": "xstate.after.10.(machine).nested.wait"
+                  },
+                  "transitions": [
+                    {
+                      "source": "#(machine).nested.wait",
+                      "eventType": "xstate.after.10.(machine).nested.wait",
+                      "target": [
+                        "#end"
+                      ]
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "xstate.cancel",
+                      "params": {
+                        "sendId": "xstate.after.10.(machine).nested.wait"
+                      }
+                    }
+                  ],
+                  "snapshot": {
+                    "value": "end",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "end",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "relative target enters child without re-entering parent",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).one"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "one": {
+            "id": "(machine).one",
+            "key": "one",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).one.two"
+              ],
+              "source": "#(machine).one",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "two": {
+                "id": "(machine).one.two",
+                "key": "two",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).one.two",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [
+                  {
+                    "type": "enter_two"
+                  }
+                ],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "three": {
+                "id": "(machine).one.three",
+                "key": "three",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).one.three",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [
+                  {
+                    "type": "enter_three"
+                  }
+                ],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "xstate.after.10.(machine).one": [
+                {
+                  "target": [
+                    "#(machine).one.three"
+                  ],
+                  "event": "xstate.after.10.(machine).one",
+                  "delay": 10,
+                  "actions": [],
+                  "source": "#(machine).one",
+                  "reenter": false,
+                  "eventType": "xstate.after.10.(machine).one"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).one.three"
+                ],
+                "event": "xstate.after.10.(machine).one",
+                "delay": 10,
+                "actions": [],
+                "source": "#(machine).one",
+                "reenter": false,
+                "eventType": "xstate.after.10.(machine).one"
+              }
+            ],
+            "entry": [
+              {
+                "type": "enter_one"
+              },
+              {
+                "type": "xstate.raise"
+              }
+            ],
+            "exit": [
+              {
+                "type": "xstate.cancel"
+              }
+            ],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "end": {
+            "id": "end",
+            "key": "end",
+            "type": "final",
+            "initial": {
+              "target": [],
+              "source": "#end",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "enter_one"
+                },
+                {
+                  "type": "xstate.raise",
+                  "params": {
+                    "event": {
+                      "type": "xstate.after.10.(machine).one"
+                    },
+                    "id": "xstate.after.10.(machine).one",
+                    "delay": 10
+                  }
+                },
+                {
+                  "type": "enter_two"
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "one": "two"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).one",
+                  "(machine).one.two"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "delivered": [
+            {
+              "microsteps": [
+                {
+                  "event": {
+                    "type": "xstate.after.10.(machine).one"
+                  },
+                  "transitions": [
+                    {
+                      "source": "#(machine).one",
+                      "eventType": "xstate.after.10.(machine).one",
+                      "target": [
+                        "#(machine).one.three"
+                      ]
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "enter_three"
+                    }
+                  ],
+                  "snapshot": {
+                    "value": {
+                      "one": "three"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).one",
+                      "(machine).one.three"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.after.10.(machine).one"
+                  },
+                  "transitions": [
+                    {
+                      "source": "#(machine).one.three",
+                      "eventType": "",
+                      "target": [
+                        "#end"
+                      ]
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "xstate.cancel",
+                      "params": {
+                        "sendId": "xstate.after.10.(machine).one"
+                      }
+                    }
+                  ],
+                  "snapshot": {
+                    "value": "end",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "end",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "defers a single delayed send for guarded candidates",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).X"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "X": {
+            "id": "(machine).X",
+            "key": "X",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).X",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "xstate.after.1.(machine).X": [
+                {
+                  "target": [
+                    "#(machine).Y"
+                  ],
+                  "guard": {
+                    "type": "context_at_least",
+                    "params": {
+                      "key": "flag",
+                      "value": 0
+                    }
+                  },
+                  "event": "xstate.after.1.(machine).X",
+                  "delay": 1,
+                  "actions": [],
+                  "source": "#(machine).X",
+                  "reenter": false,
+                  "eventType": "xstate.after.1.(machine).X"
+                },
+                {
+                  "target": [
+                    "#(machine).Z"
+                  ],
+                  "event": "xstate.after.1.(machine).X",
+                  "delay": 1,
+                  "actions": [],
+                  "source": "#(machine).X",
+                  "reenter": false,
+                  "eventType": "xstate.after.1.(machine).X"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).Y"
+                ],
+                "guard": {
+                  "type": "context_at_least",
+                  "params": {
+                    "key": "flag",
+                    "value": 0
+                  }
+                },
+                "event": "xstate.after.1.(machine).X",
+                "delay": 1,
+                "actions": [],
+                "source": "#(machine).X",
+                "reenter": false,
+                "eventType": "xstate.after.1.(machine).X"
+              },
+              {
+                "target": [
+                  "#(machine).Z"
+                ],
+                "event": "xstate.after.1.(machine).X",
+                "delay": 1,
+                "actions": [],
+                "source": "#(machine).X",
+                "reenter": false,
+                "eventType": "xstate.after.1.(machine).X"
+              }
+            ],
+            "entry": [
+              {
+                "type": "xstate.raise"
+              }
+            ],
+            "exit": [
+              {
+                "type": "xstate.cancel"
+              }
+            ],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "Y": {
+            "id": "(machine).Y",
+            "key": "Y",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).Y",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "*": [
+                {
+                  "actions": [
+                    "spy"
+                  ],
+                  "source": "#(machine).Y",
+                  "reenter": false,
+                  "eventType": "*"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "spy"
+                ],
+                "source": "#(machine).Y",
+                "reenter": false,
+                "eventType": "*"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "Z": {
+            "id": "(machine).Z",
+            "key": "Z",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).Z",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "xstate.raise",
+                  "params": {
+                    "event": {
+                      "type": "xstate.after.1.(machine).X"
+                    },
+                    "id": "xstate.after.1.(machine).X",
+                    "delay": 1
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "X",
+                "context": {
+                  "flag": 1
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).X"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "delivered": [
+            {
+              "microsteps": [
+                {
+                  "event": {
+                    "type": "xstate.after.1.(machine).X"
+                  },
+                  "transitions": [
+                    {
+                      "source": "#(machine).X",
+                      "eventType": "xstate.after.1.(machine).X",
+                      "target": [
+                        "#(machine).Y"
+                      ]
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "xstate.cancel",
+                      "params": {
+                        "sendId": "xstate.after.1.(machine).X"
+                      }
+                    }
+                  ],
+                  "snapshot": {
+                    "value": "Y",
+                    "context": {
+                      "flag": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).Y"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "two equal delays in sibling regions come due in scheduling order",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "parallel",
+        "initial": {
+          "target": [],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "r1": {
+            "id": "m.r1",
+            "key": "r1",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#m.r1.a"
+              ],
+              "source": "#m.r1",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "a": {
+                "id": "m.r1.a",
+                "key": "a",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#m.r1.a",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "xstate.after.100.m.r1.a": [
+                    {
+                      "target": [
+                        "#m.r1.b"
+                      ],
+                      "event": "xstate.after.100.m.r1.a",
+                      "delay": 100,
+                      "actions": [],
+                      "source": "#m.r1.a",
+                      "reenter": false,
+                      "eventType": "xstate.after.100.m.r1.a"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#m.r1.b"
+                    ],
+                    "event": "xstate.after.100.m.r1.a",
+                    "delay": 100,
+                    "actions": [],
+                    "source": "#m.r1.a",
+                    "reenter": false,
+                    "eventType": "xstate.after.100.m.r1.a"
+                  }
+                ],
+                "entry": [
+                  {
+                    "type": "xstate.raise"
+                  }
+                ],
+                "exit": [
+                  {
+                    "type": "xstate.cancel"
+                  }
+                ],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "b": {
+                "id": "m.r1.b",
+                "key": "b",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#m.r1.b",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "r2": {
+            "id": "m.r2",
+            "key": "r2",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#m.r2.a"
+              ],
+              "source": "#m.r2",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "a": {
+                "id": "m.r2.a",
+                "key": "a",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#m.r2.a",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "xstate.after.100.m.r2.a": [
+                    {
+                      "target": [
+                        "#m.r2.b"
+                      ],
+                      "event": "xstate.after.100.m.r2.a",
+                      "delay": 100,
+                      "actions": [],
+                      "source": "#m.r2.a",
+                      "reenter": false,
+                      "eventType": "xstate.after.100.m.r2.a"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#m.r2.b"
+                    ],
+                    "event": "xstate.after.100.m.r2.a",
+                    "delay": 100,
+                    "actions": [],
+                    "source": "#m.r2.a",
+                    "reenter": false,
+                    "eventType": "xstate.after.100.m.r2.a"
+                  }
+                ],
+                "entry": [
+                  {
+                    "type": "xstate.raise"
+                  }
+                ],
+                "exit": [
+                  {
+                    "type": "xstate.cancel"
+                  }
+                ],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "b": {
+                "id": "m.r2.b",
+                "key": "b",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#m.r2.b",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "xstate.raise",
+                  "params": {
+                    "event": {
+                      "type": "xstate.after.100.m.r1.a"
+                    },
+                    "id": "xstate.after.100.m.r1.a",
+                    "delay": 100
+                  }
+                },
+                {
+                  "type": "xstate.raise",
+                  "params": {
+                    "event": {
+                      "type": "xstate.after.100.m.r2.a"
+                    },
+                    "id": "xstate.after.100.m.r2.a",
+                    "delay": 100
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "r1": "a",
+                  "r2": "a"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.r1",
+                  "m.r1.a",
+                  "m.r2",
+                  "m.r2.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "delivered": [
+            {
+              "microsteps": [
+                {
+                  "event": {
+                    "type": "xstate.after.100.m.r1.a"
+                  },
+                  "transitions": [
+                    {
+                      "source": "#m.r1.a",
+                      "eventType": "xstate.after.100.m.r1.a",
+                      "target": [
+                        "#m.r1.b"
+                      ]
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "xstate.cancel",
+                      "params": {
+                        "sendId": "xstate.after.100.m.r1.a"
+                      }
+                    }
+                  ],
+                  "snapshot": {
+                    "value": {
+                      "r1": "b",
+                      "r2": "a"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "m",
+                      "m.r1",
+                      "m.r2",
+                      "m.r2.a",
+                      "m.r1.b"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "microsteps": [
+                {
+                  "event": {
+                    "type": "xstate.after.100.m.r2.a"
+                  },
+                  "transitions": [
+                    {
+                      "source": "#m.r2.a",
+                      "eventType": "xstate.after.100.m.r2.a",
+                      "target": [
+                        "#m.r2.b"
+                      ]
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "xstate.cancel",
+                      "params": {
+                        "sendId": "xstate.after.100.m.r2.a"
+                      }
+                    }
+                  ],
+                  "snapshot": {
+                    "value": {
+                      "r1": "b",
+                      "r2": "b"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "m",
+                      "m.r1",
+                      "m.r2",
+                      "m.r1.b",
+                      "m.r2.b"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the first delivery cancels a second delay due at the same time",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "parallel",
+        "initial": {
+          "target": [],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "r1": {
+            "id": "m.r1",
+            "key": "r1",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#m.r1.a"
+              ],
+              "source": "#m.r1",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "a": {
+                "id": "m.r1.a",
+                "key": "a",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#m.r1.a",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "xstate.after.100.m.r1.a": [
+                    {
+                      "target": [
+                        "#m.r2.done"
+                      ],
+                      "event": "xstate.after.100.m.r1.a",
+                      "delay": 100,
+                      "actions": [],
+                      "source": "#m.r1.a",
+                      "reenter": false,
+                      "eventType": "xstate.after.100.m.r1.a"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#m.r2.done"
+                    ],
+                    "event": "xstate.after.100.m.r1.a",
+                    "delay": 100,
+                    "actions": [],
+                    "source": "#m.r1.a",
+                    "reenter": false,
+                    "eventType": "xstate.after.100.m.r1.a"
+                  }
+                ],
+                "entry": [
+                  {
+                    "type": "xstate.raise"
+                  }
+                ],
+                "exit": [
+                  {
+                    "type": "xstate.cancel"
+                  }
+                ],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "b": {
+                "id": "m.r1.b",
+                "key": "b",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#m.r1.b",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "r2": {
+            "id": "m.r2",
+            "key": "r2",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#m.r2.waiting"
+              ],
+              "source": "#m.r2",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "waiting": {
+                "id": "m.r2.waiting",
+                "key": "waiting",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#m.r2.waiting",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "xstate.after.100.m.r2.waiting": [
+                    {
+                      "target": [
+                        "#m.r2.timed_out"
+                      ],
+                      "event": "xstate.after.100.m.r2.waiting",
+                      "delay": 100,
+                      "actions": [],
+                      "source": "#m.r2.waiting",
+                      "reenter": false,
+                      "eventType": "xstate.after.100.m.r2.waiting"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#m.r2.timed_out"
+                    ],
+                    "event": "xstate.after.100.m.r2.waiting",
+                    "delay": 100,
+                    "actions": [],
+                    "source": "#m.r2.waiting",
+                    "reenter": false,
+                    "eventType": "xstate.after.100.m.r2.waiting"
+                  }
+                ],
+                "entry": [
+                  {
+                    "type": "xstate.raise"
+                  }
+                ],
+                "exit": [
+                  {
+                    "type": "xstate.cancel"
+                  }
+                ],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "timed_out": {
+                "id": "m.r2.timed_out",
+                "key": "timed_out",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#m.r2.timed_out",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              },
+              "done": {
+                "id": "m.r2.done",
+                "key": "done",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#m.r2.done",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 7,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "xstate.raise",
+                  "params": {
+                    "event": {
+                      "type": "xstate.after.100.m.r1.a"
+                    },
+                    "id": "xstate.after.100.m.r1.a",
+                    "delay": 100
+                  }
+                },
+                {
+                  "type": "xstate.raise",
+                  "params": {
+                    "event": {
+                      "type": "xstate.after.100.m.r2.waiting"
+                    },
+                    "id": "xstate.after.100.m.r2.waiting",
+                    "delay": 100
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "r1": "a",
+                  "r2": "waiting"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.r1",
+                  "m.r1.a",
+                  "m.r2",
+                  "m.r2.waiting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "delivered": [
+            {
+              "microsteps": [
+                {
+                  "event": {
+                    "type": "xstate.after.100.m.r1.a"
+                  },
+                  "transitions": [
+                    {
+                      "source": "#m.r1.a",
+                      "eventType": "xstate.after.100.m.r1.a",
+                      "target": [
+                        "#m.r2.done"
+                      ]
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "xstate.cancel",
+                      "params": {
+                        "sendId": "xstate.after.100.m.r2.waiting"
+                      }
+                    },
+                    {
+                      "type": "xstate.cancel",
+                      "params": {
+                        "sendId": "xstate.after.100.m.r1.a"
+                      }
+                    },
+                    {
+                      "type": "xstate.raise",
+                      "params": {
+                        "event": {
+                          "type": "xstate.after.100.m.r1.a"
+                        },
+                        "id": "xstate.after.100.m.r1.a",
+                        "delay": 100
+                      }
+                    }
+                  ],
+                  "snapshot": {
+                    "value": {
+                      "r1": "a",
+                      "r2": "done"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "m",
+                      "m.r1",
+                      "m.r1.a",
+                      "m.r2",
+                      "m.r2.done"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

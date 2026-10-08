@@ -1,0 +1,1842 @@
+{
+  "source": "interpreter.test.ts (lines 932 to 1947)",
+  "cases": [
+    {
+      "name": "an ACTIVATE sent to the send machine reaches its final state and completes it",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "inactive",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "send",
+                      "send.inactive"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "ACTIVATE"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "send.active",
+                      "send"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an ACTIVATE sent as an object reaches the final state and completes the actor",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "inactive",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "send",
+                      "send.inactive"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "ACTIVATE"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "send.active",
+                      "send"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an EVENT whose payload passes the guard reaches the final state",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "inactive",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "send",
+                      "send.inactive"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "EVENT",
+                    "id": 42
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "send.active",
+                      "send"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "two events sent one after the other are both processed, in order",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "inactive",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "toggle",
+                      "toggle.inactive"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "ACTIVATE"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "toggle",
+                      "toggle.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "INACTIVATE"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "toggle.success",
+                      "toggle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "starting an actor computes its context, runs its entry and enters its initial state",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": {
+                      "log": []
+                    }
+                  },
+                  "snapshot": {
+                    "value": "foo",
+                    "context": {
+                      "log": [
+                        "entry"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).foo"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a stopped actor's delayed transition never fires",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "foo",
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "delayed",
+                      "delayed.foo"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an event sent to a stopped actor takes no transition and runs no entry",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "waiting",
+                    "context": {
+                      "log": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).waiting"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "each TOGGLE sent to a started actor produces one snapshot",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "inactive",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "toggle",
+                      "toggle.inactive"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "TOGGLE"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "toggle",
+                      "toggle.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "TOGGLE"
+                  },
+                  "snapshot": {
+                    "value": "inactive",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "toggle",
+                      "toggle.inactive"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "TOGGLE"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "toggle",
+                      "toggle.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an eventless transition settles before the snapshot is published",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "transient",
+                      "transient.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "START"
+                  },
+                  "snapshot": {
+                    "value": "next",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "transient",
+                      "transient.next"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an eventless transition whose first candidate's guard is false takes the second and publishes one snapshot",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {
+                      "enabled": false
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "transient",
+                      "transient.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "START"
+                  },
+                  "snapshot": {
+                    "value": "next",
+                    "context": {
+                      "enabled": false
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "transient",
+                      "transient.next"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a reentering timer counts to five and the eventless guard then completes the actor",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 0
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "interval",
+                      "interval.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.10.interval.active"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "interval",
+                      "interval.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.10.interval.active"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 2
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "interval",
+                      "interval.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.10.interval.active"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 3
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "interval",
+                      "interval.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.10.interval.active"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 4
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "interval",
+                      "interval.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.10.interval.active"
+                  },
+                  "snapshot": {
+                    "value": "finished",
+                    "context": {
+                      "count": 5
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "interval.finished",
+                      "interval"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "the interval machine publishes five snapshots after its start and then completes",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 0
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "interval",
+                      "interval.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.10.interval.active"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "interval",
+                      "interval.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.10.interval.active"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 2
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "interval",
+                      "interval.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.10.interval.active"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 3
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "interval",
+                      "interval.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.10.interval.active"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 4
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "interval",
+                      "interval.active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.after.10.interval.active"
+                  },
+                  "snapshot": {
+                    "value": "finished",
+                    "context": {
+                      "count": 5
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "interval.finished",
+                      "interval"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "five INC complete the counter through its eventless guard",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 0
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "INC"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "INC"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 2
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "INC"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 3
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "INC"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {
+                      "count": 4
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "INC"
+                  },
+                  "snapshot": {
+                    "value": "finished",
+                    "context": {
+                      "count": 5
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).finished",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "reaching a final state completes the actor",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "NEXT"
+                  },
+                  "snapshot": {
+                    "value": "done",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).done",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "stopping an actor leaves it stopped",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child's sendParent completes its parent, which then lists no child",
+      "steps": [
+        {
+          "actors": {
+            "root/childActor": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).active"
+                    ],
+                    "children": {
+                      "childActor": "childMachine"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/childActor": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "FIRED"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).success",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/childActor": {
+              "events": [
+                {
+                  "event": {
+                    "type": "FIRE"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).active"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/childActor": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an invoked promise is a child while active and is gone once its output completes the parent",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "active",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).active"
+                    ],
+                    "children": {
+                      "childActor": "num"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/childActor": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/childActor",
+              "src": "num"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.childActor",
+                    "output": 42,
+                    "actorId": "childActor"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).success",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/childActor": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child spawned by the root's entry is listed among its children",
+      "steps": [
+        {
+          "actors": {
+            "root/child": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "form",
+                      "form.idle"
+                    ],
+                    "children": {
+                      "child": "childMachine"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/child": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "spawned machine and promise children are gone from the parent once stopped",
+      "steps": [
+        {
+          "actors": {
+            "root/machineChild": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "present",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "form",
+                      "form.present"
+                    ],
+                    "children": {
+                      "machineChild": "childMachine",
+                      "promiseChild": "pending"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/machineChild": "active",
+            "root/promiseChild": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/promiseChild",
+              "src": "pending"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "NEXT"
+                  },
+                  "snapshot": {
+                    "value": "gone",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "form.gone",
+                      "form"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/machineChild": "stopped",
+            "root/promiseChild": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "the root's entry runs when the actor starts",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "log": [
+                        "entry"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a machine whose initial state is final is done as soon as it starts",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).a",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an event the initial entry sends to the actor itself runs after the whole initial entry",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {
+                      "log": [
+                        "initial root entry start",
+                        "initial root entry end",
+                        "initial nested entry"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).a"
+                    ]
+                  }
+                },
+                {
+                  "event": {
+                    "type": "EV"
+                  },
+                  "snapshot": {
+                    "value": "a",
+                    "context": {
+                      "log": [
+                        "initial root entry start",
+                        "initial root entry end",
+                        "initial nested entry",
+                        "EV transition"
+                      ]
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).a"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a throwing initial entry leaves the actor in error",
+      "steps": [
+        {
+          "actors": {},
+          "statuses": {
+            "root": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a second start does not start the root again",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "count": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "once"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "stopping a root created and never started changes nothing",
+      "steps": [
+        {
+          "actors": {},
+          "statuses": {},
+          "requests": []
+        },
+        {
+          "actors": {},
+          "statuses": {},
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

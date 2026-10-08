@@ -1,0 +1,7 @@
+rating 5 -> "thanks"
+rating 1 -> "form"
+rating 3 -> "neutral"
+feedback "" -> "form"
+feedback "Too slow." -> "submitting"
+no feedback -> Unable to evaluate guard 'isValid' in transition for event 'submit' in state node 'feedback.form':
+Cannot read properties of undefined (reading 'length')

@@ -1,0 +1,907 @@
+{
+  "source": "invoke, through the pure functions",
+  "cases": [
+    {
+      "name": "entering and leaving an invoking state",
+      "test": "stateUtils.ts enterStates and exitStates: spawnChild after entry, stopChild after exit",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": [
+              "en"
+            ],
+            "exit": [
+              "ex"
+            ],
+            "invoke": {
+              "src": "child",
+              "id": "kid",
+              "input": {
+                "n": 1
+              }
+            },
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an invoke's spawn comes between entry and initial actions, its stop after exit",
+      "test": "stateUtils.ts microstep: exit, stopChild, transition actions, entry, spawnChild, initial actions",
+      "machine": {
+        "id": "m",
+        "initial": "p",
+        "states": {
+          "p": {
+            "initial": {
+              "target": "a",
+              "actions": [
+                "ini"
+              ]
+            },
+            "invoke": {
+              "src": "child",
+              "id": "pk"
+            },
+            "exit": [
+              "pex"
+            ],
+            "on": {
+              "OUT": {
+                "target": "c",
+                "actions": [
+                  "t"
+                ]
+              }
+            },
+            "states": {
+              "a": {
+                "entry": [
+                  "en"
+                ],
+                "exit": [
+                  "ex"
+                ],
+                "after": {
+                  "100": "b"
+                },
+                "invoke": [
+                  {
+                    "src": "child",
+                    "id": "k1"
+                  },
+                  {
+                    "src": "child",
+                    "id": "k2"
+                  }
+                ],
+                "on": {
+                  "REENTER": {
+                    "target": "a",
+                    "reenter": true,
+                    "actions": [
+                      "t"
+                    ]
+                  },
+                  "SELF": {
+                    "actions": [
+                      "t"
+                    ]
+                  }
+                }
+              },
+              "b": {}
+            }
+          },
+          "c": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "REENTER"
+          }
+        },
+        {
+          "send": {
+            "type": "SELF"
+          }
+        },
+        {
+          "send": {
+            "type": "OUT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an invoke without an id takes its index and its state's id",
+      "test": "StateNode.ts invoke: createInvokeId(stateNodeId, index)",
+      "machine": {
+        "id": "q",
+        "invoke": {
+          "src": "child"
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "id": "custom",
+            "invoke": [
+              {
+                "src": "child"
+              },
+              {
+                "src": "child",
+                "input": 3
+              }
+            ],
+            "initial": "inner",
+            "states": {
+              "inner": {
+                "invoke": {
+                  "src": "child"
+                }
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "an invoke's empty id is kept",
+      "test": "StateNode.ts invoke: invokeConfig.id ?? createInvokeId(...)",
+      "machine": {
+        "id": "e",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "child",
+              "id": "",
+              "onDone": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "xstate.done.actor."
+          }
+        }
+      ]
+    },
+    {
+      "name": "an invoke's systemId is returned with its spawn",
+      "test": "actions/spawnChild.ts resolveSpawn: params {id, systemId, actorRef, src, input}",
+      "machine": {
+        "id": "s",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "child",
+              "id": "named",
+              "systemId": "sys"
+            },
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an invoke's onDone is taken on its done event",
+      "test": "stateUtils.ts formatTransitions: onDone under xstate.done.actor.<id>",
+      "machine": {
+        "id": "d",
+        "context": {},
+        "initial": "loading",
+        "states": {
+          "loading": {
+            "invoke": {
+              "src": "child",
+              "id": "fetch",
+              "onDone": {
+                "target": "loaded",
+                "actions": [
+                  {
+                    "type": "set_from_event",
+                    "params": {
+                      "key": "result",
+                      "from": "output"
+                    }
+                  }
+                ]
+              },
+              "onError": "failed"
+            }
+          },
+          "loaded": {},
+          "failed": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "xstate.done.actor.fetch",
+            "output": {
+              "ok": 1
+            },
+            "actorId": "fetch"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an invoke's onError is taken on its error event",
+      "test": "stateUtils.ts formatTransitions: onError under xstate.error.actor.<id>",
+      "machine": {
+        "id": "d",
+        "context": {},
+        "initial": "loading",
+        "states": {
+          "loading": {
+            "invoke": {
+              "src": "child",
+              "id": "fetch",
+              "onDone": "loaded",
+              "onError": {
+                "target": "failed",
+                "actions": [
+                  {
+                    "type": "set_from_event",
+                    "params": {
+                      "key": "reason",
+                      "from": "error"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "loaded": {},
+          "failed": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "xstate.error.actor.fetch",
+            "error": {
+              "message": "boom"
+            },
+            "actorId": "fetch"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an actor's error event no transition handles fails the machine",
+      "test": "stateUtils.ts macrostep: an unhandled xstate.error.actor event sets status error",
+      "machine": {
+        "id": "f",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            },
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "xstate.error.actor.kid",
+            "error": {
+              "message": "boom"
+            },
+            "actorId": "kid"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an actor's error event without an error fails the machine with none",
+      "test": "stateUtils.ts macrostep: error is the event's error, undefined when it has none",
+      "machine": {
+        "id": "f",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "xstate.error.actor.kid"
+          }
+        }
+      ]
+    },
+    {
+      "name": "the error rule reads a prefix of the event type",
+      "test": "utils.ts isErrorActorEvent: type.startsWith('xstate.error.actor')",
+      "machine": {
+        "id": "f",
+        "initial": "a",
+        "states": {
+          "a": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "xstate.error.actorX",
+            "error": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "an error event of another kind is an ordinary event",
+      "test": "utils.ts isErrorActorEvent: xstate.error.platform is not an actor's error",
+      "machine": {
+        "id": "f",
+        "initial": "a",
+        "states": {
+          "a": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "xstate.error.platform.x",
+            "error": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "a wildcard transition handles an actor's error event",
+      "test": "stateUtils.ts macrostep: the error rule applies only when no transition is selected",
+      "machine": {
+        "id": "w",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            },
+            "on": {
+              "*": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "xstate.error.actor.kid",
+            "error": "boom"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a raised actor's error event is an ordinary event",
+      "test": "stateUtils.ts macrostep: the error rule tests only the external event",
+      "machine": {
+        "id": "r",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": {
+                "actions": [
+                  "raise_error"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "raise_error": {
+          "kind": "raise",
+          "event": {
+            "type": "xstate.error.actor.kid",
+            "error": "boom"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a machine that finishes stops the children left",
+      "test": "stateUtils.ts macrostep: stopChildren when the status is not active",
+      "machine": {
+        "id": "m",
+        "invoke": {
+          "src": "child",
+          "id": "r"
+        },
+        "exit": [
+          "rx"
+        ],
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            },
+            "on": {
+              "FIN": "f"
+            }
+          },
+          "f": {
+            "type": "final",
+            "entry": [
+              "fx"
+            ]
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FIN"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a machine done at start stops its children",
+      "test": "stateUtils.ts macrostep: stopChildren after the initial macrostep",
+      "machine": {
+        "id": "m",
+        "invoke": {
+          "src": "child",
+          "id": "r"
+        },
+        "initial": "f",
+        "states": {
+          "f": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "children with an array index for an id are stopped first",
+      "test": "JavaScript's own-property order: array-index keys first, by number",
+      "machine": {
+        "id": "m",
+        "invoke": [
+          {
+            "src": "child"
+          },
+          {
+            "src": "child",
+            "id": "7"
+          },
+          {
+            "src": "child",
+            "id": "3"
+          }
+        ],
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "FIN": "f"
+            }
+          },
+          "f": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FIN"
+          }
+        }
+      ]
+    },
+    {
+      "name": "on, onDone and an invoke's transitions keep XState's Map order",
+      "test": "stateUtils.ts formatTransitions: Map.set replaces in place, after appends",
+      "machine": {
+        "id": "d",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "xstate.done.actor.x": "b",
+              "FOO": "b",
+              "xstate.done.state.d.a": "b"
+            },
+            "onDone": "c",
+            "invoke": [
+              {
+                "src": "child",
+                "id": "x",
+                "onDone": "c",
+                "onError": "b",
+                "onSnapshot": "b"
+              },
+              {
+                "src": "child",
+                "id": "y",
+                "onError": "b"
+              }
+            ],
+            "after": {
+              "100": "b"
+            },
+            "initial": "inner",
+            "states": {
+              "inner": {}
+            }
+          },
+          "b": {},
+          "c": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "next_transitions": true
+          }
+        },
+        {
+          "send": {
+            "type": "xstate.done.actor.x"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a state's onDone replaces an on transition under its descriptor",
+      "test": "stateUtils.ts formatTransitions: onDone is set after on",
+      "machine": {
+        "id": "o",
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "END": "a2"
+                }
+              },
+              "a2": {
+                "type": "final"
+              }
+            },
+            "on": {
+              "xstate.done.state.o.a": "b"
+            },
+            "onDone": "c"
+          },
+          "b": {},
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "END"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a reentered invoking state stops and spawns its child again",
+      "test": "stateUtils.ts exitStates and enterStates on a reentering transition",
+      "machine": {
+        "id": "m",
+        "initial": "a",
+        "states": {
+          "a": {
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            },
+            "on": {
+              "AGAIN": {
+                "target": "a",
+                "reenter": true
+              },
+              "STAY": {
+                "target": "a"
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "AGAIN"
+          }
+        },
+        {
+          "send": {
+            "type": "STAY"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an invoking state left by an eventless transition stops its child at once",
+      "test": "stateUtils.ts macrostep: the child spawned on entry is stopped by the always that leaves its state",
+      "machine": {
+        "id": "m",
+        "context": {
+          "n": 0
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "GO": "b"
+            }
+          },
+          "b": {
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            },
+            "always": {
+              "target": "c"
+            }
+          },
+          "c": {}
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a macrostep from a snapshot in error returns a stop for every child it keeps",
+      "test": "stateUtils.ts macrostep: stopChildren whenever the settled snapshot is not active (review of the actor layer, finding 9)",
+      "machine": {
+        "id": "d",
+        "initial": "loading",
+        "states": {
+          "loading": {
+            "invoke": {
+              "src": "child",
+              "id": "fetch"
+            },
+            "on": {
+              "OTHER": {
+                "actions": [
+                  "noted"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "xstate.error.actor.zzz",
+            "error": "boom",
+            "actorId": "zzz"
+          }
+        },
+        {
+          "send": {
+            "type": "OTHER"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "invoke.test.ts",
+      "reason": "runs children; ported with the actor cases"
+    }
+  ]
+}

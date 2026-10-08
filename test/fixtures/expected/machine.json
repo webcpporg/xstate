@@ -1,0 +1,1274 @@
+{
+  "source": "machine.test.ts",
+  "cases": [
+    {
+      "name": "a compound state without initial is refused",
+      "create_error": true
+    },
+    {
+      "name": "a machine with no context gets an empty object",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "atomic",
+        "initial": {
+          "target": [],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {},
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {},
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "resolves a parallel state value",
+      "definition": {
+        "id": "resolve",
+        "key": "resolve",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#resolve.foo"
+          ],
+          "source": "#resolve",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "foo": {
+            "id": "resolve.foo",
+            "key": "foo",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#resolve.foo.one"
+              ],
+              "source": "#resolve.foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "one": {
+                "id": "resolve.foo.one",
+                "key": "one",
+                "type": "parallel",
+                "initial": {
+                  "target": [],
+                  "source": "#resolve.foo.one",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {
+                  "a": {
+                    "id": "resolve.foo.one.a",
+                    "key": "a",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#resolve.foo.one.a.aa"
+                      ],
+                      "source": "#resolve.foo.one.a",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "aa": {
+                        "id": "resolve.foo.one.a.aa",
+                        "key": "aa",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#resolve.foo.one.a.aa",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 4,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 3,
+                    "invoke": [],
+                    "tags": []
+                  },
+                  "b": {
+                    "id": "resolve.foo.one.b",
+                    "key": "b",
+                    "type": "compound",
+                    "initial": {
+                      "target": [
+                        "#resolve.foo.one.b.bb"
+                      ],
+                      "source": "#resolve.foo.one.b",
+                      "actions": [],
+                      "eventType": null
+                    },
+                    "history": false,
+                    "states": {
+                      "bb": {
+                        "id": "resolve.foo.one.b.bb",
+                        "key": "bb",
+                        "type": "atomic",
+                        "initial": {
+                          "target": [],
+                          "source": "#resolve.foo.one.b.bb",
+                          "actions": [],
+                          "eventType": null
+                        },
+                        "history": false,
+                        "states": {},
+                        "on": {},
+                        "transitions": [],
+                        "entry": [],
+                        "exit": [],
+                        "order": 6,
+                        "invoke": [],
+                        "tags": []
+                      }
+                    },
+                    "on": {},
+                    "transitions": [],
+                    "entry": [],
+                    "exit": [],
+                    "order": 5,
+                    "invoke": [],
+                    "tags": []
+                  }
+                },
+                "on": {
+                  "TO_TWO": [
+                    {
+                      "target": [
+                        "#resolve.foo.two"
+                      ],
+                      "actions": [],
+                      "source": "#resolve.foo.one",
+                      "reenter": false,
+                      "eventType": "TO_TWO"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#resolve.foo.two"
+                    ],
+                    "actions": [],
+                    "source": "#resolve.foo.one",
+                    "reenter": false,
+                    "eventType": "TO_TWO"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "two": {
+                "id": "resolve.foo.two",
+                "key": "two",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#resolve.foo.two",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "TO_ONE": [
+                    {
+                      "target": [
+                        "#resolve.foo.one"
+                      ],
+                      "actions": [],
+                      "source": "#resolve.foo.two",
+                      "reenter": false,
+                      "eventType": "TO_ONE"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#resolve.foo.one"
+                    ],
+                    "actions": [],
+                    "source": "#resolve.foo.two",
+                    "reenter": false,
+                    "eventType": "TO_ONE"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 7,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "TO_BAR": [
+                {
+                  "target": [
+                    "#resolve.bar"
+                  ],
+                  "actions": [],
+                  "source": "#resolve.foo",
+                  "reenter": false,
+                  "eventType": "TO_BAR"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#resolve.bar"
+                ],
+                "actions": [],
+                "source": "#resolve.foo",
+                "reenter": false,
+                "eventType": "TO_BAR"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "bar": {
+            "id": "resolve.bar",
+            "key": "bar",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#resolve.bar",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TO_FOO": [
+                {
+                  "target": [
+                    "#resolve.foo"
+                  ],
+                  "actions": [],
+                  "source": "#resolve.bar",
+                  "reenter": false,
+                  "eventType": "TO_FOO"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#resolve.foo"
+                ],
+                "actions": [],
+                "source": "#resolve.bar",
+                "reenter": false,
+                "eventType": "TO_FOO"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 8,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": {
+              "foo": {
+                "one": {
+                  "a": "aa",
+                  "b": "bb"
+                }
+              }
+            },
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "resolve",
+              "resolve.foo",
+              "resolve.foo.one",
+              "resolve.foo.one.a",
+              "resolve.foo.one.b",
+              "resolve.foo.one.a.aa",
+              "resolve.foo.one.b.bb"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "resolveState resolves status done",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).foo"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "foo": {
+            "id": "(machine).foo",
+            "key": "foo",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).foo",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "NEXT": [
+                {
+                  "target": [
+                    "#(machine).bar"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).foo",
+                  "reenter": false,
+                  "eventType": "NEXT"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).bar"
+                ],
+                "actions": [],
+                "source": "#(machine).foo",
+                "reenter": false,
+                "eventType": "NEXT"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "bar": {
+            "id": "(machine).bar",
+            "key": "bar",
+            "type": "final",
+            "initial": {
+              "target": [],
+              "source": "#(machine).bar",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": "bar",
+            "context": {},
+            "status": "done",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "(machine).bar"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "follows an always transition for the initial state",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).a"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "(machine).a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "b": {
+            "id": "(machine).b",
+            "key": "b",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).b",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).a"
+                ]
+              }
+            },
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).a",
+                  "eventType": "",
+                  "target": [
+                    "#(machine).b"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "b",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).b"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a state node id (explicit) shows up in the active nodes",
+      "definition": {
+        "id": "some-id",
+        "key": "some-id",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#idle"
+          ],
+          "source": "#some-id",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "idle": {
+            "id": "idle",
+            "key": "idle",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#idle",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "idle",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "some-id",
+                  "idle"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a state node id defaults to the dotted key path",
+      "definition": {
+        "id": "some-id",
+        "key": "some-id",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#some-id.idle"
+          ],
+          "source": "#some-id",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "idle": {
+            "id": "some-id.idle",
+            "key": "idle",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#some-id.idle",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "idle",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "some-id",
+                  "some-id.idle"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a combinatorial (stateless) machine accepts events",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "atomic",
+        "initial": {
+          "target": [],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {},
+        "on": {
+          "INC": [
+            {
+              "actions": [
+                {
+                  "type": "increment",
+                  "params": {
+                    "key": "value"
+                  }
+                }
+              ],
+              "source": "#(machine)",
+              "reenter": false,
+              "eventType": "INC"
+            }
+          ]
+        },
+        "transitions": [
+          {
+            "actions": [
+              {
+                "type": "increment",
+                "params": {
+                  "key": "value"
+                }
+              }
+            ],
+            "source": "#(machine)",
+            "reenter": false,
+            "eventType": "INC"
+          }
+        ],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {},
+                "context": {
+                  "value": 42
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "INC"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine)",
+                  "eventType": "INC"
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {},
+                "context": {
+                  "value": 43
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "lists a state node's transitions in declaration order",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).green"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "green": {
+            "id": "(machine).green",
+            "key": "green",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).green",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).yellow"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ],
+              "FORBIDDEN_EVENT": [
+                {
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "FORBIDDEN_EVENT"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).yellow"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              },
+              {
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "FORBIDDEN_EVENT"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "yellow": {
+            "id": "(machine).yellow",
+            "key": "yellow",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).yellow",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "red": {
+            "id": "(machine).red",
+            "key": "red",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).red.walk"
+              ],
+              "source": "#(machine).red",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "walk": {
+                "id": "(machine).red.walk",
+                "key": "walk",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.walk",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.wait"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.wait"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              },
+              "wait": {
+                "id": "(machine).red.wait",
+                "key": "wait",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.wait",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.stop"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.stop"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "stop": {
+                "id": "(machine).red.stop",
+                "key": "stop",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.stop",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).green"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).green"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "green",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).green"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "query": {
+            "next_transitions": [
+              {
+                "source": "#(machine).green",
+                "eventType": "TIMER",
+                "target": [
+                  "#(machine).yellow"
+                ]
+              },
+              {
+                "source": "#(machine).green",
+                "eventType": "POWER_OUTAGE",
+                "target": [
+                  "#(machine).red"
+                ]
+              },
+              {
+                "source": "#(machine).green",
+                "eventType": "FORBIDDEN_EVENT"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "a machine carries the version its config gives",
+      "definition": {
+        "id": "version",
+        "key": "version",
+        "version": "1.0.4",
+        "type": "atomic",
+        "initial": {
+          "target": [],
+          "source": "#version",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {},
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": []
+    },
+    {
+      "name": "a machine's id is the one its config gives",
+      "definition": {
+        "id": "some-id",
+        "key": "some-id",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#some-id.idle"
+          ],
+          "source": "#some-id",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "idle": {
+            "id": "some-id.idle",
+            "key": "idle",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#some-id.idle",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": []
+    }
+  ]
+}

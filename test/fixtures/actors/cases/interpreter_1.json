@@ -1,0 +1,815 @@
+{
+  "source": "interpreter.test.ts (lines 1 to 931)",
+  "cases": [
+    {
+      "name": "an actor starts in its machine's initial state",
+      "test": "interpreter.test.ts > interpreter > initial state > .getSnapshot returns the initial state (the value after start; the format reads no snapshot of an actor not yet started)",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "bar": {},
+          "foo": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "an actor spawned by the initial state's entry is spawned once, when the actor starts",
+      "test": "interpreter.test.ts > interpreter > initial state > initially spawned actors should not be spawned when reading initial state (the one spawn after start; the format has no step before start, and a spawnChild with an id stands for the spawn the test assigns to the context)",
+      "machine": {
+        "initial": "idle",
+        "context": {},
+        "states": {
+          "idle": {
+            "entry": [
+              "spawnPromise"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawnPromise": {
+          "kind": "spawn_child",
+          "src": "neverSettles",
+          "id": "promise"
+        }
+      },
+      "actors": {
+        "neverSettles": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 100
+        }
+      ]
+    },
+    {
+      "name": "a delayed raise in the initial entry fires once its delay has passed",
+      "test": "interpreter.test.ts > interpreter > send with delay > can send an event after a delay (on the simulated clock from start; the wait before start is not ported, as the format starts first)",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "entry": [
+              "raiseTimer"
+            ],
+            "on": {
+              "TIMER": "bar"
+            }
+          },
+          "bar": {}
+        }
+      },
+      "actions": {
+        "raiseTimer": {
+          "kind": "raise",
+          "event": {
+            "type": "TIMER"
+          },
+          "delay": 10
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 5
+        },
+        {
+          "advance": 10
+        }
+      ]
+    },
+    {
+      "name": "a delayed raise entered by a transition finishes the machine only after its delay",
+      "test": "interpreter.test.ts > interpreter > send with delay > can send an event after a delay (expression) (the delay as the 150 ms its expression computes here, a named delay; a delay computed from the context and the event is not ported)",
+      "machine": {
+        "id": "delayExpr",
+        "context": {
+          "initialDelay": 100
+        },
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "on": {
+              "ACTIVATE": "pending"
+            }
+          },
+          "pending": {
+            "entry": [
+              "raiseFinish"
+            ],
+            "on": {
+              "FINISH": "finished"
+            }
+          },
+          "finished": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "raiseFinish": {
+          "kind": "raise",
+          "event": {
+            "type": "FINISH"
+          },
+          "delay": "finishDelay"
+        }
+      },
+      "delays": {
+        "finishDelay": 150
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "ACTIVATE",
+            "wait": 50
+          }
+        },
+        {
+          "advance": 101
+        },
+        {
+          "advance": 50
+        }
+      ]
+    },
+    {
+      "name": "a delayed raise armed by ACTIVATE leaves the machine pending at 101 ms and finishes it at 151 ms",
+      "test": "interpreter.test.ts > interpreter > send with delay > can send an event after a delay (expression using _event) (the timing only, with the delay as the 150 ms its expression computes here, a named delay, which makes the case the same as the port of \"can send an event after a delay (expression)\"; the delay function's assertEvent(event, 'ACTIVATE'), its check that it is given the event that entered pending, is not ported, as a delay computed from the context and the event is not)",
+      "machine": {
+        "id": "delayExpr",
+        "context": {
+          "initialDelay": 100
+        },
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "on": {
+              "ACTIVATE": "pending"
+            }
+          },
+          "pending": {
+            "entry": [
+              "raiseFinish"
+            ],
+            "on": {
+              "FINISH": "finished"
+            }
+          },
+          "finished": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "raiseFinish": {
+          "kind": "raise",
+          "event": {
+            "type": "FINISH"
+          },
+          "delay": "finishDelay"
+        }
+      },
+      "delays": {
+        "finishDelay": 150
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "ACTIVATE",
+            "wait": 50
+          }
+        },
+        {
+          "advance": 101
+        },
+        {
+          "advance": 50
+        }
+      ]
+    },
+    {
+      "name": "named after delays and a delayed raise walk the machine to its final state",
+      "test": "interpreter.test.ts > interpreter > send with delay > can send an event after a delay (delayed transitions) (each named delay as the value its function computes here, delayA 100, someDelay 150, delayD 300; a delay computed from the context and the event is not ported)",
+      "machine": {
+        "id": "letter",
+        "context": {
+          "delay": 100
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "after": {
+              "delayA": "b"
+            }
+          },
+          "b": {
+            "after": {
+              "someDelay": "c"
+            }
+          },
+          "c": {
+            "entry": [
+              "fireDelay"
+            ],
+            "on": {
+              "FIRE_DELAY": "d"
+            }
+          },
+          "d": {
+            "after": {
+              "delayD": "e"
+            }
+          },
+          "e": {
+            "after": {
+              "someDelay": "f"
+            }
+          },
+          "f": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "fireDelay": {
+          "kind": "raise",
+          "event": {
+            "type": "FIRE_DELAY",
+            "value": 200
+          },
+          "delay": 20
+        }
+      },
+      "delays": {
+        "delayA": 100,
+        "someDelay": 150,
+        "delayD": 300
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 100
+        },
+        {
+          "advance": 150
+        },
+        {
+          "advance": 20
+        },
+        {
+          "advance": 300
+        },
+        {
+          "advance": 150
+        }
+      ]
+    },
+    {
+      "name": "a cancelled delayed raise never fires",
+      "test": "interpreter.test.ts > interpreter > can cancel a delayed event",
+      "machine": {
+        "id": "light",
+        "initial": "green",
+        "states": {
+          "green": {
+            "entry": [
+              "timerOne"
+            ],
+            "on": {
+              "TIMER": "yellow",
+              "KEEP_GOING": {
+                "actions": [
+                  "cancelTimerOne"
+                ]
+              }
+            }
+          },
+          "yellow": {
+            "entry": [
+              "timer"
+            ],
+            "on": {
+              "TIMER": "red"
+            }
+          },
+          "red": {
+            "after": {
+              "10": "green"
+            }
+          }
+        }
+      },
+      "actions": {
+        "timerOne": {
+          "kind": "raise",
+          "event": {
+            "type": "TIMER"
+          },
+          "id": "TIMER1",
+          "delay": 10
+        },
+        "timer": {
+          "kind": "raise",
+          "event": {
+            "type": "TIMER"
+          },
+          "delay": 10
+        },
+        "cancelTimerOne": {
+          "kind": "cancel",
+          "id": "TIMER1"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 5
+        },
+        {
+          "send": {
+            "type": "KEEP_GOING"
+          }
+        },
+        {
+          "advance": 10
+        }
+      ]
+    },
+    {
+      "name": "an entry cancels its own delayed raise and the other one fires",
+      "test": "interpreter.test.ts > interpreter > can cancel a delayed event using expression to resolve send id (the id given fixed, on the simulated clock; a cancel whose id is computed by a function is not ported)",
+      "machine": {
+        "initial": "first",
+        "states": {
+          "first": {
+            "entry": [
+              "raiseFoo",
+              "raiseBar",
+              "cancelFoo"
+            ],
+            "on": {
+              "FOO": "fail",
+              "BAR": "pass"
+            }
+          },
+          "fail": {
+            "type": "final"
+          },
+          "pass": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "raiseFoo": {
+          "kind": "raise",
+          "event": {
+            "type": "FOO"
+          },
+          "id": "foo",
+          "delay": 100
+        },
+        "raiseBar": {
+          "kind": "raise",
+          "event": {
+            "type": "BAR"
+          },
+          "delay": 200
+        },
+        "cancelFoo": {
+          "kind": "cancel",
+          "id": "foo"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 100
+        },
+        {
+          "advance": 100
+        }
+      ]
+    },
+    {
+      "name": "a stopped actor processes no further event",
+      "test": "interpreter.test.ts > interpreter > should not update when stopped (the warning for the event sent to a stopped actor is not ported)",
+      "machine": {
+        "id": "light",
+        "initial": "green",
+        "states": {
+          "green": {
+            "entry": [
+              "timerOne"
+            ],
+            "on": {
+              "TIMER": "yellow",
+              "KEEP_GOING": {
+                "actions": [
+                  "cancelTimerOne"
+                ]
+              }
+            }
+          },
+          "yellow": {
+            "entry": [
+              "timer"
+            ],
+            "on": {
+              "TIMER": "red"
+            }
+          },
+          "red": {
+            "after": {
+              "10": "green"
+            }
+          }
+        }
+      },
+      "actions": {
+        "timerOne": {
+          "kind": "raise",
+          "event": {
+            "type": "TIMER"
+          },
+          "id": "TIMER1",
+          "delay": 10
+        },
+        "timer": {
+          "kind": "raise",
+          "event": {
+            "type": "TIMER"
+          },
+          "delay": 10
+        },
+        "cancelTimerOne": {
+          "kind": "cancel",
+          "id": "TIMER1"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        },
+        {
+          "stop": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "each action sees the event of its own microstep, the raised one after the external one",
+      "test": "interpreter.test.ts > interpreter > should receive correct event (log action) (the log action replaced by push_event into the context; the logger is not ported)",
+      "machine": {
+        "context": {
+          "logs": []
+        },
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "on": {
+              "EXTERNAL_EVENT": {
+                "actions": [
+                  "raiseRaised",
+                  {
+                    "type": "push_event",
+                    "params": {
+                      "key": "logs"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "on": {
+          "*": {
+            "actions": [
+              {
+                "type": "push_event",
+                "params": {
+                  "key": "logs"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "raiseRaised": {
+          "kind": "raise",
+          "event": {
+            "type": "RAISED_EVENT"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EXTERNAL_EVENT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a raised event with a payload passes its guard and finishes the machine",
+      "test": "interpreter.test.ts > interpreter > send() event expressions > should resolve send event expressions (the event given fixed as the one its expression computes here; an event computed from the context is not ported)",
+      "machine": {
+        "id": "sendexpr",
+        "initial": "start",
+        "context": {
+          "password": "foo"
+        },
+        "states": {
+          "start": {
+            "entry": [
+              "raiseNext"
+            ],
+            "on": {
+              "NEXT": {
+                "target": "finish",
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "password",
+                    "value": "foo"
+                  }
+                }
+              }
+            }
+          },
+          "finish": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "raiseNext": {
+          "kind": "raise",
+          "event": {
+            "type": "NEXT",
+            "password": "foo"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a child given its context by input sends its parent an event that finishes it",
+      "test": "interpreter.test.ts > interpreter > sendParent() event expressions > should resolve sendParent event expressions (the event given fixed as the one its expression computes from the child's context here; an event computed from the context is not ported)",
+      "machine": {
+        "id": "parent",
+        "initial": "start",
+        "states": {
+          "start": {
+            "invoke": {
+              "id": "child",
+              "src": "child",
+              "input": {
+                "password": "foo"
+              }
+            },
+            "on": {
+              "NEXT": {
+                "target": "finish",
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "password",
+                    "value": "foo"
+                  }
+                }
+              }
+            }
+          },
+          "finish": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "machine",
+          "machine": {
+            "id": "child",
+            "initial": "start",
+            "states": {
+              "start": {
+                "entry": [
+                  "sendNext"
+                ]
+              }
+            }
+          },
+          "context_from_input": {
+            "password": "password"
+          },
+          "actions": {
+            "sendNext": {
+              "kind": "send_parent",
+              "event": {
+                "type": "NEXT",
+                "password": "foo"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "events sent to a root created and not started wait for its start",
+      "test": "interpreter.test.ts > interpreter > should defer events sent to an uninitialized service",
+      "machine": {
+        "id": "defer",
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT_A": "b"
+            }
+          },
+          "b": {
+            "on": {
+              "NEXT_B": "c"
+            }
+          },
+          "c": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "create": true
+        },
+        {
+          "send": {
+            "type": "NEXT_A"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT_B"
+          }
+        },
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a send to a root created and not started does not fail",
+      "test": "interpreter.test.ts > interpreter > should not throw an error if an event is sent to an uninitialized interpreter (not throwing is the event being accepted: a start step, which the test does not take, shows the root processing SOME_EVENT after xstate.init)",
+      "machine": {
+        "id": "light",
+        "initial": "green",
+        "states": {
+          "green": {
+            "entry": [
+              "timerOne"
+            ],
+            "on": {
+              "TIMER": "yellow",
+              "KEEP_GOING": {
+                "actions": [
+                  "cancelTimerOne"
+                ]
+              }
+            }
+          },
+          "yellow": {
+            "entry": [
+              "timer"
+            ],
+            "on": {
+              "TIMER": "red"
+            }
+          },
+          "red": {
+            "after": {
+              "10": "green"
+            }
+          }
+        }
+      },
+      "actions": {
+        "timerOne": {
+          "kind": "raise",
+          "event": {
+            "type": "TIMER"
+          },
+          "id": "TIMER1",
+          "delay": 10
+        },
+        "timer": {
+          "kind": "raise",
+          "event": {
+            "type": "TIMER"
+          },
+          "delay": 10
+        },
+        "cancelTimerOne": {
+          "kind": "cancel",
+          "id": "TIMER1"
+        }
+      },
+      "steps": [
+        {
+          "create": true
+        },
+        {
+          "send": {
+            "type": "SOME_EVENT"
+          }
+        },
+        {
+          "start": true
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "interpreter.test.ts > interpreter > initial state > does not execute actions from a restored state",
+      "reason": "restores a persisted snapshot (getPersistedSnapshot, then createActor with snapshot), which is out of scope"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > initial state > should not execute actions that are not part of the actual persisted state",
+      "reason": "restores a persisted snapshot (getPersistedSnapshot, then createActor with snapshot), which is out of scope"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > subscribing > should not notify subscribers of the current state upon subscription (subscribe)",
+      "reason": "asserts that subscribe, called on a started actor, does not call its observer with the current snapshot; no step subscribes an observer, and the record holds what each actor processed, through the inspection API, not an observer's calls. It would need a subscribe step and a record of what the observer received"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > activities (deprecated) > should start activities",
+      "reason": "fromCallback is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > activities (deprecated) > should stop activities",
+      "reason": "fromCallback is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > activities (deprecated) > should stop activities upon stopping the service",
+      "reason": "fromCallback is not ported (out of scope for the actor layer)"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > activities (deprecated) > should restart activities from a compound state",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test also restores a persisted snapshot (getPersistedSnapshot, then createActor with snapshot), which is out of scope"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > should throw an error if initial state sent to interpreter is invalid",
+      "reason": "XState creates the actor and leaves its snapshot in error, 'Initial state node \"create\" not found'; xstate refuses a config whose initial names no state when the machine is created (doc: #differences-refused), so there is no actor to compare"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > should be able to log (log action)",
+      "reason": "the logger is out of scope: a log action's message is not recorded, and the value logged here is the whole context, which no vocabulary action can push into the context"
+    }
+  ]
+}

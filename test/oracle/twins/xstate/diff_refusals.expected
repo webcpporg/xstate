@@ -1,0 +1,12 @@
+an initial that names no child: created
+  getInitialSnapshot throws: Initial state node "nowhere" not found on parent state node #m
+a guard with no implementation: created
+  GO throws: Unable to evaluate guard 'isReady' in transition for event 'GO' in state node 'm.a':
+a delay with no implementation: created
+  the initial snapshot: "b"
+a default entry that leads back: created
+  the initial snapshot: error, RangeError: Maximum call stack size exceeded
+an exit that is null: created
+  GO throws: Cannot read properties of null (reading 'type')
+an invoke of an unknown actor: created
+  start(): error, TypeError: Cannot read properties of undefined (reading 'getSnapshot')

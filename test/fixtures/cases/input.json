@@ -1,0 +1,141 @@
+{
+  "source": "input.test.ts",
+  "cases": [
+    {
+      "name": "a machine's context from its input",
+      "test": "input.test.ts > input > should create a machine with input",
+      "machine": {
+        "entry": [
+          "recordCount"
+        ]
+      },
+      "context_from_input": {
+        "count": "startCount"
+      },
+      "steps": [
+        {
+          "start": true,
+          "input": {
+            "startCount": 42
+          }
+        }
+      ]
+    },
+    {
+      "name": "the initial event carries the input",
+      "test": "input.test.ts > input > initial event should have input property",
+      "machine": {
+        "context": {},
+        "entry": [
+          {
+            "type": "set_from_event",
+            "params": {
+              "key": "input",
+              "from": "input"
+            }
+          }
+        ]
+      },
+      "steps": [
+        {
+          "start": true,
+          "input": {
+            "greeting": "hello"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a missing input fails the context it computes",
+      "test": "input.test.ts > input > should error if input is expected but not provided",
+      "machine": {},
+      "context_from_input": {
+        "message": "greeting"
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a failed initial context keeps the snapshot's interface",
+      "test": "input.test.ts > input > should retain the machine snapshot interface when resolving input throws",
+      "machine": {
+        "initial": "saving",
+        "states": {
+          "saving": {}
+        }
+      },
+      "context_from_input": {
+        "message": "greeting"
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "matches": "saving"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a machine without a context function ignores no input",
+      "test": "input.test.ts > input > should be a type error if input is not expected yet provided",
+      "machine": {
+        "context": {
+          "count": 42
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "input.test.ts > input > should provide input data to invoked machines",
+      "reason": "ported with the actor cases, fixtures/actors/cases/input.json"
+    },
+    {
+      "test": "input.test.ts > input > should provide input data to spawned machines",
+      "reason": "ported with the actor cases, fixtures/actors/cases/input.json"
+    },
+    {
+      "test": "input.test.ts > input > should create a promise with input",
+      "reason": "ported with the actor cases, fixtures/actors/cases/input.json"
+    },
+    {
+      "test": "input.test.ts > input > should create a transition function actor with input",
+      "reason": "fromTransition is out of scope"
+    },
+    {
+      "test": "input.test.ts > input > should create an observable actor with input",
+      "reason": "fromObservable is out of scope"
+    },
+    {
+      "test": "input.test.ts > input > should create a callback actor with input",
+      "reason": "fromCallback is out of scope"
+    },
+    {
+      "test": "input.test.ts > input > should provide a static inline input to the referenced actor",
+      "reason": "ported with the actor cases, fixtures/actors/cases/input.json"
+    },
+    {
+      "test": "input.test.ts > input > should provide a dynamic inline input to the referenced actor",
+      "reason": "ported with the actor cases, fixtures/actors/cases/input.json"
+    },
+    {
+      "test": "input.test.ts > input > should call the input factory with self when invoking",
+      "reason": "the input factory's self argument is an actor reference, which JSON cannot hold"
+    },
+    {
+      "test": "input.test.ts > input > should call the input factory with self when spawning",
+      "reason": "the input factory's self argument is an actor reference, which JSON cannot hold"
+    }
+  ]
+}

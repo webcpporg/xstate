@@ -1,0 +1,225 @@
+{
+  "source": "XState's input, output and spawnChild id functions, through the pure functions",
+  "cases": [
+    {
+      "name": "an invoke's input is computed from the context its state's entry actions left",
+      "test": "XState's invoke input function ({ context }) => ..., resolved after the entry actions of its state (stateUtils.ts enterStates, spawnChild.ts resolveSpawn)",
+      "machine": {
+        "id": "m",
+        "context": {
+          "count": 1
+        },
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "on": {
+              "GO": "busy"
+            }
+          },
+          "busy": {
+            "entry": [
+              {
+                "type": "increment",
+                "params": {
+                  "key": "count"
+                }
+              }
+            ],
+            "invoke": {
+              "src": "child",
+              "id": "kid"
+            }
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "inputs": {
+        "kid": {
+          "total": {
+            "$sum": [
+              {
+                "$context": "count"
+              },
+              100
+            ]
+          },
+          "why": {
+            "$event": "type"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a final state's output is computed from the context and the event that entered it",
+      "test": "XState's final state output function, resolved for its parent's done event (stateUtils.ts enterStates, resolveOutput)",
+      "machine": {
+        "id": "m",
+        "context": {
+          "secret": "x"
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "inner",
+            "states": {
+              "inner": {
+                "on": {
+                  "DONE": "end"
+                }
+              },
+              "end": {
+                "type": "final"
+              }
+            },
+            "onDone": {
+              "actions": [
+                {
+                  "type": "set_from_event",
+                  "params": {
+                    "key": "revealed",
+                    "from": "output.secret"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "outputs": {
+        "m.a.end": {
+          "secret": {
+            "$concat": [
+              {
+                "$context": "secret"
+              },
+              "-",
+              {
+                "$event": "type"
+              }
+            ]
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "DONE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "the machine's output is computed from the done event of the final state that completed it",
+      "test": "XState's machine output function, given the done state event of the root completion node (stateUtils.ts getMachineOutput)",
+      "machine": {
+        "id": "m",
+        "context": {
+          "n": 2
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "FIN": "end"
+            }
+          },
+          "end": {
+            "type": "final"
+          }
+        }
+      },
+      "outputs": {
+        "m.end": {
+          "$product": [
+            {
+              "$context": "n"
+            },
+            10
+          ]
+        },
+        "m": {
+          "total": {
+            "$event": "output"
+          },
+          "kind": {
+            "$event": "type"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FIN"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a spawnChild's id is computed from the context",
+      "test": "XState's spawnChild with an id function (spawnChild.ts resolveSpawn, resolvedId)",
+      "machine": {
+        "id": "m",
+        "context": {
+          "n": 7
+        },
+        "on": {
+          "GO": {
+            "actions": [
+              "spawn"
+            ]
+          }
+        }
+      },
+      "actions": {
+        "spawn": {
+          "kind": "spawn_child",
+          "src": "child",
+          "id": {
+            "$concat": [
+              "kid-",
+              {
+                "$context": "n"
+              }
+            ]
+          }
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

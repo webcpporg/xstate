@@ -1,0 +1,1516 @@
+{
+  "source": "meta.test.ts",
+  "cases": [
+    {
+      "name": "meta of the active states",
+      "definition": {
+        "id": "light",
+        "key": "light",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#light.green"
+          ],
+          "source": "#light",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "green": {
+            "id": "light.green",
+            "key": "green",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#light.green",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#light.yellow"
+                  ],
+                  "actions": [],
+                  "source": "#light.green",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#light.red"
+                  ],
+                  "actions": [],
+                  "source": "#light.green",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ],
+              "NOTHING": [
+                {
+                  "target": [
+                    "#light.green"
+                  ],
+                  "actions": [],
+                  "source": "#light.green",
+                  "reenter": false,
+                  "eventType": "NOTHING"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#light.yellow"
+                ],
+                "actions": [],
+                "source": "#light.green",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#light.red"
+                ],
+                "actions": [],
+                "source": "#light.green",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              },
+              {
+                "target": [
+                  "#light.green"
+                ],
+                "actions": [],
+                "source": "#light.green",
+                "reenter": false,
+                "eventType": "NOTHING"
+              }
+            ],
+            "entry": [
+              {
+                "type": "enter_green"
+              }
+            ],
+            "exit": [
+              {
+                "type": "exit_green"
+              }
+            ],
+            "meta": [
+              "green",
+              "array",
+              "data"
+            ],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "yellow": {
+            "id": "light.yellow",
+            "key": "yellow",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#light.yellow",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#light.red"
+                  ],
+                  "actions": [],
+                  "source": "#light.yellow",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#light.red"
+                  ],
+                  "actions": [],
+                  "source": "#light.yellow",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#light.red"
+                ],
+                "actions": [],
+                "source": "#light.yellow",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#light.red"
+                ],
+                "actions": [],
+                "source": "#light.yellow",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [
+              {
+                "type": "enter_yellow"
+              }
+            ],
+            "exit": [
+              {
+                "type": "exit_yellow"
+              }
+            ],
+            "meta": {
+              "yellowData": "yellow data"
+            },
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "red": {
+            "id": "light.red",
+            "key": "red",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#light.red.walk"
+              ],
+              "source": "#light.red",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "walk": {
+                "id": "light.red.walk",
+                "key": "walk",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#light.red.walk",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#light.red.wait"
+                      ],
+                      "actions": [],
+                      "source": "#light.red.walk",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#light.red.wait"
+                    ],
+                    "actions": [],
+                    "source": "#light.red.walk",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  }
+                ],
+                "entry": [
+                  {
+                    "type": "enter_walk"
+                  }
+                ],
+                "exit": [
+                  {
+                    "type": "exit_walk"
+                  }
+                ],
+                "meta": {
+                  "walkData": "walk data"
+                },
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              },
+              "wait": {
+                "id": "light.red.wait",
+                "key": "wait",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#light.red.wait",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#light.red.stop"
+                      ],
+                      "actions": [],
+                      "source": "#light.red.wait",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#light.red.stop"
+                    ],
+                    "actions": [],
+                    "source": "#light.red.wait",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  }
+                ],
+                "entry": [
+                  {
+                    "type": "enter_wait"
+                  }
+                ],
+                "exit": [
+                  {
+                    "type": "exit_wait"
+                  }
+                ],
+                "meta": {
+                  "waitData": "wait data"
+                },
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "stop": {
+                "id": "light.red.stop",
+                "key": "stop",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#light.red.stop",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [
+                  {
+                    "type": "enter_stop"
+                  }
+                ],
+                "exit": [
+                  {
+                    "type": "exit_stop"
+                  }
+                ],
+                "meta": {
+                  "stopData": "stop data"
+                },
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#light.green"
+                  ],
+                  "actions": [],
+                  "source": "#light.red",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#light.red"
+                  ],
+                  "actions": [],
+                  "source": "#light.red",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ],
+              "NOTHING": [
+                {
+                  "target": [
+                    "#light.red"
+                  ],
+                  "actions": [],
+                  "source": "#light.red",
+                  "reenter": false,
+                  "eventType": "NOTHING"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#light.green"
+                ],
+                "actions": [],
+                "source": "#light.red",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#light.red"
+                ],
+                "actions": [],
+                "source": "#light.red",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              },
+              {
+                "target": [
+                  "#light.red"
+                ],
+                "actions": [],
+                "source": "#light.red",
+                "reenter": false,
+                "eventType": "NOTHING"
+              }
+            ],
+            "entry": [
+              {
+                "type": "enter_red"
+              }
+            ],
+            "exit": [
+              {
+                "type": "exit_red"
+              }
+            ],
+            "meta": {
+              "redData": {
+                "nested": {
+                  "red": "data",
+                  "array": [
+                    1,
+                    2,
+                    3
+                  ]
+                }
+              }
+            },
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "enter_green"
+                }
+              ],
+              "snapshot": {
+                "value": "green",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "light",
+                  "light.green"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "TIMER"
+              },
+              "transitions": [
+                {
+                  "source": "#light.green",
+                  "eventType": "TIMER",
+                  "target": [
+                    "#light.yellow"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exit_green"
+                },
+                {
+                  "type": "enter_yellow"
+                }
+              ],
+              "snapshot": {
+                "value": "yellow",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "light",
+                  "light.yellow"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "query": {
+            "meta": {
+              "light.yellow": {
+                "yellowData": "yellow data"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "meta of deep active states",
+      "definition": {
+        "id": "light",
+        "key": "light",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#light.green"
+          ],
+          "source": "#light",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "green": {
+            "id": "light.green",
+            "key": "green",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#light.green",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#light.yellow"
+                  ],
+                  "actions": [],
+                  "source": "#light.green",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#light.red"
+                  ],
+                  "actions": [],
+                  "source": "#light.green",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ],
+              "NOTHING": [
+                {
+                  "target": [
+                    "#light.green"
+                  ],
+                  "actions": [],
+                  "source": "#light.green",
+                  "reenter": false,
+                  "eventType": "NOTHING"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#light.yellow"
+                ],
+                "actions": [],
+                "source": "#light.green",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#light.red"
+                ],
+                "actions": [],
+                "source": "#light.green",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              },
+              {
+                "target": [
+                  "#light.green"
+                ],
+                "actions": [],
+                "source": "#light.green",
+                "reenter": false,
+                "eventType": "NOTHING"
+              }
+            ],
+            "entry": [
+              {
+                "type": "enter_green"
+              }
+            ],
+            "exit": [
+              {
+                "type": "exit_green"
+              }
+            ],
+            "meta": [
+              "green",
+              "array",
+              "data"
+            ],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "yellow": {
+            "id": "light.yellow",
+            "key": "yellow",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#light.yellow",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#light.red"
+                  ],
+                  "actions": [],
+                  "source": "#light.yellow",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#light.red"
+                  ],
+                  "actions": [],
+                  "source": "#light.yellow",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#light.red"
+                ],
+                "actions": [],
+                "source": "#light.yellow",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#light.red"
+                ],
+                "actions": [],
+                "source": "#light.yellow",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [
+              {
+                "type": "enter_yellow"
+              }
+            ],
+            "exit": [
+              {
+                "type": "exit_yellow"
+              }
+            ],
+            "meta": {
+              "yellowData": "yellow data"
+            },
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "red": {
+            "id": "light.red",
+            "key": "red",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#light.red.walk"
+              ],
+              "source": "#light.red",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "walk": {
+                "id": "light.red.walk",
+                "key": "walk",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#light.red.walk",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#light.red.wait"
+                      ],
+                      "actions": [],
+                      "source": "#light.red.walk",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#light.red.wait"
+                    ],
+                    "actions": [],
+                    "source": "#light.red.walk",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  }
+                ],
+                "entry": [
+                  {
+                    "type": "enter_walk"
+                  }
+                ],
+                "exit": [
+                  {
+                    "type": "exit_walk"
+                  }
+                ],
+                "meta": {
+                  "walkData": "walk data"
+                },
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              },
+              "wait": {
+                "id": "light.red.wait",
+                "key": "wait",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#light.red.wait",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#light.red.stop"
+                      ],
+                      "actions": [],
+                      "source": "#light.red.wait",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#light.red.stop"
+                    ],
+                    "actions": [],
+                    "source": "#light.red.wait",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  }
+                ],
+                "entry": [
+                  {
+                    "type": "enter_wait"
+                  }
+                ],
+                "exit": [
+                  {
+                    "type": "exit_wait"
+                  }
+                ],
+                "meta": {
+                  "waitData": "wait data"
+                },
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "stop": {
+                "id": "light.red.stop",
+                "key": "stop",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#light.red.stop",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [
+                  {
+                    "type": "enter_stop"
+                  }
+                ],
+                "exit": [
+                  {
+                    "type": "exit_stop"
+                  }
+                ],
+                "meta": {
+                  "stopData": "stop data"
+                },
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#light.green"
+                  ],
+                  "actions": [],
+                  "source": "#light.red",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#light.red"
+                  ],
+                  "actions": [],
+                  "source": "#light.red",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ],
+              "NOTHING": [
+                {
+                  "target": [
+                    "#light.red"
+                  ],
+                  "actions": [],
+                  "source": "#light.red",
+                  "reenter": false,
+                  "eventType": "NOTHING"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#light.green"
+                ],
+                "actions": [],
+                "source": "#light.red",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#light.red"
+                ],
+                "actions": [],
+                "source": "#light.red",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              },
+              {
+                "target": [
+                  "#light.red"
+                ],
+                "actions": [],
+                "source": "#light.red",
+                "reenter": false,
+                "eventType": "NOTHING"
+              }
+            ],
+            "entry": [
+              {
+                "type": "enter_red"
+              }
+            ],
+            "exit": [
+              {
+                "type": "exit_red"
+              }
+            ],
+            "meta": {
+              "redData": {
+                "nested": {
+                  "red": "data",
+                  "array": [
+                    1,
+                    2,
+                    3
+                  ]
+                }
+              }
+            },
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "enter_green"
+                }
+              ],
+              "snapshot": {
+                "value": "green",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "light",
+                  "light.green"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "TIMER"
+              },
+              "transitions": [
+                {
+                  "source": "#light.green",
+                  "eventType": "TIMER",
+                  "target": [
+                    "#light.yellow"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exit_green"
+                },
+                {
+                  "type": "enter_yellow"
+                }
+              ],
+              "snapshot": {
+                "value": "yellow",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "light",
+                  "light.yellow"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "TIMER"
+              },
+              "transitions": [
+                {
+                  "source": "#light.yellow",
+                  "eventType": "TIMER",
+                  "target": [
+                    "#light.red"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "exit_yellow"
+                },
+                {
+                  "type": "enter_red"
+                },
+                {
+                  "type": "enter_walk"
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "red": "walk"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "light",
+                  "light.red",
+                  "light.red.walk"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "query": {
+            "meta": {
+              "light.red": {
+                "redData": {
+                  "nested": {
+                    "red": "data",
+                    "array": [
+                      1,
+                      2,
+                      3
+                    ]
+                  }
+                }
+              },
+              "light.red.walk": {
+                "walkData": "walk data"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "meta of a resolved state",
+      "definition": {
+        "id": "test",
+        "key": "test",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#test.first"
+          ],
+          "source": "#test",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "first": {
+            "id": "test.first",
+            "key": "first",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#test.first",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "meta": {
+              "name": "first state"
+            },
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "second": {
+            "id": "test.second",
+            "key": "second",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#test.second",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "meta": {
+              "name": "second state"
+            },
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": "second",
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "test",
+              "test.second"
+            ]
+          }
+        },
+        {
+          "query": {
+            "meta": {
+              "test.second": {
+                "name": "second state"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "states may omit meta",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).a"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "(machine).a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "meta": {
+              "layout": "a-layout"
+            },
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "c": {
+            "id": "(machine).c",
+            "key": "c",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).c",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "query": {
+            "meta": {
+              "(machine).a": {
+                "layout": "a-layout"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "the definition keeps the meta of the initial, delayed and invoke transitions",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).idle"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null,
+          "meta": {
+            "source": "initial"
+          }
+        },
+        "history": false,
+        "states": {
+          "idle": {
+            "id": "(machine).idle",
+            "key": "idle",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).idle",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "xstate.done.actor.0.(machine).idle": [
+                {
+                  "meta": {
+                    "source": "invoke.done"
+                  },
+                  "actions": [],
+                  "source": "#(machine).idle",
+                  "reenter": false,
+                  "eventType": "xstate.done.actor.0.(machine).idle"
+                }
+              ],
+              "xstate.error.actor.0.(machine).idle": [
+                {
+                  "meta": {
+                    "source": "invoke.error"
+                  },
+                  "actions": [],
+                  "source": "#(machine).idle",
+                  "reenter": false,
+                  "eventType": "xstate.error.actor.0.(machine).idle"
+                }
+              ],
+              "xstate.snapshot.0.(machine).idle": [
+                {
+                  "meta": {
+                    "source": "invoke.snapshot"
+                  },
+                  "actions": [],
+                  "source": "#(machine).idle",
+                  "reenter": false,
+                  "eventType": "xstate.snapshot.0.(machine).idle"
+                }
+              ],
+              "xstate.after.100.(machine).idle": [
+                {
+                  "meta": {
+                    "source": "after"
+                  },
+                  "event": "xstate.after.100.(machine).idle",
+                  "delay": 100,
+                  "actions": [],
+                  "source": "#(machine).idle",
+                  "reenter": false,
+                  "eventType": "xstate.after.100.(machine).idle"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "meta": {
+                  "source": "invoke.done"
+                },
+                "actions": [],
+                "source": "#(machine).idle",
+                "reenter": false,
+                "eventType": "xstate.done.actor.0.(machine).idle"
+              },
+              {
+                "meta": {
+                  "source": "invoke.error"
+                },
+                "actions": [],
+                "source": "#(machine).idle",
+                "reenter": false,
+                "eventType": "xstate.error.actor.0.(machine).idle"
+              },
+              {
+                "meta": {
+                  "source": "invoke.snapshot"
+                },
+                "actions": [],
+                "source": "#(machine).idle",
+                "reenter": false,
+                "eventType": "xstate.snapshot.0.(machine).idle"
+              },
+              {
+                "meta": {
+                  "source": "after"
+                },
+                "event": "xstate.after.100.(machine).idle",
+                "delay": 100,
+                "actions": [],
+                "source": "#(machine).idle",
+                "reenter": false,
+                "eventType": "xstate.after.100.(machine).idle"
+              }
+            ],
+            "entry": [
+              {
+                "type": "xstate.raise"
+              }
+            ],
+            "exit": [
+              {
+                "type": "xstate.cancel"
+              }
+            ],
+            "order": 1,
+            "invoke": [
+              {
+                "src": "child",
+                "onSnapshot": {
+                  "meta": {
+                    "source": "invoke.snapshot"
+                  }
+                },
+                "type": "xstate.invoke",
+                "id": "0.(machine).idle"
+              }
+            ],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": []
+    },
+    {
+      "name": "the definition keeps a state's description",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).test"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "test": {
+            "id": "(machine).test",
+            "key": "test",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).test",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "description": "This is a test",
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": []
+    },
+    {
+      "name": "the definition keeps a transition's description",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "atomic",
+        "initial": {
+          "target": [],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {},
+        "on": {
+          "EVENT": [
+            {
+              "description": "This is a test",
+              "actions": [],
+              "source": "#(machine)",
+              "reenter": false,
+              "eventType": "EVENT"
+            }
+          ]
+        },
+        "transitions": [
+          {
+            "description": "This is a test",
+            "actions": [],
+            "source": "#(machine)",
+            "reenter": false,
+            "eventType": "EVENT"
+          }
+        ],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": []
+    }
+  ]
+}

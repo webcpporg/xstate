@@ -1,0 +1,10 @@
+{
+  "source": "clock.test.ts",
+  "cases": [],
+  "excluded": [
+    {
+      "test": "clock.test.ts > clock > system clock should be default clock for actors (invoked from machine)",
+      "reason": "ported with the actor cases, fixtures/actors/cases/clock.json"
+    }
+  ]
+}

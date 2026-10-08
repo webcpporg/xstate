@@ -1,0 +1,697 @@
+{
+  "source": "assign.test.ts",
+  "cases": [
+    {
+      "name": "decrement twice (property assignment)",
+      "test": "assign.test.ts > assign > applies the assignment to the external state (property assignment)",
+      "machine": {
+        "initial": "counting",
+        "context": {
+          "count": 0,
+          "foo": "bar"
+        },
+        "states": {
+          "counting": {
+            "on": {
+              "INC": {
+                "target": "counting",
+                "actions": {
+                  "type": "increment",
+                  "params": {
+                    "key": "count",
+                    "by": 1
+                  }
+                }
+              },
+              "DEC": {
+                "target": "counting",
+                "actions": {
+                  "type": "increment",
+                  "params": {
+                    "key": "count",
+                    "by": -1
+                  }
+                }
+              },
+              "WIN_PROP": {
+                "target": "counting",
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ]
+              },
+              "WIN_STATIC": {
+                "target": "counting",
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ]
+              },
+              "WIN_MIX": {
+                "target": "counting",
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ]
+              },
+              "WIN": {
+                "target": "counting",
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ]
+              },
+              "SET_MAYBE": {
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "maybe",
+                      "value": "defined"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "DEC"
+          }
+        },
+        {
+          "send": {
+            "type": "DEC"
+          }
+        }
+      ]
+    },
+    {
+      "name": "increment twice",
+      "test": "assign.test.ts > assign > applies the assignment to the external state",
+      "machine": {
+        "initial": "counting",
+        "context": {
+          "count": 0,
+          "foo": "bar"
+        },
+        "states": {
+          "counting": {
+            "on": {
+              "INC": {
+                "target": "counting",
+                "actions": {
+                  "type": "increment",
+                  "params": {
+                    "key": "count",
+                    "by": 1
+                  }
+                }
+              },
+              "DEC": {
+                "target": "counting",
+                "actions": {
+                  "type": "increment",
+                  "params": {
+                    "key": "count",
+                    "by": -1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "INC"
+          }
+        },
+        {
+          "send": {
+            "type": "INC"
+          }
+        }
+      ]
+    },
+    {
+      "name": "multiple properties (property assignment)",
+      "test": "assign.test.ts > assign > applies the assignment to multiple properties (property assignment)",
+      "machine": {
+        "initial": "counting",
+        "context": {
+          "count": 0,
+          "foo": "bar"
+        },
+        "states": {
+          "counting": {
+            "on": {
+              "WIN_PROP": {
+                "target": "counting",
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "WIN_PROP"
+          }
+        }
+      ]
+    },
+    {
+      "name": "multiple properties (static)",
+      "test": "assign.test.ts > assign > applies the assignment to multiple properties (static)",
+      "machine": {
+        "initial": "counting",
+        "context": {
+          "count": 0,
+          "foo": "bar"
+        },
+        "states": {
+          "counting": {
+            "on": {
+              "WIN_STATIC": {
+                "target": "counting",
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "WIN_STATIC"
+          }
+        }
+      ]
+    },
+    {
+      "name": "multiple properties (static and property assignment mixed)",
+      "test": "assign.test.ts > assign > applies the assignment to multiple properties (static + prop assignment)",
+      "machine": {
+        "initial": "counting",
+        "context": {
+          "count": 0,
+          "foo": "bar"
+        },
+        "states": {
+          "counting": {
+            "on": {
+              "WIN_MIX": {
+                "target": "counting",
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "WIN_MIX"
+          }
+        }
+      ]
+    },
+    {
+      "name": "multiple properties (whole object assigner)",
+      "test": "assign.test.ts > assign > applies the assignment to multiple properties",
+      "machine": {
+        "initial": "counting",
+        "context": {
+          "count": 0,
+          "foo": "bar"
+        },
+        "states": {
+          "counting": {
+            "on": {
+              "WIN": {
+                "target": "counting",
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "foo",
+                      "value": "win"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "WIN"
+          }
+        }
+      ]
+    },
+    {
+      "name": "explicit context, decrement twice (property assignment)",
+      "test": "assign.test.ts > assign > applies the assignment to the explicit external state (property assignment)",
+      "machine": {
+        "initial": "counting",
+        "context": {
+          "count": 50,
+          "foo": "bar"
+        },
+        "states": {
+          "counting": {
+            "on": {
+              "DEC": {
+                "target": "counting",
+                "actions": {
+                  "type": "increment",
+                  "params": {
+                    "key": "count",
+                    "by": -1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "DEC"
+          }
+        },
+        {
+          "send": {
+            "type": "DEC"
+          }
+        }
+      ]
+    },
+    {
+      "name": "explicit context, decrement once, second machine (property assignment)",
+      "test": "assign.test.ts > assign > applies the assignment to the explicit external state (property assignment)",
+      "machine": {
+        "initial": "counting",
+        "context": {
+          "count": 100,
+          "foo": "bar"
+        },
+        "states": {
+          "counting": {
+            "on": {
+              "DEC": {
+                "target": "counting",
+                "actions": {
+                  "type": "increment",
+                  "params": {
+                    "key": "count",
+                    "by": -1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "DEC"
+          }
+        }
+      ]
+    },
+    {
+      "name": "explicit context, increment twice",
+      "test": "assign.test.ts > assign > applies the assignment to the explicit external state",
+      "machine": {
+        "initial": "counting",
+        "context": {
+          "count": 50,
+          "foo": "bar"
+        },
+        "states": {
+          "counting": {
+            "on": {
+              "INC": {
+                "target": "counting",
+                "actions": {
+                  "type": "increment",
+                  "params": {
+                    "key": "count",
+                    "by": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "INC"
+          }
+        },
+        {
+          "send": {
+            "type": "INC"
+          }
+        }
+      ]
+    },
+    {
+      "name": "explicit context, increment once, second machine",
+      "test": "assign.test.ts > assign > applies the assignment to the explicit external state",
+      "machine": {
+        "initial": "counting",
+        "context": {
+          "count": 102,
+          "foo": "bar"
+        },
+        "states": {
+          "counting": {
+            "on": {
+              "INC": {
+                "target": "counting",
+                "actions": {
+                  "type": "increment",
+                  "params": {
+                    "key": "count",
+                    "by": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "INC"
+          }
+        }
+      ]
+    },
+    {
+      "name": "context is unchanged after an unhandled event",
+      "test": "assign.test.ts > assign > should maintain state after unhandled event",
+      "machine": {
+        "initial": "counting",
+        "context": {
+          "count": 0,
+          "foo": "bar"
+        },
+        "states": {
+          "counting": {
+            "on": {
+              "INC": {
+                "target": "counting",
+                "actions": {
+                  "type": "increment",
+                  "params": {
+                    "key": "count",
+                    "by": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FAKE_EVENT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "sets an undefined property",
+      "test": "assign.test.ts > assign > sets undefined properties",
+      "machine": {
+        "initial": "counting",
+        "context": {
+          "count": 0,
+          "foo": "bar"
+        },
+        "states": {
+          "counting": {
+            "on": {
+              "SET_MAYBE": {
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "maybe",
+                      "value": "defined"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SET_MAYBE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parametrized action resolves to the whole-object assigner",
+      "test": "assign.test.ts > assign meta > should provide the parametrized action to the assigner",
+      "machine": {
+        "context": {
+          "count": 1
+        },
+        "entry": {
+          "type": "increment",
+          "params": {
+            "key": "count",
+            "by": 10
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "parametrized action resolves to the partial assigner",
+      "test": "assign.test.ts > assign meta > should provide the action parameters to the partial assigner",
+      "machine": {
+        "context": {
+          "count": 1
+        },
+        "entry": {
+          "type": "increment",
+          "params": {
+            "key": "count",
+            "by": 10
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "assign from an event field",
+      "test": "assign.test.ts > assign > can assign from event",
+      "machine": {
+        "initial": "active",
+        "context": {
+          "count": 0
+        },
+        "states": {
+          "active": {
+            "on": {
+              "INC": {
+                "actions": {
+                  "type": "set_from_event",
+                  "params": {
+                    "key": "count",
+                    "from": "value"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "INC",
+            "value": 30
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "assign.test.ts > assign meta > a parameterized action that resolves to assign() should be provided the params",
+      "reason": "the test is itself async (it returns a promise resolved from inside the assigner) and the assigner only inspects params and returns context unchanged; no vocabulary assign expresses a no-op check-only assigner, and the synchronous case format has no way to await a resolver"
+    }
+  ]
+}

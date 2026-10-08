@@ -1,0 +1,4930 @@
+{
+  "source": "deterministic.test.ts",
+  "cases": [
+    {
+      "name": "transitions based on an event-like object",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).green"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "green": {
+            "id": "(machine).green",
+            "key": "green",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).green",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).yellow"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).yellow"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "yellow": {
+            "id": "(machine).yellow",
+            "key": "yellow",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).yellow",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "red": {
+            "id": "(machine).red",
+            "key": "red",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).red.walk"
+              ],
+              "source": "#(machine).red",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "walk": {
+                "id": "(machine).red.walk",
+                "key": "walk",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.walk",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.wait"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.wait"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              },
+              "wait": {
+                "id": "(machine).red.wait",
+                "key": "wait",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.wait",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.stop"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.stop"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "stop": {
+                "id": "(machine).red.stop",
+                "key": "stop",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.stop",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).green"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).green"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": "green",
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "(machine).green"
+            ]
+          }
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "TIMER"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).green",
+                  "eventType": "TIMER",
+                  "target": [
+                    "#(machine).yellow"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "yellow",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).yellow"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "does not transition for illegal transitions",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).a"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "(machine).a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "NEXT": [
+                {
+                  "target": [
+                    "#(machine).b"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).a",
+                  "reenter": false,
+                  "eventType": "NEXT"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).b"
+                ],
+                "actions": [],
+                "source": "#(machine).a",
+                "reenter": false,
+                "eventType": "NEXT"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "b": {
+            "id": "(machine).b",
+            "key": "b",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).b",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "FAKE"
+              },
+              "transitions": [],
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).a"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "throws for transitions from an invalid top-level state",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).a"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "(machine).a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "T": [
+                {
+                  "target": [
+                    "#(machine).b.b1"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).a",
+                  "reenter": false,
+                  "eventType": "T"
+                }
+              ],
+              "F": [
+                {
+                  "target": [
+                    "#(machine).c"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).a",
+                  "reenter": false,
+                  "eventType": "F"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).b.b1"
+                ],
+                "actions": [],
+                "source": "#(machine).a",
+                "reenter": false,
+                "eventType": "T"
+              },
+              {
+                "target": [
+                  "#(machine).c"
+                ],
+                "actions": [],
+                "source": "#(machine).a",
+                "reenter": false,
+                "eventType": "F"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "b": {
+            "id": "(machine).b",
+            "key": "b",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).b.b1"
+              ],
+              "source": "#(machine).b",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "b1": {
+                "id": "(machine).b.b1",
+                "key": "b1",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).b.b1",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "c": {
+            "id": "(machine).c",
+            "key": "c",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).c",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "transitions to a nested state as target",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).a"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "(machine).a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "T": [
+                {
+                  "target": [
+                    "#(machine).b.b1"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).a",
+                  "reenter": false,
+                  "eventType": "T"
+                }
+              ],
+              "F": [
+                {
+                  "target": [
+                    "#(machine).c"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).a",
+                  "reenter": false,
+                  "eventType": "F"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).b.b1"
+                ],
+                "actions": [],
+                "source": "#(machine).a",
+                "reenter": false,
+                "eventType": "T"
+              },
+              {
+                "target": [
+                  "#(machine).c"
+                ],
+                "actions": [],
+                "source": "#(machine).a",
+                "reenter": false,
+                "eventType": "F"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "b": {
+            "id": "(machine).b",
+            "key": "b",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).b.b1"
+              ],
+              "source": "#(machine).b",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "b1": {
+                "id": "(machine).b.b1",
+                "key": "b1",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).b.b1",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "c": {
+            "id": "(machine).c",
+            "key": "c",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).c",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": "a",
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "(machine).a"
+            ]
+          }
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "T"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).a",
+                  "eventType": "T",
+                  "target": [
+                    "#(machine).b.b1"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "b": "b1"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).b",
+                  "(machine).b.b1"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "throws for transitions from an invalid substate",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).a"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "(machine).a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "T": [
+                {
+                  "target": [
+                    "#(machine).b.b1"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).a",
+                  "reenter": false,
+                  "eventType": "T"
+                }
+              ],
+              "F": [
+                {
+                  "target": [
+                    "#(machine).c"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).a",
+                  "reenter": false,
+                  "eventType": "F"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).b.b1"
+                ],
+                "actions": [],
+                "source": "#(machine).a",
+                "reenter": false,
+                "eventType": "T"
+              },
+              {
+                "target": [
+                  "#(machine).c"
+                ],
+                "actions": [],
+                "source": "#(machine).a",
+                "reenter": false,
+                "eventType": "F"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "b": {
+            "id": "(machine).b",
+            "key": "b",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).b.b1"
+              ],
+              "source": "#(machine).b",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "b1": {
+                "id": "(machine).b.b1",
+                "key": "b1",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).b.b1",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "c": {
+            "id": "(machine).c",
+            "key": "c",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).c",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "uses the machine's initial state when an undefined state is given",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).green"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "green": {
+            "id": "(machine).green",
+            "key": "green",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).green",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).yellow"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).yellow"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "yellow": {
+            "id": "(machine).yellow",
+            "key": "yellow",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).yellow",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "red": {
+            "id": "(machine).red",
+            "key": "red",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).red.walk"
+              ],
+              "source": "#(machine).red",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "walk": {
+                "id": "(machine).red.walk",
+                "key": "walk",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.walk",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.wait"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.wait"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              },
+              "wait": {
+                "id": "(machine).red.wait",
+                "key": "wait",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.wait",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.stop"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.stop"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "stop": {
+                "id": "(machine).red.stop",
+                "key": "stop",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.stop",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).green"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).green"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "green",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).green"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "TIMER"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).green",
+                  "eventType": "TIMER",
+                  "target": [
+                    "#(machine).yellow"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "yellow",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).yellow"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "uses the machine's initial state when an undefined state is given (unhandled event)",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).green"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "green": {
+            "id": "(machine).green",
+            "key": "green",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).green",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).yellow"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).yellow"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "yellow": {
+            "id": "(machine).yellow",
+            "key": "yellow",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).yellow",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "red": {
+            "id": "(machine).red",
+            "key": "red",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).red.walk"
+              ],
+              "source": "#(machine).red",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "walk": {
+                "id": "(machine).red.walk",
+                "key": "walk",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.walk",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.wait"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.wait"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              },
+              "wait": {
+                "id": "(machine).red.wait",
+                "key": "wait",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.wait",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.stop"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.stop"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "stop": {
+                "id": "(machine).red.stop",
+                "key": "stop",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.stop",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).green"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).green"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "green",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).green"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "TIMER"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).green",
+                  "eventType": "TIMER",
+                  "target": [
+                    "#(machine).yellow"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "yellow",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).yellow"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "transitions a nested state property",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).green"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "green": {
+            "id": "(machine).green",
+            "key": "green",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).green",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).yellow"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).yellow"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "yellow": {
+            "id": "(machine).yellow",
+            "key": "yellow",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).yellow",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "red": {
+            "id": "(machine).red",
+            "key": "red",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).red.walk"
+              ],
+              "source": "#(machine).red",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "walk": {
+                "id": "(machine).red.walk",
+                "key": "walk",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.walk",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.wait"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.wait"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              },
+              "wait": {
+                "id": "(machine).red.wait",
+                "key": "wait",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.wait",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.stop"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.stop"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "stop": {
+                "id": "(machine).red.stop",
+                "key": "stop",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.stop",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).green"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).green"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": {
+              "red": "walk"
+            },
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "(machine).red",
+              "(machine).red.walk"
+            ]
+          }
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "PED_COUNTDOWN"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).red.walk",
+                  "eventType": "PED_COUNTDOWN",
+                  "target": [
+                    "#(machine).red.wait"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "red": "wait"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).red",
+                  "(machine).red.wait"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "transitions from an initial nested state",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).green"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "green": {
+            "id": "(machine).green",
+            "key": "green",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).green",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).yellow"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).yellow"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "yellow": {
+            "id": "(machine).yellow",
+            "key": "yellow",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).yellow",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "red": {
+            "id": "(machine).red",
+            "key": "red",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).red.walk"
+              ],
+              "source": "#(machine).red",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "walk": {
+                "id": "(machine).red.walk",
+                "key": "walk",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.walk",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.wait"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.wait"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              },
+              "wait": {
+                "id": "(machine).red.wait",
+                "key": "wait",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.wait",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.stop"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.stop"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "stop": {
+                "id": "(machine).red.stop",
+                "key": "stop",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.stop",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).green"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).green"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": {
+              "red": "walk"
+            },
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "(machine).red",
+              "(machine).red.walk"
+            ]
+          }
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "PED_COUNTDOWN"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).red.walk",
+                  "eventType": "PED_COUNTDOWN",
+                  "target": [
+                    "#(machine).red.wait"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "red": "wait"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).red",
+                  "(machine).red.wait"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "transitions from a deep initial nested state",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).green"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "green": {
+            "id": "(machine).green",
+            "key": "green",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).green",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).yellow"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).yellow"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "yellow": {
+            "id": "(machine).yellow",
+            "key": "yellow",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).yellow",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "red": {
+            "id": "(machine).red",
+            "key": "red",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).red.walk"
+              ],
+              "source": "#(machine).red",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "walk": {
+                "id": "(machine).red.walk",
+                "key": "walk",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.walk",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.wait"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.wait"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              },
+              "wait": {
+                "id": "(machine).red.wait",
+                "key": "wait",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.wait",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.stop"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.stop"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "stop": {
+                "id": "(machine).red.stop",
+                "key": "stop",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.stop",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).green"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).green"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": {
+              "red": "walk"
+            },
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "(machine).red",
+              "(machine).red.walk"
+            ]
+          }
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "PED_COUNTDOWN"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).red.walk",
+                  "eventType": "PED_COUNTDOWN",
+                  "target": [
+                    "#(machine).red.wait"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "red": "wait"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).red",
+                  "(machine).red.wait"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bubbles up events that a nested state cannot handle",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).green"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "green": {
+            "id": "(machine).green",
+            "key": "green",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).green",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).yellow"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).yellow"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "yellow": {
+            "id": "(machine).yellow",
+            "key": "yellow",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).yellow",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "red": {
+            "id": "(machine).red",
+            "key": "red",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).red.walk"
+              ],
+              "source": "#(machine).red",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "walk": {
+                "id": "(machine).red.walk",
+                "key": "walk",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.walk",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.wait"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.wait"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              },
+              "wait": {
+                "id": "(machine).red.wait",
+                "key": "wait",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.wait",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.stop"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.stop"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "stop": {
+                "id": "(machine).red.stop",
+                "key": "stop",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.stop",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).green"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).green"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": {
+              "red": "stop"
+            },
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "(machine).red",
+              "(machine).red.stop"
+            ]
+          }
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "TIMER"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).red",
+                  "eventType": "TIMER",
+                  "target": [
+                    "#(machine).green"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": "green",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).green"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "does not transition on illegal events in a nested state",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).a"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "(machine).a",
+            "key": "a",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).a.b"
+              ],
+              "source": "#(machine).a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "b": {
+                "id": "(machine).a.b",
+                "key": "b",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).a.b",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "NEXT": [
+                    {
+                      "target": [
+                        "#(machine).a.c"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).a.b",
+                      "reenter": false,
+                      "eventType": "NEXT"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).a.c"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).a.b",
+                    "reenter": false,
+                    "eventType": "NEXT"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 2,
+                "invoke": [],
+                "tags": []
+              },
+              "c": {
+                "id": "(machine).a.c",
+                "key": "c",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).a.c",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "a": "b"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).a",
+                  "(machine).a.b"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "FAKE"
+              },
+              "transitions": [],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "a": "b"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).a",
+                  "(machine).a.b"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "transitions to the deepest initial state",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).green"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "green": {
+            "id": "(machine).green",
+            "key": "green",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).green",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).yellow"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).yellow"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "yellow": {
+            "id": "(machine).yellow",
+            "key": "yellow",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).yellow",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "red": {
+            "id": "(machine).red",
+            "key": "red",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).red.walk"
+              ],
+              "source": "#(machine).red",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "walk": {
+                "id": "(machine).red.walk",
+                "key": "walk",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.walk",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.wait"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.wait"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              },
+              "wait": {
+                "id": "(machine).red.wait",
+                "key": "wait",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.wait",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.stop"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.stop"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "stop": {
+                "id": "(machine).red.stop",
+                "key": "stop",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.stop",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).green"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).green"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": "yellow",
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "(machine).yellow"
+            ]
+          }
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "TIMER"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).yellow",
+                  "eventType": "TIMER",
+                  "target": [
+                    "#(machine).red"
+                  ]
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "red": "walk"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).red",
+                  "(machine).red.walk"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "returns to the same state twice when no transition occurs",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).green"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "green": {
+            "id": "(machine).green",
+            "key": "green",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).green",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).yellow"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).yellow"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "yellow": {
+            "id": "(machine).yellow",
+            "key": "yellow",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).yellow",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "red": {
+            "id": "(machine).red",
+            "key": "red",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).red.walk"
+              ],
+              "source": "#(machine).red",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "walk": {
+                "id": "(machine).red.walk",
+                "key": "walk",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.walk",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.wait"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.wait"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              },
+              "wait": {
+                "id": "(machine).red.wait",
+                "key": "wait",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.wait",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.stop"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.stop"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "stop": {
+                "id": "(machine).red.stop",
+                "key": "stop",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.stop",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).green"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).green"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "green",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).green"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "NOTHING"
+              },
+              "transitions": [],
+              "actions": [],
+              "snapshot": {
+                "value": "green",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).green"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "NOTHING"
+              },
+              "transitions": [],
+              "actions": [],
+              "snapshot": {
+                "value": "green",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).green"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "undefined transitions forbid an event from bubbling",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).green"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "green": {
+            "id": "(machine).green",
+            "key": "green",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).green",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).yellow"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).green",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).yellow"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).green",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "yellow": {
+            "id": "(machine).yellow",
+            "key": "yellow",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).yellow",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).yellow",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).yellow",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "red": {
+            "id": "(machine).red",
+            "key": "red",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).red.walk"
+              ],
+              "source": "#(machine).red",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "walk": {
+                "id": "(machine).red.walk",
+                "key": "walk",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.walk",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.wait"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.walk",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.wait"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.walk",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 4,
+                "invoke": [],
+                "tags": []
+              },
+              "wait": {
+                "id": "(machine).red.wait",
+                "key": "wait",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.wait",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {
+                  "PED_COUNTDOWN": [
+                    {
+                      "target": [
+                        "#(machine).red.stop"
+                      ],
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "PED_COUNTDOWN"
+                    }
+                  ],
+                  "TIMER": [
+                    {
+                      "actions": [],
+                      "source": "#(machine).red.wait",
+                      "reenter": false,
+                      "eventType": "TIMER"
+                    }
+                  ]
+                },
+                "transitions": [
+                  {
+                    "target": [
+                      "#(machine).red.stop"
+                    ],
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "PED_COUNTDOWN"
+                  },
+                  {
+                    "actions": [],
+                    "source": "#(machine).red.wait",
+                    "reenter": false,
+                    "eventType": "TIMER"
+                  }
+                ],
+                "entry": [],
+                "exit": [],
+                "order": 5,
+                "invoke": [],
+                "tags": []
+              },
+              "stop": {
+                "id": "(machine).red.stop",
+                "key": "stop",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).red.stop",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 6,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {
+              "TIMER": [
+                {
+                  "target": [
+                    "#(machine).green"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "TIMER"
+                }
+              ],
+              "POWER_OUTAGE": [
+                {
+                  "target": [
+                    "#(machine).red"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).red",
+                  "reenter": false,
+                  "eventType": "POWER_OUTAGE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).green"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "TIMER"
+              },
+              {
+                "target": [
+                  "#(machine).red"
+                ],
+                "actions": [],
+                "source": "#(machine).red",
+                "reenter": false,
+                "eventType": "POWER_OUTAGE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 3,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "resolved": {
+            "value": {
+              "red": "walk"
+            },
+            "context": {},
+            "status": "active",
+            "tags": [],
+            "nodes": [
+              "(machine)",
+              "(machine).red",
+              "(machine).red.walk"
+            ]
+          }
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "TIMER"
+              },
+              "transitions": [
+                {
+                  "source": "#(machine).red.walk",
+                  "eventType": "TIMER"
+                }
+              ],
+              "actions": [],
+              "snapshot": {
+                "value": {
+                  "red": "walk"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "(machine)",
+                  "(machine).red",
+                  "(machine).red.walk"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "throws before a transition with no event, resolving a state the machine lacks",
+      "definition": {
+        "id": "(machine)",
+        "key": "(machine)",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#(machine).a"
+          ],
+          "source": "#(machine)",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "(machine).a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "T": [
+                {
+                  "target": [
+                    "#(machine).b.b1"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).a",
+                  "reenter": false,
+                  "eventType": "T"
+                }
+              ],
+              "F": [
+                {
+                  "target": [
+                    "#(machine).c"
+                  ],
+                  "actions": [],
+                  "source": "#(machine).a",
+                  "reenter": false,
+                  "eventType": "F"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#(machine).b.b1"
+                ],
+                "actions": [],
+                "source": "#(machine).a",
+                "reenter": false,
+                "eventType": "T"
+              },
+              {
+                "target": [
+                  "#(machine).c"
+                ],
+                "actions": [],
+                "source": "#(machine).a",
+                "reenter": false,
+                "eventType": "F"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "b": {
+            "id": "(machine).b",
+            "key": "b",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#(machine).b.b1"
+              ],
+              "source": "#(machine).b",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "b1": {
+                "id": "(machine).b.b1",
+                "key": "b1",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#(machine).b.b1",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          },
+          "c": {
+            "id": "(machine).c",
+            "key": "c",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#(machine).c",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 4,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "error": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1065 @@
+{
+  "source": "interpreter.test.ts (lines 932 to 1947)",
+  "cases": [
+    {
+      "name": "an ACTIVATE sent to the send machine reaches its final state and completes it",
+      "test": "interpreter.test.ts > interpreter > .send() > can send events with a string",
+      "machine": {
+        "id": "send",
+        "initial": "inactive",
+        "states": {
+          "inactive": {
+            "on": {
+              "EVENT": {
+                "target": "active",
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "id",
+                    "value": 42
+                  }
+                }
+              },
+              "ACTIVATE": "active"
+            }
+          },
+          "active": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "ACTIVATE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an ACTIVATE sent as an object reaches the final state and completes the actor",
+      "test": "interpreter.test.ts > interpreter > .send() > can send events with an object",
+      "machine": {
+        "id": "send",
+        "initial": "inactive",
+        "states": {
+          "inactive": {
+            "on": {
+              "EVENT": {
+                "target": "active",
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "id",
+                    "value": 42
+                  }
+                }
+              },
+              "ACTIVATE": "active"
+            }
+          },
+          "active": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "ACTIVATE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an EVENT whose payload passes the guard reaches the final state",
+      "test": "interpreter.test.ts > interpreter > .send() > can send events with an object with payload",
+      "machine": {
+        "id": "send",
+        "initial": "inactive",
+        "states": {
+          "inactive": {
+            "on": {
+              "EVENT": {
+                "target": "active",
+                "guard": {
+                  "type": "event_equals",
+                  "params": {
+                    "key": "id",
+                    "value": 42
+                  }
+                }
+              },
+              "ACTIVATE": "active"
+            }
+          },
+          "active": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT",
+            "id": 42
+          }
+        }
+      ]
+    },
+    {
+      "name": "two events sent one after the other are both processed, in order",
+      "test": "interpreter.test.ts > interpreter > .send() > should receive and process all events sent simultaneously",
+      "machine": {
+        "id": "toggle",
+        "initial": "inactive",
+        "states": {
+          "fail": {},
+          "inactive": {
+            "on": {
+              "INACTIVATE": "fail",
+              "ACTIVATE": "active"
+            }
+          },
+          "active": {
+            "on": {
+              "INACTIVATE": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "ACTIVATE"
+          }
+        },
+        {
+          "send": {
+            "type": "INACTIVATE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "starting an actor computes its context, runs its entry and enters its initial state",
+      "test": "interpreter.test.ts > interpreter > .start() > should initialize the service (the context spy stands as a context computed from the input, the entry spy as a push into it)",
+      "machine": {
+        "entry": [
+          {
+            "type": "push",
+            "params": {
+              "key": "log",
+              "value": "entry"
+            }
+          }
+        ],
+        "initial": "foo",
+        "states": {
+          "foo": {}
+        }
+      },
+      "context_from_input": {
+        "log": "log"
+      },
+      "steps": [
+        {
+          "start": true,
+          "input": {
+            "log": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "a stopped actor's delayed transition never fires",
+      "test": "interpreter.test.ts > interpreter > .stop() > should cancel delayed events",
+      "machine": {
+        "id": "delayed",
+        "context": {
+          "log": []
+        },
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "after": {
+              "50": {
+                "target": "bar",
+                "actions": [
+                  {
+                    "type": "push",
+                    "params": {
+                      "key": "log",
+                      "value": "called"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "bar": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "stop": true
+        },
+        {
+          "advance": 60
+        }
+      ]
+    },
+    {
+      "name": "an event sent to a stopped actor takes no transition and runs no entry",
+      "test": "interpreter.test.ts > interpreter > .stop() > should not execute transitions after being stopped (the transition and the entry only; the console warning is not ported)",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "initial": "waiting",
+        "states": {
+          "waiting": {
+            "on": {
+              "TRIGGER": "active"
+            }
+          },
+          "active": {
+            "entry": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "called"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "stop": true
+        },
+        {
+          "send": {
+            "type": "TRIGGER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "each TOGGLE sent to a started actor produces one snapshot",
+      "test": "interpreter.test.ts > interpreter > .unsubscribe() > should remove transition listeners (one snapshot per TOGGLE; the listener's unsubscribe is not ported)",
+      "machine": {
+        "id": "toggle",
+        "initial": "inactive",
+        "states": {
+          "inactive": {
+            "on": {
+              "TOGGLE": "active"
+            }
+          },
+          "active": {
+            "on": {
+              "TOGGLE": "inactive"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TOGGLE"
+          }
+        },
+        {
+          "send": {
+            "type": "TOGGLE"
+          }
+        },
+        {
+          "send": {
+            "type": "TOGGLE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an eventless transition settles before the snapshot is published",
+      "test": "interpreter.test.ts > interpreter > transient states > should transition in correct order",
+      "machine": {
+        "id": "transient",
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "on": {
+              "START": "transient"
+            }
+          },
+          "transient": {
+            "always": "next"
+          },
+          "next": {
+            "on": {
+              "FINISH": "end"
+            }
+          },
+          "end": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "START"
+          }
+        }
+      ]
+    },
+    {
+      "name": "an eventless transition whose first candidate's guard is false takes the second and publishes one snapshot",
+      "test": "interpreter.test.ts > interpreter > transient states > should transition in correct order when there is a condition",
+      "machine": {
+        "id": "transient",
+        "context": {
+          "enabled": false
+        },
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "on": {
+              "START": "transient"
+            }
+          },
+          "transient": {
+            "always": [
+              {
+                "target": "end",
+                "guard": {
+                  "type": "context_equals",
+                  "params": {
+                    "key": "enabled",
+                    "value": true
+                  }
+                }
+              },
+              {
+                "target": "next"
+              }
+            ]
+          },
+          "next": {
+            "on": {
+              "FINISH": "end"
+            }
+          },
+          "end": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "START"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a reentering timer counts to five and the eventless guard then completes the actor",
+      "test": "interpreter.test.ts > interpreter > observable > should be subscribable",
+      "machine": {
+        "id": "interval",
+        "context": {
+          "count": 0
+        },
+        "initial": "active",
+        "states": {
+          "active": {
+            "after": {
+              "10": {
+                "target": "active",
+                "reenter": true,
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "count"
+                    }
+                  }
+                ]
+              }
+            },
+            "always": {
+              "target": "finished",
+              "guard": {
+                "type": "context_at_least",
+                "params": {
+                  "key": "count",
+                  "value": 5
+                }
+              }
+            }
+          },
+          "finished": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 10
+        },
+        {
+          "advance": 10
+        },
+        {
+          "advance": 10
+        },
+        {
+          "advance": 10
+        },
+        {
+          "advance": 10
+        }
+      ]
+    },
+    {
+      "name": "the interval machine publishes five snapshots after its start and then completes",
+      "test": "interpreter.test.ts > interpreter > observable > should be interoperable with RxJS, etc. via Symbol.observable (the snapshots and the completion; RxJS's from() over Symbol.observable is not ported)",
+      "machine": {
+        "id": "interval",
+        "context": {
+          "count": 0
+        },
+        "initial": "active",
+        "states": {
+          "active": {
+            "after": {
+              "10": {
+                "target": "active",
+                "reenter": true,
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "count"
+                    }
+                  }
+                ]
+              }
+            },
+            "always": {
+              "target": "finished",
+              "guard": {
+                "type": "context_at_least",
+                "params": {
+                  "key": "count",
+                  "value": 5
+                }
+              }
+            }
+          },
+          "finished": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 10
+        },
+        {
+          "advance": 10
+        },
+        {
+          "advance": 10
+        },
+        {
+          "advance": 10
+        },
+        {
+          "advance": 10
+        }
+      ]
+    },
+    {
+      "name": "five INC complete the counter through its eventless guard",
+      "test": "interpreter.test.ts > interpreter > observable > should be unsubscribable (the counts and the completion; the unsubscribed listener's last count is not ported)",
+      "machine": {
+        "context": {
+          "count": 0
+        },
+        "initial": "active",
+        "states": {
+          "active": {
+            "always": {
+              "target": "finished",
+              "guard": {
+                "type": "context_at_least",
+                "params": {
+                  "key": "count",
+                  "value": 5
+                }
+              }
+            },
+            "on": {
+              "INC": {
+                "actions": [
+                  {
+                    "type": "increment",
+                    "params": {
+                      "key": "count"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "finished": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "INC"
+          }
+        },
+        {
+          "send": {
+            "type": "INC"
+          }
+        },
+        {
+          "send": {
+            "type": "INC"
+          }
+        },
+        {
+          "send": {
+            "type": "INC"
+          }
+        },
+        {
+          "send": {
+            "type": "INC"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reaching a final state completes the actor",
+      "test": "interpreter.test.ts > interpreter > observable > should call complete() once a final state is reached",
+      "machine": {
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "on": {
+              "NEXT": "done"
+            }
+          },
+          "done": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "stopping an actor leaves it stopped",
+      "test": "interpreter.test.ts > interpreter > observable > should call complete() once the interpreter is stopped",
+      "machine": {},
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "stop": true
+        }
+      ]
+    },
+    {
+      "name": "a child's sendParent completes its parent, which then lists no child",
+      "test": "interpreter.test.ts > interpreter > children > state.children should reference invoked child actors (machine)",
+      "machine": {
+        "initial": "active",
+        "states": {
+          "active": {
+            "invoke": {
+              "id": "childActor",
+              "src": "childMachine"
+            },
+            "on": {
+              "FIRED": "success"
+            }
+          },
+          "success": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "childMachine": {
+          "kind": "machine",
+          "machine": {
+            "initial": "active",
+            "states": {
+              "active": {
+                "on": {
+                  "FIRE": {
+                    "actions": [
+                      "fire"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "actions": {
+            "fire": {
+              "kind": "send_parent",
+              "event": {
+                "type": "FIRED"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FIRE"
+          },
+          "to": "root/childActor"
+        }
+      ]
+    },
+    {
+      "name": "an invoked promise is a child while active and is gone once its output completes the parent",
+      "test": "interpreter.test.ts > interpreter > children > state.children should reference invoked child actors (promise)",
+      "machine": {
+        "initial": "active",
+        "states": {
+          "active": {
+            "invoke": {
+              "id": "childActor",
+              "src": "num",
+              "onDone": [
+                {
+                  "target": "success",
+                  "guard": {
+                    "type": "event_equals",
+                    "params": {
+                      "key": "output",
+                      "value": 42
+                    }
+                  }
+                },
+                {
+                  "target": "failure"
+                }
+              ]
+            }
+          },
+          "success": {
+            "type": "final"
+          },
+          "failure": {
+            "type": "final"
+          }
+        }
+      },
+      "actors": {
+        "num": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "resolve": {
+            "src": "num",
+            "output": 42
+          }
+        }
+      ]
+    },
+    {
+      "name": "a child spawned by the root's entry is listed among its children",
+      "test": "interpreter.test.ts > interpreter > children > state.children should reference spawned actors (spawnChild by id stands for the spawn assigned to the context)",
+      "machine": {
+        "id": "form",
+        "initial": "idle",
+        "context": {},
+        "entry": [
+          "spawnFirstName"
+        ],
+        "states": {
+          "idle": {}
+        }
+      },
+      "actions": {
+        "spawnFirstName": {
+          "kind": "spawn_child",
+          "src": "childMachine",
+          "id": "child"
+        }
+      },
+      "actors": {
+        "childMachine": {
+          "kind": "machine",
+          "machine": {
+            "initial": "idle",
+            "states": {
+              "idle": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "spawned machine and promise children are gone from the parent once stopped",
+      "test": "interpreter.test.ts > interpreter > children > stopped spawned actors should be cleaned up in parent (the machine and the promise children, stopped by id; the observable child is not ported (fromObservable, out of scope for the actor layer))",
+      "machine": {
+        "id": "form",
+        "initial": "present",
+        "context": {},
+        "entry": [
+          "spawnMachine",
+          "spawnPromise"
+        ],
+        "states": {
+          "present": {
+            "on": {
+              "NEXT": {
+                "target": "gone",
+                "actions": [
+                  "stopMachine",
+                  "stopPromise"
+                ]
+              }
+            }
+          },
+          "gone": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "spawnMachine": {
+          "kind": "spawn_child",
+          "src": "childMachine",
+          "id": "machineChild"
+        },
+        "spawnPromise": {
+          "kind": "spawn_child",
+          "src": "pending",
+          "id": "promiseChild"
+        },
+        "stopMachine": {
+          "kind": "stop_child",
+          "id": "machineChild"
+        },
+        "stopPromise": {
+          "kind": "stop_child",
+          "id": "promiseChild"
+        }
+      },
+      "actors": {
+        "childMachine": {
+          "kind": "machine",
+          "machine": {
+            "initial": "idle",
+            "states": {
+              "idle": {}
+            }
+          }
+        },
+        "pending": {
+          "kind": "host"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "the root's entry runs when the actor starts",
+      "test": "interpreter.test.ts > interpreter > should execute entry actions when starting the actor after reading its snapshot first (the entry at start; the snapshot read before start is not ported, the format has no step before start)",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "entry": [
+          {
+            "type": "push",
+            "params": {
+              "key": "log",
+              "value": "entry"
+            }
+          }
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a machine whose initial state is final is done as soon as it starts",
+      "test": "interpreter.test.ts > interpreter > should call an onDone callback immediately if the service is already done (the status done; the subscription after it is not ported)",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "an event the initial entry sends to the actor itself runs after the whole initial entry",
+      "test": "interpreter.test.ts > should not process events sent directly to own actor ref before initial entry actions are processed (actorRef.send from the entry stands as a sendTo #_internal; the actor reference as data is not ported)",
+      "machine": {
+        "context": {
+          "log": []
+        },
+        "entry": [
+          {
+            "type": "push",
+            "params": {
+              "key": "log",
+              "value": "initial root entry start"
+            }
+          },
+          "sendSelf",
+          {
+            "type": "push",
+            "params": {
+              "key": "log",
+              "value": "initial root entry end"
+            }
+          }
+        ],
+        "on": {
+          "EV": {
+            "actions": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "EV transition"
+                }
+              }
+            ]
+          }
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": [
+              {
+                "type": "push",
+                "params": {
+                  "key": "log",
+                  "value": "initial nested entry"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "actions": {
+        "sendSelf": {
+          "kind": "send_to",
+          "target": "#_internal",
+          "event": {
+            "type": "EV"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a throwing initial entry leaves the actor in error",
+      "test": "interpreter.test.ts > should notify the error observer for an errored logic when it gets subscribed after it errors (the status error; the error observer subscribed after it and the error it receives are not recorded, so not ported)",
+      "machine": {
+        "entry": [
+          {
+            "type": "fail"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "a second start does not start the root again",
+      "test": "interpreter.test.ts > interpreter > .start() > should not reinitialize a started service (the entry's single run shows in the context; the context function's single call does not show and is not ported)",
+      "machine": {
+        "id": "once",
+        "context": {
+          "count": 0
+        },
+        "entry": [
+          {
+            "type": "increment",
+            "params": {
+              "key": "count"
+            }
+          }
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "stopping a root created and never started changes nothing",
+      "test": "interpreter.test.ts > interpreter > .stop() > stopping a not-started interpreter should not crash",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {}
+        }
+      },
+      "steps": [
+        {
+          "create": true
+        },
+        {
+          "stop": true
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "interpreter.test.ts > interpreter > .start() > should be able to be initialized at a custom state",
+      "reason": "restoring a snapshot: the actor is created from machine.resolveState({ value: 'bar' }), and the format has no snapshot to start from"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > .start() > should be able to be initialized at a custom state value",
+      "reason": "restoring a snapshot: the actor is created from machine.resolveState({ value: 'bar' }), and the format has no snapshot to start from"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > .start() > should be able to resolve a custom initialized state",
+      "reason": "restoring a snapshot: the actor is created from machine.resolveState({ value: 'foo' }), and the format has no snapshot to start from"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > .stop() > should not throw when sending an unserializable event to a stopped actor",
+      "reason": "the event holds a circular reference, which a step's JSON event cannot hold, and what the test exercises is XState's development-only warning on a send to a stopped actor (JSON.stringify of the event inside a try, then one console.warn), which the record does not show; a JSON event sent to a stopped actor is ported as 'an event sent to a stopped actor takes no transition and runs no entry'; it would need a step whose event is not JSON and a record of XState's console warnings"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > actors > doesn't crash cryptically on undefined return from the actor creator",
+      "reason": "fromCallback is not ported (out of scope for the actor layer); the test asserts only that start() does not throw"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > children > state.children should reference invoked child actors (observable)",
+      "reason": "fromObservable is not ported (out of scope for the actor layer): the child is an RxJS interval and the parent leaves on its onSnapshot"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > shouldn't execute actions when reading a snapshot of not started actor",
+      "reason": "the spy is a custom action, which the record does not show, and no recorded action can stand in for it before start: XState's emit, sendTo, raise and spawnChild hand their effect to actorScope.defer, which runs only at the actor's first update, so an emit an entry ran at creation would still appear only at start, and a create step's record is empty whatever the entry did; an assign cannot stand in either, as XState applies the entry's assigns when createActor computes the initial snapshot; getSnapshot is not a step either; it would need a step that reads a snapshot and a record of custom actions as XState's actionExecutor runs them"
+    },
+    {
+      "test": "interpreter.test.ts > interpreter > the first state of an actor should be its initial state",
+      "reason": "asserts object identity (toBe) between the snapshot read before start and the one read after it; the create step now makes an unstarted root, but no step reads a snapshot, and the record writes, as values, only the snapshots that processed events leave; it would need a step that reads an actor's snapshot and a record of snapshot identity, which values do not carry"
+    },
+    {
+      "test": "interpreter.test.ts > should throw if an event is received",
+      "reason": "the event is the string 'EVENT' and the test asserts only that send throws ('Only event objects may be sent to actors', the development build's check the oracles run); a step's event is a JSON object, and xstate's send takes an event, which a string cannot be, so there is nothing to throw; it would need a send step whose event is not an object and a record of what send throws"
+    },
+    {
+      "test": "interpreter.test.ts > should not notify the completion observer for an active logic when it gets subscribed before starting",
+      "reason": "asserts that a complete observer subscribed to an actor never started is not called; the create step now makes an unstarted root, but the format has no step that subscribes an observer and the record holds no observer's calls; it would need a subscribe step and a record of the calls its observer receives"
+    }
+  ]
+}

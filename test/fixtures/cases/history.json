@@ -1,0 +1,1934 @@
+{
+  "source": "history.test.ts",
+  "cases": [
+    {
+      "name": "shallow history explicit, most recently visited",
+      "test": "history.test.ts > history states > should go to the most recently visited state (explicit shallow history type)",
+      "machine": {
+        "initial": "on",
+        "states": {
+          "on": {
+            "initial": "first",
+            "states": {
+              "first": {
+                "on": {
+                  "SWITCH": "second"
+                }
+              },
+              "second": {},
+              "hist": {
+                "type": "history",
+                "history": "shallow"
+              }
+            },
+            "on": {
+              "POWER": "off"
+            }
+          },
+          "off": {
+            "on": {
+              "POWER": "on.hist"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SWITCH"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "history with no explicit type, most recently visited",
+      "test": "history.test.ts > history states > should go to the most recently visited state (no explicit history type)",
+      "machine": {
+        "initial": "on",
+        "states": {
+          "on": {
+            "initial": "first",
+            "states": {
+              "first": {
+                "on": {
+                  "SWITCH": "second"
+                }
+              },
+              "second": {},
+              "hist": {
+                "type": "history"
+              }
+            },
+            "on": {
+              "POWER": "off"
+            }
+          },
+          "off": {
+            "on": {
+              "POWER": "on.hist"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SWITCH"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "shallow history explicit, initial state when never visited",
+      "test": "history.test.ts > history states > should go to the initial state when no history present (explicit shallow history type)",
+      "machine": {
+        "initial": "off",
+        "states": {
+          "off": {
+            "on": {
+              "POWER": "on.hist"
+            }
+          },
+          "on": {
+            "initial": "first",
+            "states": {
+              "first": {},
+              "second": {},
+              "hist": {
+                "type": "history",
+                "history": "shallow"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "history with no explicit type, initial state when never visited",
+      "test": "history.test.ts > history states > should go to the initial state when no history present (no explicit history type)",
+      "machine": {
+        "initial": "off",
+        "states": {
+          "off": {
+            "on": {
+              "POWER": "on.hist"
+            }
+          },
+          "on": {
+            "initial": "first",
+            "states": {
+              "first": {},
+              "second": {},
+              "hist": {
+                "type": "history"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "history reached through a transient transition",
+      "test": "history.test.ts > history states > should go to the most recently visited state by a transient transition",
+      "machine": {
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "id": "idle",
+            "initial": "absent",
+            "states": {
+              "absent": {
+                "on": {
+                  "DEPLOY": "#deploy"
+                }
+              },
+              "present": {
+                "on": {
+                  "DEPLOY": "#deploy",
+                  "DESTROY": "#destroy"
+                }
+              },
+              "hist": {
+                "type": "history"
+              }
+            }
+          },
+          "deploy": {
+            "id": "deploy",
+            "on": {
+              "SUCCESS": "idle.present",
+              "FAILURE": "idle.hist"
+            }
+          },
+          "destroy": {
+            "id": "destroy",
+            "always": [
+              {
+                "target": "idle.absent"
+              }
+            ]
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "DEPLOY"
+          }
+        },
+        {
+          "send": {
+            "type": "SUCCESS"
+          }
+        },
+        {
+          "send": {
+            "type": "DESTROY"
+          }
+        },
+        {
+          "send": {
+            "type": "DEPLOY"
+          }
+        },
+        {
+          "send": {
+            "type": "FAILURE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reentering transition targeting a history state reenters persisted state",
+      "test": "history.test.ts > history states > should reenter persisted state during reentering transition targeting a history state",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "REENTER": {
+                "target": "#b_hist",
+                "reenter": true
+              }
+            },
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "NEXT": "a2"
+                }
+              },
+              "a2": {
+                "entry": "enter_a2",
+                "exit": "exit_a2"
+              },
+              "a3": {
+                "type": "history",
+                "id": "b_hist"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "REENTER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "history as the machine's initial state goes to its default target",
+      "test": "history.test.ts > history states > should go to the configured default target when a history state is the initial state of the machine",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "type": "history",
+            "target": "bar"
+          },
+          "bar": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "history as a transition target's initial state goes to its default target",
+      "test": "history.test.ts > history states > should go to the configured default target when a history state is the initial state of the transition's target",
+      "machine": {
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "on": {
+              "NEXT": "bar"
+            }
+          },
+          "bar": {
+            "initial": "baz",
+            "states": {
+              "baz": {
+                "type": "history",
+                "target": "qwe"
+              },
+              "qwe": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "initial transition actions run for a history target without a default, parent never visited",
+      "test": "history.test.ts > history states > should execute actions of the initial transition when a history state without a default target is targeted and its parent state was never visited yet",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "#hist"
+            }
+          },
+          "b": {
+            "initial": {
+              "target": "b1",
+              "actions": "spy"
+            },
+            "states": {
+              "b1": {},
+              "b2": {
+                "id": "hist",
+                "type": "history"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "deep history without a default target enters the parallel default configuration, never visited",
+      "test": "history.test.ts > history states > should enter the parallel default configuration when a deep history state without a default target is targeted and its parent parallel state was never visited yet",
+      "machine": {
+        "initial": "off",
+        "states": {
+          "off": {
+            "on": {
+              "GO": "on.hist"
+            }
+          },
+          "on": {
+            "type": "parallel",
+            "states": {
+              "regA": {
+                "initial": "a1",
+                "states": {
+                  "a1": {},
+                  "a2": {}
+                }
+              },
+              "regB": {
+                "initial": "b1",
+                "states": {
+                  "b1": {},
+                  "b2": {}
+                }
+              },
+              "hist": {
+                "type": "history",
+                "history": "deep"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "shallow history without a default target enters the parallel default configuration, never visited",
+      "test": "history.test.ts > history states > should enter the parallel default configuration when a shallow history state without a default target is targeted and its parent parallel state was never visited yet",
+      "machine": {
+        "initial": "off",
+        "states": {
+          "off": {
+            "on": {
+              "GO": "on.hist"
+            }
+          },
+          "on": {
+            "type": "parallel",
+            "states": {
+              "regA": {
+                "initial": "a1",
+                "states": {
+                  "a1": {},
+                  "a2": {}
+                }
+              },
+              "regB": {
+                "initial": "b1",
+                "states": {
+                  "b1": {},
+                  "b2": {}
+                }
+              },
+              "hist": {
+                "type": "history",
+                "history": "shallow"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "GO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "initial transition actions do not run for a history target with a default, parent never visited",
+      "test": "history.test.ts > history states > should not execute actions of the initial transition when a history state with a default target is targeted and its parent state was never visited yet",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "#hist"
+            }
+          },
+          "b": {
+            "initial": {
+              "target": "b1",
+              "actions": "spy"
+            },
+            "states": {
+              "b1": {},
+              "b2": {
+                "id": "hist",
+                "type": "history",
+                "target": "b3"
+              },
+              "b3": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "entry actions of the history target's parent run, parent never visited",
+      "test": "history.test.ts > history states > should execute entry actions of a parent of the targeted history state when its parent state was never visited yet",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "#hist"
+            }
+          },
+          "b": {
+            "entry": "spy",
+            "initial": "b1",
+            "states": {
+              "b1": {},
+              "b2": {
+                "id": "hist",
+                "type": "history",
+                "target": "b3"
+              },
+              "b3": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "initial transition actions run when a history state is its parent's initial state",
+      "test": "history.test.ts > history states > should execute actions of the initial transition when it select a history state as the initial state of its parent",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "initial": {
+              "target": "b1",
+              "actions": "spy"
+            },
+            "states": {
+              "b1": {
+                "id": "hist",
+                "type": "history",
+                "target": "b2"
+              },
+              "b2": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "initial transition actions do not rerun for a revisited history target without a default",
+      "test": "history.test.ts > history states > should execute actions of the initial transition when a history state without a default target is targeted and its parent state was already visited",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "#hist"
+            }
+          },
+          "b": {
+            "initial": {
+              "target": "b1",
+              "actions": "spy"
+            },
+            "states": {
+              "b1": {},
+              "b2": {
+                "id": "hist",
+                "type": "history"
+              }
+            },
+            "on": {
+              "NEXT": "a"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "initial transition actions do not rerun for a revisited history target with a default",
+      "test": "history.test.ts > history states > should not execute actions of the initial transition when a history state with a default target is targeted and its parent state was already visited",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "#hist"
+            }
+          },
+          "b": {
+            "initial": {
+              "target": "b1",
+              "actions": "spy"
+            },
+            "states": {
+              "b1": {},
+              "b2": {
+                "id": "hist",
+                "type": "history",
+                "target": "b3"
+              },
+              "b3": {}
+            },
+            "on": {
+              "NEXT": "a"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "entry actions of the history target's parent rerun on a revisit",
+      "test": "history.test.ts > history states > should execute entry actions of a parent of the targeted history state when its parent state was already visited",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "#hist"
+            }
+          },
+          "b": {
+            "entry": "spy",
+            "initial": "b1",
+            "states": {
+              "b1": {},
+              "b2": {
+                "id": "hist",
+                "type": "history",
+                "target": "b3"
+              },
+              "b3": {}
+            },
+            "on": {
+              "NEXT": "a"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "entering the default history configuration does not enter ancestors outside the transition domain",
+      "test": "history.test.ts > history states > should not enter ancestors of the entered history state that lie outside of the transition domain when entering the default history configuration",
+      "machine": {
+        "initial": "closed",
+        "states": {
+          "closed": {
+            "exit": "exit_closed",
+            "on": {
+              "BUTTON.CLICK": "open.hist"
+            }
+          },
+          "open": {
+            "entry": "enter_open",
+            "on": {
+              "BUTTON.CLICK": "closed"
+            },
+            "initial": "first",
+            "states": {
+              "hist": {
+                "type": "history"
+              },
+              "first": {
+                "entry": "enter_open_first"
+              },
+              "second": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "BUTTON.CLICK"
+          }
+        }
+      ]
+    },
+    {
+      "name": "restoring the stored history configuration does not enter ancestors outside the transition domain",
+      "test": "history.test.ts > history states > should not enter ancestors of the entered history state that lie outside of the transition domain when restoring the stored history configuration",
+      "machine": {
+        "initial": "closed",
+        "states": {
+          "closed": {
+            "id": "closed",
+            "exit": "exit_closed",
+            "on": {
+              "BUTTON.CLICK": "open.hist"
+            }
+          },
+          "open": {
+            "entry": "enter_open",
+            "on": {
+              "BUTTON.CLICK": "closed"
+            },
+            "initial": "first",
+            "states": {
+              "hist": {
+                "type": "history"
+              },
+              "first": {
+                "entry": "enter_open_first",
+                "on": {
+                  "NEXT": "second"
+                }
+              },
+              "second": {
+                "entry": "enter_open_second",
+                "on": {
+                  "CLOSE": "#closed"
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "BUTTON.CLICK"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "CLOSE"
+          }
+        },
+        {
+          "send": {
+            "type": "BUTTON.CLICK"
+          }
+        }
+      ]
+    },
+    {
+      "name": "deep history goes to the shallow history when unqualified",
+      "test": "history.test.ts > deep history states > should go to the shallow history",
+      "machine": {
+        "initial": "on",
+        "states": {
+          "off": {
+            "on": {
+              "POWER": "on.history"
+            }
+          },
+          "on": {
+            "initial": "first",
+            "states": {
+              "first": {
+                "on": {
+                  "SWITCH": "second"
+                }
+              },
+              "second": {
+                "initial": "A",
+                "states": {
+                  "A": {
+                    "on": {
+                      "INNER": "B"
+                    }
+                  },
+                  "B": {
+                    "initial": "P",
+                    "states": {
+                      "P": {},
+                      "Q": {}
+                    }
+                  }
+                }
+              },
+              "history": {
+                "history": "shallow"
+              }
+            },
+            "on": {
+              "POWER": "off"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SWITCH"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "deep history goes to the deep history when explicit",
+      "test": "history.test.ts > deep history states > should go to the deep history (explicit)",
+      "machine": {
+        "initial": "on",
+        "states": {
+          "off": {
+            "on": {
+              "POWER": "on.history"
+            }
+          },
+          "on": {
+            "initial": "first",
+            "states": {
+              "first": {
+                "on": {
+                  "SWITCH": "second"
+                }
+              },
+              "second": {
+                "initial": "A",
+                "states": {
+                  "A": {
+                    "on": {
+                      "INNER": "B"
+                    }
+                  },
+                  "B": {
+                    "initial": "P",
+                    "states": {
+                      "P": {},
+                      "Q": {}
+                    }
+                  }
+                }
+              },
+              "history": {
+                "history": "deep"
+              }
+            },
+            "on": {
+              "POWER": "off"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SWITCH"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "deep history goes to the deepest visited state",
+      "test": "history.test.ts > deep history states > should go to the deepest history",
+      "machine": {
+        "initial": "on",
+        "states": {
+          "off": {
+            "on": {
+              "POWER": "on.history"
+            }
+          },
+          "on": {
+            "initial": "first",
+            "states": {
+              "first": {
+                "on": {
+                  "SWITCH": "second"
+                }
+              },
+              "second": {
+                "initial": "A",
+                "states": {
+                  "A": {
+                    "on": {
+                      "INNER": "B"
+                    }
+                  },
+                  "B": {
+                    "initial": "P",
+                    "states": {
+                      "P": {
+                        "on": {
+                          "INNER": "Q"
+                        }
+                      },
+                      "Q": {}
+                    }
+                  }
+                }
+              },
+              "history": {
+                "history": "deep"
+              }
+            },
+            "on": {
+              "POWER": "off"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SWITCH"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel history is ignored when a parent region's own hist is shallow unqualified",
+      "test": "history.test.ts > parallel history states > should ignore parallel state history",
+      "machine": {
+        "initial": "off",
+        "states": {
+          "off": {
+            "on": {
+              "SWITCH": "on",
+              "POWER": "on.hist"
+            }
+          },
+          "on": {
+            "type": "parallel",
+            "states": {
+              "A": {
+                "initial": "B",
+                "states": {
+                  "B": {
+                    "on": {
+                      "INNER_A": "C"
+                    }
+                  },
+                  "C": {
+                    "initial": "D",
+                    "states": {
+                      "D": {},
+                      "E": {}
+                    }
+                  },
+                  "hist": {
+                    "history": true
+                  }
+                }
+              },
+              "K": {
+                "initial": "L",
+                "states": {
+                  "L": {},
+                  "M": {},
+                  "hist": {
+                    "history": true
+                  },
+                  "deepHistory": {
+                    "history": "deep"
+                  }
+                }
+              },
+              "hist": {
+                "history": true
+              }
+            },
+            "on": {
+              "POWER": "off"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SWITCH"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_A"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel history remembers the first level state",
+      "test": "history.test.ts > parallel history states > should remember first level state history",
+      "machine": {
+        "initial": "off",
+        "states": {
+          "off": {
+            "on": {
+              "SWITCH": "on",
+              "DEEP_POWER": "on.deepHistory"
+            }
+          },
+          "on": {
+            "type": "parallel",
+            "states": {
+              "A": {
+                "initial": "B",
+                "states": {
+                  "B": {
+                    "on": {
+                      "INNER_A": "C"
+                    }
+                  },
+                  "C": {
+                    "initial": "D",
+                    "states": {
+                      "D": {},
+                      "E": {}
+                    }
+                  },
+                  "hist": {
+                    "history": true
+                  },
+                  "deepHistory": {
+                    "history": "deep"
+                  }
+                }
+              },
+              "K": {
+                "initial": "L",
+                "states": {
+                  "L": {},
+                  "M": {},
+                  "hist": {
+                    "history": true
+                  },
+                  "deepHistory": {
+                    "history": "deep"
+                  }
+                }
+              },
+              "deepHistory": {
+                "history": "deep"
+              }
+            },
+            "on": {
+              "POWER": "off"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SWITCH"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_A"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        },
+        {
+          "send": {
+            "type": "DEEP_POWER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel deep history reenters each region correctly",
+      "test": "history.test.ts > parallel history states > should re-enter each regions of parallel state correctly",
+      "machine": {
+        "initial": "off",
+        "states": {
+          "off": {
+            "on": {
+              "SWITCH": "on",
+              "DEEP_POWER": "on.deepHistory"
+            }
+          },
+          "on": {
+            "type": "parallel",
+            "states": {
+              "A": {
+                "initial": "B",
+                "states": {
+                  "B": {
+                    "on": {
+                      "INNER_A": "C"
+                    }
+                  },
+                  "C": {
+                    "initial": "D",
+                    "states": {
+                      "D": {
+                        "on": {
+                          "INNER_A": "E"
+                        }
+                      },
+                      "E": {}
+                    }
+                  },
+                  "hist": {
+                    "history": true
+                  },
+                  "deepHistory": {
+                    "history": "deep"
+                  }
+                }
+              },
+              "K": {
+                "initial": "L",
+                "states": {
+                  "L": {
+                    "on": {
+                      "INNER_K": "M"
+                    }
+                  },
+                  "M": {
+                    "initial": "N",
+                    "states": {
+                      "N": {
+                        "on": {
+                          "INNER_K": "O"
+                        }
+                      },
+                      "O": {}
+                    }
+                  },
+                  "hist": {
+                    "history": true
+                  },
+                  "deepHistory": {
+                    "history": "deep"
+                  }
+                }
+              },
+              "hist": {
+                "history": true
+              },
+              "shallowHistory": {
+                "history": "shallow"
+              },
+              "deepHistory": {
+                "history": "deep"
+              }
+            },
+            "on": {
+              "POWER": "off"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SWITCH"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_A"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_A"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_K"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_K"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        },
+        {
+          "send": {
+            "type": "DEEP_POWER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel history reenters multiple history states together",
+      "test": "history.test.ts > parallel history states > should re-enter multiple history states",
+      "machine": {
+        "initial": "off",
+        "states": {
+          "off": {
+            "on": {
+              "SWITCH": "on",
+              "PARALLEL_HISTORY": [
+                {
+                  "target": [
+                    "on.A.hist",
+                    "on.K.hist"
+                  ]
+                }
+              ]
+            }
+          },
+          "on": {
+            "type": "parallel",
+            "states": {
+              "A": {
+                "initial": "B",
+                "states": {
+                  "B": {
+                    "on": {
+                      "INNER_A": "C"
+                    }
+                  },
+                  "C": {
+                    "initial": "D",
+                    "states": {
+                      "D": {
+                        "on": {
+                          "INNER_A": "E"
+                        }
+                      },
+                      "E": {}
+                    }
+                  },
+                  "hist": {
+                    "history": true
+                  },
+                  "deepHistory": {
+                    "history": "deep"
+                  }
+                }
+              },
+              "K": {
+                "initial": "L",
+                "states": {
+                  "L": {
+                    "on": {
+                      "INNER_K": "M"
+                    }
+                  },
+                  "M": {
+                    "initial": "N",
+                    "states": {
+                      "N": {
+                        "on": {
+                          "INNER_K": "O"
+                        }
+                      },
+                      "O": {}
+                    }
+                  },
+                  "hist": {
+                    "history": true
+                  },
+                  "deepHistory": {
+                    "history": "deep"
+                  }
+                }
+              },
+              "hist": {
+                "history": true
+              },
+              "shallowHistory": {
+                "history": "shallow"
+              },
+              "deepHistory": {
+                "history": "deep"
+              }
+            },
+            "on": {
+              "POWER": "off"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SWITCH"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_A"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_A"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_K"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_K"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        },
+        {
+          "send": {
+            "type": "PARALLEL_HISTORY"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel history reenters with partial history, one region a plain target",
+      "test": "history.test.ts > parallel history states > should re-enter a parallel with partial history",
+      "machine": {
+        "initial": "off",
+        "states": {
+          "off": {
+            "on": {
+              "SWITCH": "on",
+              "PARALLEL_SOME_HISTORY": [
+                {
+                  "target": [
+                    "on.A.C",
+                    "on.K.hist"
+                  ]
+                }
+              ]
+            }
+          },
+          "on": {
+            "type": "parallel",
+            "states": {
+              "A": {
+                "initial": "B",
+                "states": {
+                  "B": {
+                    "on": {
+                      "INNER_A": "C"
+                    }
+                  },
+                  "C": {
+                    "initial": "D",
+                    "states": {
+                      "D": {
+                        "on": {
+                          "INNER_A": "E"
+                        }
+                      },
+                      "E": {}
+                    }
+                  },
+                  "hist": {
+                    "history": true
+                  },
+                  "deepHistory": {
+                    "history": "deep"
+                  }
+                }
+              },
+              "K": {
+                "initial": "L",
+                "states": {
+                  "L": {
+                    "on": {
+                      "INNER_K": "M"
+                    }
+                  },
+                  "M": {
+                    "initial": "N",
+                    "states": {
+                      "N": {
+                        "on": {
+                          "INNER_K": "O"
+                        }
+                      },
+                      "O": {}
+                    }
+                  },
+                  "hist": {
+                    "history": true
+                  },
+                  "deepHistory": {
+                    "history": "deep"
+                  }
+                }
+              },
+              "hist": {
+                "history": true
+              },
+              "shallowHistory": {
+                "history": "shallow"
+              },
+              "deepHistory": {
+                "history": "deep"
+              }
+            },
+            "on": {
+              "POWER": "off"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SWITCH"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_A"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_A"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_K"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_K"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        },
+        {
+          "send": {
+            "type": "PARALLEL_SOME_HISTORY"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel history reenters with full deep history in both regions",
+      "test": "history.test.ts > parallel history states > should re-enter a parallel with full history",
+      "machine": {
+        "initial": "off",
+        "states": {
+          "off": {
+            "on": {
+              "SWITCH": "on",
+              "PARALLEL_DEEP_HISTORY": [
+                {
+                  "target": [
+                    "on.A.deepHistory",
+                    "on.K.deepHistory"
+                  ]
+                }
+              ]
+            }
+          },
+          "on": {
+            "type": "parallel",
+            "states": {
+              "A": {
+                "initial": "B",
+                "states": {
+                  "B": {
+                    "on": {
+                      "INNER_A": "C"
+                    }
+                  },
+                  "C": {
+                    "initial": "D",
+                    "states": {
+                      "D": {
+                        "on": {
+                          "INNER_A": "E"
+                        }
+                      },
+                      "E": {}
+                    }
+                  },
+                  "hist": {
+                    "history": true
+                  },
+                  "deepHistory": {
+                    "history": "deep"
+                  }
+                }
+              },
+              "K": {
+                "initial": "L",
+                "states": {
+                  "L": {
+                    "on": {
+                      "INNER_K": "M"
+                    }
+                  },
+                  "M": {
+                    "initial": "N",
+                    "states": {
+                      "N": {
+                        "on": {
+                          "INNER_K": "O"
+                        }
+                      },
+                      "O": {}
+                    }
+                  },
+                  "hist": {
+                    "history": true
+                  },
+                  "deepHistory": {
+                    "history": "deep"
+                  }
+                }
+              },
+              "hist": {
+                "history": true
+              },
+              "shallowHistory": {
+                "history": "shallow"
+              },
+              "deepHistory": {
+                "history": "deep"
+              }
+            },
+            "on": {
+              "POWER": "off"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SWITCH"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_A"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_A"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_K"
+          }
+        },
+        {
+          "send": {
+            "type": "INNER_K"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        },
+        {
+          "send": {
+            "type": "PARALLEL_DEEP_HISTORY"
+          }
+        }
+      ]
+    },
+    {
+      "name": "internal transition to a history state enters the default configuration when never exited",
+      "test": "history.test.ts > internal transition to a history state should enter default history state configuration if the containing state has never been exited yet",
+      "machine": {
+        "initial": "first",
+        "states": {
+          "first": {
+            "on": {
+              "NEXT": "second.other"
+            }
+          },
+          "second": {
+            "initial": "nested",
+            "states": {
+              "nested": {},
+              "other": {},
+              "hist": {
+                "history": true
+              }
+            },
+            "on": {
+              "NEXT": {
+                "target": ".hist"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "multistage history goes to the most recently visited state",
+      "test": "history.test.ts > multistage history states > should go to the most recently visited state",
+      "machine": {
+        "initial": "running",
+        "states": {
+          "running": {
+            "initial": "normal",
+            "states": {
+              "normal": {
+                "on": {
+                  "SWITCH_TURBO": "turbo"
+                }
+              },
+              "turbo": {
+                "on": {
+                  "SWITCH_TURBO": "normal"
+                }
+              },
+              "H": {
+                "history": true
+              }
+            },
+            "on": {
+              "POWER": "off"
+            }
+          },
+          "starting": {
+            "on": {
+              "STARTED": "running.H"
+            }
+          },
+          "off": {
+            "on": {
+              "POWER": "starting"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "SWITCH_TURBO"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        },
+        {
+          "send": {
+            "type": "POWER"
+          }
+        },
+        {
+          "send": {
+            "type": "STARTED"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a history default target that is an ancestor entering the history again",
+      "test": "(review of the port) a default-entry cycle through an ancestor's initial; XState overflows its stack at start",
+      "machine": {
+        "id": "m",
+        "initial": "p",
+        "states": {
+          "p": {
+            "id": "pp",
+            "initial": "h",
+            "states": {
+              "h": {
+                "type": "history",
+                "target": "#pp"
+              },
+              "x": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ],
+      "xstate_refuses": "invalid_config"
+    }
+  ],
+  "excluded": [
+    {
+      "test": "history.test.ts > history states > should invoke an actor when reentering the stored configuration through the history state",
+      "reason": "ported with the actor cases, fixtures/actors/cases/history.json"
+    },
+    {
+      "test": "history.test.ts > revive history states > should restore from stringified snapshot",
+      "reason": "persistence/rehydration: createActor(machine, { snapshot: persistedSnapshot })"
+    },
+    {
+      "test": "history.test.ts > revive history states > should ignore unresolved ids as-is and log a warning",
+      "reason": "persistence/rehydration plus a console.warn spy"
+    },
+    {
+      "test": "history.test.ts > revive history states > should not re-resolve already-instantiated StateNode",
+      "reason": "persistence/rehydration: restores from a live getSnapshot() whose historyValue holds a StateNode instance"
+    },
+    {
+      "test": "history.test.ts > revive history states > should handle null, undefined, and primitive values",
+      "reason": "persistence/rehydration: restores from a snapshot with a malformed historyValue"
+    }
+  ]
+}

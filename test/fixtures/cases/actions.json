@@ -1,0 +1,3653 @@
+{
+  "source": "actions.test.ts",
+  "cases": [
+    {
+      "name": "initial entry actions shallow",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should return the entry actions of an initial state",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "initial entry actions deep",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should return the entry actions of an initial state (deep)",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "NEXT": "a2"
+                },
+                "entry": [
+                  "enter: a.a1"
+                ],
+                "exit": [
+                  "exit: a.a1"
+                ]
+              },
+              "a2": {
+                "entry": [
+                  "enter: a.a2"
+                ],
+                "exit": [
+                  "exit: a.a2"
+                ]
+              }
+            },
+            "on": {
+              "CHANGE": "b"
+            },
+            "entry": [
+              "enter: a"
+            ],
+            "exit": [
+              "exit: a"
+            ]
+          },
+          "b": {
+            "entry": [
+              "enter: b"
+            ],
+            "exit": [
+              "exit: b"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "initial entry actions parallel",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should return the entry actions of an initial state (parallel)",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "entry": [
+                  "enter: a.a1"
+                ],
+                "exit": [
+                  "exit: a.a1"
+                ]
+              }
+            },
+            "entry": [
+              "enter: a"
+            ],
+            "exit": [
+              "exit: a"
+            ]
+          },
+          "b": {
+            "initial": "b1",
+            "states": {
+              "b1": {
+                "entry": [
+                  "enter: b.b1"
+                ],
+                "exit": [
+                  "exit: b.b1"
+                ]
+              }
+            },
+            "entry": [
+              "enter: b"
+            ],
+            "exit": [
+              "exit: b"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "entry and exit of a transition",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should return the entry and exit actions of a transition",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow"
+            },
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          },
+          "yellow": {
+            "entry": [
+              "enter: yellow"
+            ],
+            "exit": [
+              "exit: yellow"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "entry and exit of a deep transition",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should return the entry and exit actions of a deep transition",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow"
+            },
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          },
+          "yellow": {
+            "initial": "speed_up",
+            "states": {
+              "speed_up": {
+                "entry": [
+                  "enter: yellow.speed_up"
+                ],
+                "exit": [
+                  "exit: yellow.speed_up"
+                ]
+              }
+            },
+            "entry": [
+              "enter: yellow"
+            ],
+            "exit": [
+              "exit: yellow"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "entry and exit of a nested transition",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should return the entry and exit actions of a nested transition",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "on": {
+                  "PED_COUNTDOWN": "wait"
+                },
+                "entry": [
+                  "enter: green.walk"
+                ],
+                "exit": [
+                  "exit: green.walk"
+                ]
+              },
+              "wait": {
+                "entry": [
+                  "enter: green.wait"
+                ],
+                "exit": [
+                  "exit: green.wait"
+                ]
+              }
+            },
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PED_COUNTDOWN"
+          }
+        }
+      ]
+    },
+    {
+      "name": "no actions for unhandled events shallow",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should not have actions for unhandled events (shallow)",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FAKE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "no actions for unhandled events deep",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should not have actions for unhandled events (deep)",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "entry": [
+                  "enter: green.walk"
+                ],
+                "exit": [
+                  "exit: green.walk"
+                ]
+              },
+              "wait": {
+                "entry": [
+                  "enter: green.wait"
+                ],
+                "exit": [
+                  "exit: green.wait"
+                ]
+              },
+              "stop": {
+                "entry": [
+                  "enter: green.stop"
+                ],
+                "exit": [
+                  "exit: green.stop"
+                ]
+              }
+            },
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FAKE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reenter self shallow",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should exit and enter the state for reentering self-transitions (shallow)",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "RESTART": {
+                "target": "green",
+                "reenter": true
+              }
+            },
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "RESTART"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reenter self deep",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should exit and enter the state for reentering self-transitions (deep)",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "RESTART": {
+                "target": "green",
+                "reenter": true
+              }
+            },
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "entry": [
+                  "enter: green.walk"
+                ],
+                "exit": [
+                  "exit: green.walk"
+                ]
+              },
+              "wait": {
+                "entry": [
+                  "enter: green.wait"
+                ],
+                "exit": [
+                  "exit: green.wait"
+                ]
+              },
+              "stop": {
+                "entry": [
+                  "enter: green.stop"
+                ],
+                "exit": [
+                  "exit: green.stop"
+                ]
+              }
+            },
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "RESTART"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parallel region actions in document order",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should return actions for parallel machines",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "CHANGE": {
+                    "target": "a2",
+                    "actions": [
+                      "do_a2",
+                      "another_do_a2"
+                    ]
+                  }
+                },
+                "entry": "enter_a1",
+                "exit": "exit_a1"
+              },
+              "a2": {
+                "entry": "enter_a2",
+                "exit": "exit_a2"
+              }
+            },
+            "entry": "enter_a",
+            "exit": "exit_a"
+          },
+          "b": {
+            "initial": "b1",
+            "states": {
+              "b1": {
+                "on": {
+                  "CHANGE": {
+                    "target": "b2",
+                    "actions": "do_b2"
+                  }
+                },
+                "entry": "enter_b1",
+                "exit": "exit_b1"
+              },
+              "b2": {
+                "entry": "enter_b2",
+                "exit": "exit_b2"
+              }
+            },
+            "entry": "enter_b",
+            "exit": "exit_b"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "CHANGE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "nested actions child to parent order",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should return nested actions in the correct (child to parent) order",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "entry": [
+                  "enter: a.a1"
+                ],
+                "exit": [
+                  "exit: a.a1"
+                ]
+              }
+            },
+            "on": {
+              "CHANGE": "b"
+            },
+            "entry": [
+              "enter: a"
+            ],
+            "exit": [
+              "exit: a"
+            ]
+          },
+          "b": {
+            "initial": "b1",
+            "states": {
+              "b1": {
+                "entry": [
+                  "enter: b.b1"
+                ],
+                "exit": [
+                  "exit: b.b1"
+                ]
+              }
+            },
+            "entry": [
+              "enter: b"
+            ],
+            "exit": [
+              "exit: b"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "CHANGE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ignore same-parent substates",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should ignore parent state actions for same-parent substates",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "NEXT": "a2"
+                },
+                "entry": [
+                  "enter: a.a1"
+                ],
+                "exit": [
+                  "exit: a.a1"
+                ]
+              },
+              "a2": {
+                "entry": [
+                  "enter: a.a2"
+                ],
+                "exit": [
+                  "exit: a.a2"
+                ]
+              }
+            },
+            "entry": [
+              "enter: a"
+            ],
+            "exit": [
+              "exit: a"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "function actions mixed with tracked entry exit",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should work with function actions",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "NEXT_FN": "a3"
+                },
+                "entry": [
+                  "enter: a.a1"
+                ],
+                "exit": [
+                  "exit: a.a1"
+                ]
+              },
+              "a2": {
+                "entry": [
+                  "enter: a.a2"
+                ],
+                "exit": [
+                  "exit: a.a2"
+                ]
+              },
+              "a3": {
+                "on": {
+                  "NEXT": {
+                    "target": "a2",
+                    "actions": [
+                      "transitionSpy"
+                    ]
+                  }
+                },
+                "entry": [
+                  "enter: a.a3",
+                  "entrySpy"
+                ],
+                "exit": [
+                  "exit: a.a3",
+                  "exitSpy"
+                ]
+              }
+            },
+            "entry": [
+              "enter: a"
+            ],
+            "exit": [
+              "exit: a"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT_FN"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exit children of parallel state nodes",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should exit children of parallel state nodes",
+      "machine": {
+        "initial": "B",
+        "states": {
+          "A": {
+            "on": {
+              "to-B": "B"
+            },
+            "entry": [
+              "enter: A"
+            ],
+            "exit": [
+              "exit: A"
+            ]
+          },
+          "B": {
+            "type": "parallel",
+            "on": {
+              "to-A": "A"
+            },
+            "states": {
+              "C": {
+                "initial": "C1",
+                "states": {
+                  "C1": {
+                    "entry": [
+                      "enter: B.C.C1"
+                    ],
+                    "exit": [
+                      "exit: B.C.C1"
+                    ]
+                  }
+                },
+                "entry": [
+                  "enter: B.C"
+                ],
+                "exit": [
+                  "exit: B.C"
+                ]
+              },
+              "D": {
+                "initial": "D1",
+                "states": {
+                  "D1": {
+                    "entry": [
+                      "enter: B.D.D1"
+                    ],
+                    "exit": [
+                      "exit: B.D.D1"
+                    ]
+                  }
+                },
+                "entry": [
+                  "enter: B.D"
+                ],
+                "exit": [
+                  "exit: B.D"
+                ]
+              }
+            },
+            "entry": [
+              "enter: B"
+            ],
+            "exit": [
+              "exit: B"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "to-A"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reenter targeted ancestor",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should reenter targeted ancestor (as it's a descendant of the transition domain)",
+      "machine": {
+        "initial": "loaded",
+        "states": {
+          "loaded": {
+            "id": "loaded",
+            "initial": "idle",
+            "states": {
+              "idle": {
+                "on": {
+                  "UPDATE": "#loaded"
+                },
+                "entry": [
+                  "enter: loaded.idle"
+                ],
+                "exit": [
+                  "exit: loaded.idle"
+                ]
+              }
+            },
+            "entry": [
+              "enter: loaded"
+            ],
+            "exit": [
+              "exit: loaded"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "UPDATE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "root entry exit on root reentering transition",
+      "test": "actions.test.ts > entry/exit actions > State.actions > root entry/exit actions should be called on root reentering transitions",
+      "machine": {
+        "id": "root",
+        "entry": "entrySpy",
+        "exit": "exitSpy",
+        "on": {
+          "EVENT": {
+            "target": "#two",
+            "reenter": true
+          }
+        },
+        "initial": "one",
+        "states": {
+          "one": {},
+          "two": {
+            "id": "two"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ignore same-parent actions sparse relative",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should ignore same-parent state actions (sparse) > with a relative transition",
+      "machine": {
+        "initial": "ping",
+        "states": {
+          "ping": {
+            "initial": "foo",
+            "states": {
+              "foo": {
+                "on": {
+                  "TACK": "bar"
+                },
+                "entry": [
+                  "enter: ping.foo"
+                ],
+                "exit": [
+                  "exit: ping.foo"
+                ]
+              },
+              "bar": {
+                "entry": [
+                  "enter: ping.bar"
+                ],
+                "exit": [
+                  "exit: ping.bar"
+                ]
+              }
+            },
+            "entry": [
+              "enter: ping"
+            ],
+            "exit": [
+              "exit: ping"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TACK"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ignore same-parent actions sparse absolute",
+      "test": "actions.test.ts > entry/exit actions > State.actions > should ignore same-parent state actions (sparse) > with an absolute transition",
+      "machine": {
+        "id": "root",
+        "initial": "ping",
+        "states": {
+          "ping": {
+            "initial": "foo",
+            "states": {
+              "foo": {
+                "on": {
+                  "ABSOLUTE_TACK": "#root.ping.bar"
+                },
+                "entry": [
+                  "enter: ping.foo"
+                ],
+                "exit": [
+                  "exit: ping.foo"
+                ]
+              },
+              "bar": {
+                "entry": [
+                  "enter: ping.bar"
+                ],
+                "exit": [
+                  "exit: ping.bar"
+                ]
+              }
+            },
+            "entry": [
+              "enter: ping"
+            ],
+            "exit": [
+              "exit: ping"
+            ]
+          },
+          "pong": {
+            "entry": [
+              "enter: pong"
+            ],
+            "exit": [
+              "exit: pong"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "ABSOLUTE_TACK"
+          }
+        }
+      ]
+    },
+    {
+      "name": "initial entry actions shallow (2)",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should return the entry actions of an initial state",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "entry and exit of a transition (2)",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should return the entry and exit actions of a transition",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow"
+            },
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          },
+          "yellow": {
+            "entry": [
+              "enter: yellow"
+            ],
+            "exit": [
+              "exit: yellow"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "entry and exit of a deep transition (2)",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should return the entry and exit actions of a deep transition",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "TIMER": "yellow"
+            },
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          },
+          "yellow": {
+            "initial": "speed_up",
+            "states": {
+              "speed_up": {
+                "entry": [
+                  "enter: yellow.speed_up"
+                ],
+                "exit": [
+                  "exit: yellow.speed_up"
+                ]
+              }
+            },
+            "entry": [
+              "enter: yellow"
+            ],
+            "exit": [
+              "exit: yellow"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TIMER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "entry and exit of a nested transition (2)",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should return the entry and exit actions of a nested transition",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "on": {
+                  "PED_COUNTDOWN": "wait"
+                },
+                "entry": [
+                  "enter: green.walk"
+                ],
+                "exit": [
+                  "exit: green.walk"
+                ]
+              },
+              "wait": {
+                "entry": [
+                  "enter: green.wait"
+                ],
+                "exit": [
+                  "exit: green.wait"
+                ]
+              }
+            },
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "PED_COUNTDOWN"
+          }
+        }
+      ]
+    },
+    {
+      "name": "keep same state unhandled events shallow",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should keep the same state for unhandled events (shallow)",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FAKE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "keep same state unhandled events deep",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should keep the same state for unhandled events (deep)",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "entry": [
+                  "enter: green.walk"
+                ],
+                "exit": [
+                  "exit: green.walk"
+                ]
+              }
+            },
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FAKE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reenter self shallow (2)",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should exit and enter the state for reentering self-transitions (shallow)",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "RESTART": {
+                "target": "green",
+                "reenter": true
+              }
+            },
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "RESTART"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reenter self deep (2)",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should exit and enter the state for reentering self-transitions (deep)",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": {
+            "on": {
+              "RESTART": {
+                "target": "green",
+                "reenter": true
+              }
+            },
+            "initial": "walk",
+            "states": {
+              "walk": {
+                "entry": [
+                  "enter: green.walk"
+                ],
+                "exit": [
+                  "exit: green.walk"
+                ]
+              }
+            },
+            "entry": [
+              "enter: green"
+            ],
+            "exit": [
+              "exit: green"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "RESTART"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exit current enter target unrelated",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should exit current node and enter target node when target is not a descendent or ancestor of current",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "initial": "A1",
+            "states": {
+              "A1": {
+                "on": {
+                  "NEXT": "#sibling_descendant"
+                },
+                "entry": [
+                  "enter: A.A1"
+                ],
+                "exit": [
+                  "exit: A.A1"
+                ]
+              },
+              "A2": {
+                "initial": "A2_child",
+                "states": {
+                  "A2_child": {
+                    "id": "sibling_descendant",
+                    "entry": [
+                      "enter: A.A2.A2_child"
+                    ],
+                    "exit": [
+                      "exit: A.A2.A2_child"
+                    ]
+                  }
+                },
+                "entry": [
+                  "enter: A.A2"
+                ],
+                "exit": [
+                  "exit: A.A2"
+                ]
+              }
+            },
+            "entry": [
+              "enter: A"
+            ],
+            "exit": [
+              "exit: A"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exit current reenter target ancestor",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should exit current node and reenter target node when target is ancestor of current",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "id": "ancestor",
+            "initial": "A1",
+            "states": {
+              "A1": {
+                "on": {
+                  "NEXT": "A2"
+                },
+                "entry": [
+                  "enter: A.A1"
+                ],
+                "exit": [
+                  "exit: A.A1"
+                ]
+              },
+              "A2": {
+                "initial": "A2_child",
+                "states": {
+                  "A2_child": {
+                    "on": {
+                      "NEXT": "#ancestor"
+                    },
+                    "entry": [
+                      "enter: A.A2.A2_child"
+                    ],
+                    "exit": [
+                      "exit: A.A2.A2_child"
+                    ]
+                  }
+                },
+                "entry": [
+                  "enter: A.A2"
+                ],
+                "exit": [
+                  "exit: A.A2"
+                ]
+              }
+            },
+            "entry": [
+              "enter: A"
+            ],
+            "exit": [
+              "exit: A"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "enter all descendants reentering transition",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should enter all descendents when target is a descendent of the source when using an reentering transition",
+      "machine": {
+        "initial": "A",
+        "states": {
+          "A": {
+            "initial": "A1",
+            "on": {
+              "NEXT": {
+                "reenter": true,
+                "target": ".A2"
+              }
+            },
+            "states": {
+              "A1": {
+                "entry": [
+                  "enter: A.A1"
+                ],
+                "exit": [
+                  "exit: A.A1"
+                ]
+              },
+              "A2": {
+                "initial": "A2a",
+                "states": {
+                  "A2a": {
+                    "entry": [
+                      "enter: A.A2.A2a"
+                    ],
+                    "exit": [
+                      "exit: A.A2.A2a"
+                    ]
+                  }
+                },
+                "entry": [
+                  "enter: A.A2"
+                ],
+                "exit": [
+                  "exit: A.A2"
+                ]
+              }
+            },
+            "entry": [
+              "enter: A"
+            ],
+            "exit": [
+              "exit: A"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exit deep descendant default self-transition",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should exit deep descendant during a default self-transition",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EV": "a"
+            },
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "initial": "a11",
+                "states": {
+                  "a11": {
+                    "entry": [
+                      "enter: a.a1.a11"
+                    ],
+                    "exit": [
+                      "exit: a.a1.a11"
+                    ]
+                  }
+                },
+                "entry": [
+                  "enter: a.a1"
+                ],
+                "exit": [
+                  "exit: a.a1"
+                ]
+              }
+            },
+            "entry": [
+              "enter: a"
+            ],
+            "exit": [
+              "exit: a"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EV"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exit deep descendant reentering self-transition",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should exit deep descendant during a reentering self-transition",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "EV": {
+                "target": "a",
+                "reenter": true
+              }
+            },
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "initial": "a11",
+                "states": {
+                  "a11": {
+                    "entry": [
+                      "enter: a.a1.a11"
+                    ],
+                    "exit": [
+                      "exit: a.a1.a11"
+                    ]
+                  }
+                },
+                "entry": [
+                  "enter: a.a1"
+                ],
+                "exit": [
+                  "exit: a.a1"
+                ]
+              }
+            },
+            "entry": [
+              "enter: a"
+            ],
+            "exit": [
+              "exit: a"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EV"
+          }
+        }
+      ]
+    },
+    {
+      "name": "no reenter leaf default self-transition",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should not reenter leaf state during its default self-transition",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "EV": "a1"
+                },
+                "entry": [
+                  "enter: a.a1"
+                ],
+                "exit": [
+                  "exit: a.a1"
+                ]
+              }
+            },
+            "entry": [
+              "enter: a"
+            ],
+            "exit": [
+              "exit: a"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EV"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reenter leaf reentering self-transition",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should reenter leaf state during its reentering self-transition",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "EV": {
+                    "target": "a1",
+                    "reenter": true
+                  }
+                },
+                "entry": [
+                  "enter: a.a1"
+                ],
+                "exit": [
+                  "exit: a.a1"
+                ]
+              }
+            },
+            "entry": [
+              "enter: a"
+            ],
+            "exit": [
+              "exit: a"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EV"
+          }
+        }
+      ]
+    },
+    {
+      "name": "not enter exited state ancestor former descendant",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should not enter exited state when targeting its ancestor and when its former descendant gets selected through initial state",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "id": "parent",
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "EV": "a2"
+                },
+                "entry": [
+                  "enter: a.a1"
+                ],
+                "exit": [
+                  "exit: a.a1"
+                ]
+              },
+              "a2": {
+                "on": {
+                  "EV": "#parent"
+                },
+                "entry": [
+                  "enter: a.a2"
+                ],
+                "exit": [
+                  "exit: a.a2"
+                ]
+              }
+            },
+            "entry": [
+              "enter: a"
+            ],
+            "exit": [
+              "exit: a"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EV"
+          }
+        },
+        {
+          "send": {
+            "type": "EV"
+          }
+        }
+      ]
+    },
+    {
+      "name": "not enter exited state ancestor latter descendant",
+      "test": "actions.test.ts > entry/exit actions > entry/exit actions > should not enter exited state when targeting its ancestor and when its latter descendant gets selected through initial state",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "id": "parent",
+            "initial": "a2",
+            "states": {
+              "a1": {
+                "on": {
+                  "EV": "#parent"
+                },
+                "entry": [
+                  "enter: a.a1"
+                ],
+                "exit": [
+                  "exit: a.a1"
+                ]
+              },
+              "a2": {
+                "on": {
+                  "EV": "a1"
+                },
+                "entry": [
+                  "enter: a.a2"
+                ],
+                "exit": [
+                  "exit: a.a2"
+                ]
+              }
+            },
+            "entry": [
+              "enter: a"
+            ],
+            "exit": [
+              "exit: a"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EV"
+          }
+        },
+        {
+          "send": {
+            "type": "EV"
+          }
+        }
+      ]
+    },
+    {
+      "name": "entry action defined on parallel state",
+      "test": "actions.test.ts > entry/exit actions > parallel states > should return entry action defined on parallel state",
+      "machine": {
+        "initial": "start",
+        "states": {
+          "start": {
+            "on": {
+              "ENTER_PARALLEL": "p1"
+            },
+            "entry": [
+              "enter: start"
+            ],
+            "exit": [
+              "exit: start"
+            ]
+          },
+          "p1": {
+            "type": "parallel",
+            "states": {
+              "nested": {
+                "initial": "inner",
+                "states": {
+                  "inner": {
+                    "entry": [
+                      "enter: p1.nested.inner"
+                    ],
+                    "exit": [
+                      "exit: p1.nested.inner"
+                    ]
+                  }
+                },
+                "entry": [
+                  "enter: p1.nested"
+                ],
+                "exit": [
+                  "exit: p1.nested"
+                ]
+              }
+            },
+            "entry": [
+              "enter: p1"
+            ],
+            "exit": [
+              "exit: p1"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "ENTER_PARALLEL"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reenter parallel region gets reentered",
+      "test": "actions.test.ts > entry/exit actions > parallel states > should reenter parallel region when a parallel state gets reentered while targeting another region",
+      "machine": {
+        "initial": "ready",
+        "states": {
+          "ready": {
+            "type": "parallel",
+            "on": {
+              "FOO": {
+                "target": "#cameraOff",
+                "reenter": true
+              }
+            },
+            "states": {
+              "devicesInfo": {
+                "entry": [
+                  "enter: ready.devicesInfo"
+                ],
+                "exit": [
+                  "exit: ready.devicesInfo"
+                ]
+              },
+              "camera": {
+                "initial": "on",
+                "states": {
+                  "on": {
+                    "entry": [
+                      "enter: ready.camera.on"
+                    ],
+                    "exit": [
+                      "exit: ready.camera.on"
+                    ]
+                  },
+                  "off": {
+                    "id": "cameraOff",
+                    "entry": [
+                      "enter: ready.camera.off"
+                    ],
+                    "exit": [
+                      "exit: ready.camera.off"
+                    ]
+                  }
+                },
+                "entry": [
+                  "enter: ready.camera"
+                ],
+                "exit": [
+                  "exit: ready.camera"
+                ]
+              }
+            },
+            "entry": [
+              "enter: ready"
+            ],
+            "exit": [
+              "exit: ready"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FOO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reenter parallel region is reentered",
+      "test": "actions.test.ts > entry/exit actions > parallel states > should reenter parallel region when a parallel state is reentered while targeting another region",
+      "machine": {
+        "initial": "ready",
+        "states": {
+          "ready": {
+            "type": "parallel",
+            "on": {
+              "FOO": {
+                "target": "#cameraOff",
+                "reenter": true
+              }
+            },
+            "states": {
+              "devicesInfo": {
+                "entry": [
+                  "enter: ready.devicesInfo"
+                ],
+                "exit": [
+                  "exit: ready.devicesInfo"
+                ]
+              },
+              "camera": {
+                "initial": "on",
+                "states": {
+                  "on": {
+                    "entry": [
+                      "enter: ready.camera.on"
+                    ],
+                    "exit": [
+                      "exit: ready.camera.on"
+                    ]
+                  },
+                  "off": {
+                    "id": "cameraOff",
+                    "entry": [
+                      "enter: ready.camera.off"
+                    ],
+                    "exit": [
+                      "exit: ready.camera.off"
+                    ]
+                  }
+                },
+                "entry": [
+                  "enter: ready.camera"
+                ],
+                "exit": [
+                  "exit: ready.camera"
+                ]
+              }
+            },
+            "entry": [
+              "enter: ready"
+            ],
+            "exit": [
+              "exit: ready"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FOO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "parent targetless transition does not exit child",
+      "test": "actions.test.ts > entry/exit actions > targetless transitions > shouldn't exit a state on a parent's targetless transition",
+      "machine": {
+        "initial": "one",
+        "on": {
+          "WHATEVER": {
+            "actions": "noop"
+          }
+        },
+        "states": {
+          "one": {
+            "entry": [
+              "enter: one"
+            ],
+            "exit": [
+              "exit: one"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "WHATEVER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "no exit reenter targetless delayed transition",
+      "test": "actions.test.ts > entry/exit actions > targetless transitions > shouldn't exit (and reenter) state on targetless delayed transition",
+      "machine": {
+        "initial": "one",
+        "states": {
+          "one": {
+            "after": {
+              "10": {
+                "actions": "noop"
+              }
+            },
+            "entry": [
+              "enter: one"
+            ],
+            "exit": [
+              "exit: one"
+            ]
+          }
+        },
+        "entry": [
+          "enter: __root__"
+        ],
+        "exit": [
+          "exit: __root__"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 50
+        }
+      ]
+    },
+    {
+      "name": "exit action called with last received event",
+      "test": "actions.test.ts > entry/exit actions > when stopped > an exit action executed when an interpreter reaches its final state should be called with the last received event",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "type": "final"
+          }
+        },
+        "exit": "exitSpy"
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "initial actions on initial transition",
+      "test": "actions.test.ts > initial actions > should support initial actions",
+      "machine": {
+        "initial": {
+          "target": "a",
+          "actions": "initialA"
+        },
+        "states": {
+          "a": {
+            "entry": "entryA"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "initial actions from transition",
+      "test": "actions.test.ts > initial actions > should support initial actions from transition",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "entry": "entryB",
+            "initial": {
+              "target": "foo",
+              "actions": "initialFoo"
+            },
+            "states": {
+              "foo": {
+                "entry": "entryFoo"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "initial transition actions execute once",
+      "test": "actions.test.ts > initial actions > should execute actions of initial transitions only once when taking an explicit transition",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "initial": {
+              "target": "b_child",
+              "actions": "spy_initial_b"
+            },
+            "states": {
+              "b_child": {
+                "initial": {
+                  "target": "b_granchild",
+                  "actions": "spy_initial_b_child"
+                },
+                "states": {
+                  "b_granchild": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "initial transition actions nested initial states",
+      "test": "actions.test.ts > initial actions > should execute actions of all initial transitions resolving to the initial state value",
+      "machine": {
+        "initial": {
+          "target": "a",
+          "actions": "spy_root"
+        },
+        "states": {
+          "a": {
+            "initial": {
+              "target": "a1",
+              "actions": "spy_inner"
+            },
+            "states": {
+              "a1": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "initial transition actions root reentering self",
+      "test": "actions.test.ts > initial actions > should execute actions of the initial transition when taking a root reentering self-transition",
+      "machine": {
+        "id": "root",
+        "initial": {
+          "target": "a",
+          "actions": "spy"
+        },
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {}
+        },
+        "on": {
+          "REENTER": {
+            "target": "#root",
+            "reenter": true
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "REENTER"
+          }
+        }
+      ]
+    },
+    {
+      "name": "actions not recalled on invalid transition",
+      "test": "actions.test.ts > actions on invalid transition > should not recall previous actions",
+      "machine": {
+        "initial": "idle",
+        "states": {
+          "idle": {
+            "on": {
+              "STOP": {
+                "target": "stop",
+                "actions": "spy"
+              }
+            }
+          },
+          "stop": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "STOP"
+          }
+        },
+        {
+          "send": {
+            "type": "INVALID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "actions referenced via machine options initial state",
+      "test": "actions.test.ts > actions config > should reference actions defined in actions parameter of machine options (initial state)",
+      "machine": {
+        "entry": [
+          "definedAction",
+          {
+            "type": "definedAction"
+          },
+          "undefinedAction"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "action objects referencing custom and assign actions",
+      "test": "actions.test.ts > actions config > should be able to reference action implementations from action objects",
+      "machine": {
+        "initial": "a",
+        "context": {
+          "count": 0
+        },
+        "states": {
+          "a": {
+            "entry": [
+              "definedAction",
+              {
+                "type": "definedAction"
+              },
+              "undefinedAction"
+            ],
+            "on": {
+              "EVENT": {
+                "target": "b",
+                "actions": [
+                  {
+                    "type": "definedAction"
+                  },
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "count",
+                      "value": 10
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "anonymous function actions as custom actions",
+      "test": "actions.test.ts > actions config > should work with anonymous functions (with warning)",
+      "machine": {
+        "id": "anon",
+        "initial": "active",
+        "states": {
+          "active": {
+            "entry": "entryCalled",
+            "exit": "exitCalled",
+            "on": {
+              "EVENT": {
+                "target": "inactive",
+                "actions": "actionCalled"
+              }
+            }
+          },
+          "inactive": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EVENT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "action receives literal params",
+      "test": "actions.test.ts > action meta > should provide the original params",
+      "machine": {
+        "id": "test",
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "entry": {
+              "type": "entryAction",
+              "params": {
+                "value": "something"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "action receives undefined params via string reference",
+      "test": "actions.test.ts > action meta > should provide undefined params when it was configured as string",
+      "machine": {
+        "id": "test",
+        "initial": "foo",
+        "states": {
+          "foo": {
+            "entry": "entryAction"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "raise delayed event to itself",
+      "test": "actions.test.ts > raise > should be able to send a delayed event to itself",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": {
+              "type": "raise1"
+            },
+            "on": {
+              "TO_B": "b"
+            }
+          },
+          "b": {
+            "on": {
+              "EVENT": "c"
+            }
+          },
+          "c": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "raise1": {
+          "kind": "raise",
+          "event": {
+            "type": "EVENT"
+          },
+          "delay": 1
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "TO_B"
+          }
+        },
+        {
+          "advance": 1
+        },
+        {
+          "query": {
+            "matches": "c"
+          }
+        }
+      ]
+    },
+    {
+      "name": "raise delayed event to itself delay zero",
+      "test": "actions.test.ts > raise > should be able to send a delayed event to itself with delay = 0",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": {
+              "type": "raise1"
+            },
+            "on": {
+              "EVENT": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actions": {
+        "raise1": {
+          "kind": "raise",
+          "event": {
+            "type": "EVENT"
+          },
+          "delay": 0
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "matches": "a"
+          }
+        },
+        {
+          "advance": 0
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "raise and respond in same state",
+      "test": "actions.test.ts > raise > should be able to raise an event and respond to it in the same state",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": {
+              "type": "raise1"
+            },
+            "on": {
+              "TO_B": "b"
+            }
+          },
+          "b": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "raise1": {
+          "kind": "raise",
+          "event": {
+            "type": "TO_B"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "raise delayed and respond in same state",
+      "test": "actions.test.ts > raise > should be able to raise a delayed event and respond to it in the same state",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "entry": {
+              "type": "raise1"
+            },
+            "on": {
+              "TO_B": "b"
+            }
+          },
+          "b": {
+            "type": "final"
+          }
+        }
+      },
+      "actions": {
+        "raise1": {
+          "kind": "raise",
+          "event": {
+            "type": "TO_B"
+          },
+          "delay": 100
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "matches": "a"
+          }
+        },
+        {
+          "advance": 100
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "cancel a raised delayed event",
+      "test": "actions.test.ts > cancel > should be possible to cancel a raised delayed event",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": {
+                "actions": {
+                  "type": "raise1"
+                }
+              },
+              "RAISED": "b",
+              "CANCEL": {
+                "actions": {
+                  "type": "cancel1"
+                }
+              }
+            }
+          },
+          "b": {}
+        }
+      },
+      "actions": {
+        "raise1": {
+          "kind": "raise",
+          "event": {
+            "type": "RAISED"
+          },
+          "delay": 1,
+          "id": "myId"
+        },
+        "cancel1": {
+          "kind": "cancel",
+          "id": "myId"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "send": {
+            "type": "CANCEL"
+          }
+        },
+        {
+          "advance": 10
+        },
+        {
+          "query": {
+            "matches": "a"
+          }
+        }
+      ]
+    },
+    {
+      "name": "preserve action order",
+      "test": "actions.test.ts > assign action order > should preserve action order",
+      "machine": {
+        "context": {
+          "count": 0
+        },
+        "entry": [
+          "capture",
+          {
+            "type": "increment",
+            "params": {
+              "key": "count"
+            }
+          },
+          "capture",
+          {
+            "type": "increment",
+            "params": {
+              "key": "count"
+            }
+          },
+          "capture"
+        ]
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "capture context values on subsequent transitions",
+      "test": "actions.test.ts > assign action order > should capture correct context values on subsequent transitions",
+      "machine": {
+        "context": {
+          "counter": 0
+        },
+        "on": {
+          "EV": {
+            "actions": [
+              {
+                "type": "increment",
+                "params": {
+                  "key": "counter"
+                }
+              },
+              "capture"
+            ]
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "EV"
+          }
+        },
+        {
+          "send": {
+            "type": "EV"
+          }
+        }
+      ]
+    },
+    {
+      "name": "transition actions document order parallel regions",
+      "test": "actions.test.ts > actions > should call transition actions in document order for same-level parallel regions",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "a": {
+            "on": {
+              "FOO": {
+                "actions": "a"
+              }
+            }
+          },
+          "b": {
+            "on": {
+              "FOO": {
+                "actions": "b"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FOO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "transition actions document order parallel levels",
+      "test": "actions.test.ts > actions > should call transition actions in document order for states at different levels of parallel regions",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "FOO": {
+                    "actions": "a1"
+                  }
+                }
+              }
+            }
+          },
+          "b": {
+            "on": {
+              "FOO": {
+                "actions": "b"
+              }
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FOO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "inline action responds to initial raise with event",
+      "test": "actions.test.ts > actions > should call an inline action responding to an initial raise with the raised event",
+      "machine": {
+        "entry": {
+          "type": "raise1"
+        },
+        "on": {
+          "HELLO": {
+            "actions": "spy"
+          }
+        }
+      },
+      "actions": {
+        "raise1": {
+          "kind": "raise",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "referenced action responds to initial raise with event",
+      "test": "actions.test.ts > actions > should call a referenced action responding to an initial raise with the raised event",
+      "machine": {
+        "entry": {
+          "type": "raise1"
+        },
+        "on": {
+          "HELLO": {
+            "actions": "foo"
+          }
+        }
+      },
+      "actions": {
+        "raise1": {
+          "kind": "raise",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "inline action sees updated context after initial raise",
+      "test": "actions.test.ts > actions > should call an inline action responding to an initial raise with updated (non-initial) context",
+      "machine": {
+        "context": {
+          "count": 0
+        },
+        "entry": [
+          {
+            "type": "set",
+            "params": {
+              "key": "count",
+              "value": 42
+            }
+          },
+          {
+            "type": "raise1"
+          }
+        ],
+        "on": {
+          "HELLO": {
+            "actions": "spy"
+          }
+        }
+      },
+      "actions": {
+        "raise1": {
+          "kind": "raise",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "referenced action sees updated context after initial raise",
+      "test": "actions.test.ts > actions > should call a referenced action responding to an initial raise with updated (non-initial) context",
+      "machine": {
+        "context": {
+          "count": 0
+        },
+        "entry": [
+          {
+            "type": "set",
+            "params": {
+              "key": "count",
+              "value": 42
+            }
+          },
+          {
+            "type": "raise1"
+          }
+        ],
+        "on": {
+          "HELLO": {
+            "actions": "foo"
+          }
+        }
+      },
+      "actions": {
+        "raise1": {
+          "kind": "raise",
+          "event": {
+            "type": "HELLO"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "inline entry custom action undefined params",
+      "test": "actions.test.ts > actions > should call inline entry custom action with undefined parametrized action object",
+      "machine": {
+        "entry": "spy"
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "inline transition custom action undefined params",
+      "test": "actions.test.ts > actions > should call inline transition custom action with undefined parametrized action object",
+      "machine": {
+        "on": {
+          "FOO": {
+            "actions": "spy"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "FOO"
+          }
+        }
+      ]
+    },
+    {
+      "name": "referenced custom action undefined params string reference",
+      "test": "actions.test.ts > actions > should call a referenced custom action with undefined params when it has no params and it is referenced using a string",
+      "machine": {
+        "entry": "myAction"
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "referenced action undefined params string reference standing in for builtin",
+      "test": "actions.test.ts > actions > should call a referenced builtin action with undefined params when it has no params and it is referenced using a string",
+      "machine": {
+        "entry": "myAction"
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "referenced custom action explicit params object",
+      "test": "actions.test.ts > actions > should call a referenced custom action with the provided parametrized action object",
+      "machine": {
+        "entry": {
+          "type": "myAction",
+          "params": {
+            "foo": "bar"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "referenced action explicit params object standing in for builtin",
+      "test": "actions.test.ts > actions > should call a referenced builtin action with the provided parametrized action object",
+      "machine": {
+        "entry": {
+          "type": "myAction",
+          "params": {
+            "foo": "bar"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "log a string with its label",
+      "test": "actions.test.ts > log() > should log a string (the logger's label and value as the log action's resolved params; the logger's call itself is the actor's and is not recorded)",
+      "machine": {
+        "entry": {
+          "type": "logString"
+        }
+      },
+      "actions": {
+        "logString": {
+          "kind": "log",
+          "value": "some string",
+          "label": "string label"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "raise accepts an event expression",
+      "test": "actions.test.ts > raise > should accept event expression (the expression is a computed event whose type is a $concat of the one literal RAISED, so that XState is handed a function that returns the event)",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": {
+                "actions": {
+                  "type": "raiseExpression"
+                }
+              },
+              "RAISED": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actions": {
+        "raiseExpression": {
+          "kind": "raise",
+          "event": {
+            "type": {
+              "$concat": [
+                "RAISED"
+              ]
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "raise event expression reads the context",
+      "test": "actions.test.ts > raise > should be possible to access context in the event expression",
+      "machine": {
+        "context": {
+          "eventType": "RAISED"
+        },
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": {
+                "actions": {
+                  "type": "raiseFromContext"
+                }
+              },
+              "RAISED": "b"
+            }
+          },
+          "b": {}
+        }
+      },
+      "actions": {
+        "raiseFromContext": {
+          "kind": "raise",
+          "event": {
+            "type": {
+              "$context": "eventType"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "raise of a string fails the initial macrostep",
+      "test": "actions.test.ts > raise > should error if given a string (the failure only, as the initial macrostep's error; the error's message is not in the record)",
+      "machine": {
+        "entry": {
+          "type": "raiseString"
+        }
+      },
+      "actions": {
+        "raiseString": {
+          "kind": "raise",
+          "event": "a string"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "sendTo of a string fails the initial macrostep",
+      "test": "actions.test.ts > sendTo > should error if given a string (the failure only, as the initial macrostep's error; the error's message is not in the record; the fromCallback child, which does nothing, is a host actor, since XState refuses the string before it resolves the target)",
+      "machine": {
+        "invoke": {
+          "id": "child",
+          "src": "child"
+        },
+        "entry": {
+          "type": "sendString"
+        }
+      },
+      "actors": {
+        "child": {
+          "kind": "host"
+        }
+      },
+      "actions": {
+        "sendString": {
+          "kind": "send_to",
+          "target": "child",
+          "event": "a string"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    },
+    {
+      "name": "log an expression computed from the context, with its label",
+      "test": "actions.test.ts > actions.test.ts > log() > should log an expression (the logger's label and value as the log action's resolved params; the logger's call itself is the actor's and is not recorded)",
+      "machine": {
+        "context": {
+          "count": 42
+        },
+        "entry": {
+          "type": "logExpr"
+        }
+      },
+      "actions": {
+        "logExpr": {
+          "kind": "log",
+          "value": {
+            "$concat": [
+              "expr ",
+              {
+                "$context": "count"
+              }
+            ]
+          },
+          "label": "expr label"
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > State.actions > shouldn't use a referenced custom action over a builtin one when there is a naming conflict",
+      "reason": "the test's subject is an inline assign({ assigned: true }) in the config, which XState runs as given and never looks up by its type 'xstate.assign', beside a spy registered under that name; a case's machine names every action by reference, resolved through the implementations by that name (the vocabulary's 'set' is such a reference), so the inline builtin whose type collides with an implementation cannot be written; it would need an inline builtin action in the machine's JSON"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > State.actions > shouldn't use a referenced custom action over an inline one when there is a naming conflict",
+      "reason": "the test's subject is an inline named function (function myFn) as the transition's action, which XState runs as given, beside a spy registered under 'myFn'; a case's machine names every action by reference and JSON cannot hold a function, so a reference to 'myFn' would run the implementation, the opposite of what the test pins; it would need an inline function action in the machine's JSON"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > when reaching a final state > exit actions should be called when invoked machine reaches its final state",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > when stopped > exit actions should not be called when stopping a machine",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > when stopped > stopping an interpreter that receives events from its children exit handlers should not throw",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > when stopped > sent events from exit handlers of a stopped child should not be received by the parent",
+      "reason": "it.skip in XState's own suite"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > when stopped > sent events from exit handlers of a done child should be received by the parent ",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > when stopped > sent events from exit handlers of a stopped child should not be received by its children",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > when stopped > sent events from exit handlers of a done child should be received by its children",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > when stopped > actors spawned in exit handlers of a stopped child should not be started",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > when stopped > should note execute referenced custom actions correctly when stopping an interpreter",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > when stopped > should not execute builtin actions when stopping an interpreter",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > when stopped > should clear all scheduled events when the interpreter gets stopped",
+      "reason": "the action that handles INITIALIZE_SYNC_SEQUENCE sends its own actor two SOME_EVENTs and then stops it while that event is processed, so the stop clears the two from its mailbox and SOME_EVENT's throwing action never runs. The vocabulary can stage this only on a child: the child queues the two with send_to '#_internal' and asks its parent with send_parent to stop it, which the parent does with stop_child, the same _stop() and mailbox.clear() that root.stop() runs (createActor.ts). Measured on XState, that child processes no SOME_EVENT and ends stopped, in either order of the sends, because XState runs the child's deferred sends while the child still processes INITIALIZE_SYNC_SEQUENCE and delivers the send_parent to the idle parent at once, nested there, so the stop clears the two before the child reaches them. xactor queues every delivery in one FIFO, and a child asked to stop first handles the events that arrived before the request (doc: #xstate-invariant-a6 and #differences-interleaving), so xstate would process both SOME_EVENTs. Kept for that divergence; no action stops the root from inside a macrostep, and the stop step stops the root between steps, when its mailbox is empty"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > when stopped > should execute exit actions of the settled state of the last initiated microstep",
+      "reason": "service.stop() is called from inside a transition action while INITIALIZE_SYNC_SEQUENCE is still being processed, and the test asserts which exit and transition actions still run; the core oracle runs XState's pure functions and has no actor to stop, the actor cases' stop step stops the root only between steps, and no declared action stops the actor that is running it (stop_child stops a child). It would need an action that stops its own actor while it executes"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > entry/exit actions > when stopped > should not execute exit actions of the settled state of the last initiated microstep after executing all actions from that microstep",
+      "reason": "service.stop() is called from inside a transition action while INITIALIZE_SYNC_SEQUENCE is still being processed, and the test asserts which exit and transition actions still run; the core oracle runs XState's pure functions and has no actor to stop, the actor cases' stop step stops the root only between steps, and no declared action stops the actor that is running it (stop_child stops a child). It would need an action that stops its own actor while it executes"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > actions config > should reference actions defined in actions parameter of machine options (entry actions)",
+      "reason": "uses machine.provide()"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > action meta > should provide the action with resolved params when they are dynamic",
+      "reason": "params is a function, () => ({ stuff: 100 }) of the actor scope; a case's params reach the action as written, so a computed form there is not evaluated (on XState's side the computed forms are evaluated only inside the vocabulary's assigns and guards, a declared raise's, send_parent's, send_to's or emit's event, a declared spawn_child's id and input, a delay of \"delays\", an invoke's input of \"inputs\" and an output of \"outputs\"; not a case's params), and an action's params computed by a function are outside the vocabulary; it would need params computed when the action resolves"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > action meta > should resolve dynamic params using context value",
+      "reason": "params is a function, ({ context }) => ({ secret: context.secret }); a case's params reach the action as written, so a computed form there is not evaluated (on XState's side the computed forms are evaluated only inside the vocabulary's assigns and guards, a declared raise's, send_parent's, send_to's or emit's event, a declared spawn_child's id and input, a delay of \"delays\", an invoke's input of \"inputs\" and an output of \"outputs\"; not a case's params), and an action's params computed by a function are outside the vocabulary; it would need params computed when the action resolves"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > action meta > should resolve dynamic params using event value",
+      "reason": "params is a function, ({ event }) => ({ secret: event.secret }); a case's params reach the action as written, so a computed form there is not evaluated (on XState's side the computed forms are evaluated only inside the vocabulary's assigns and guards, a declared raise's, send_parent's, send_to's or emit's event, a declared spawn_child's id and input, a delay of \"delays\", an invoke's input of \"inputs\" and an output of \"outputs\"; not a case's params), and an action's params computed by a function are outside the vocabulary; it would need params computed when the action resolves"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > forwardTo() > should forward an event to a service",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > forwardTo() > should forward an event to a service (dynamic)",
+      "reason": "not ported with the actor cases: fixtures/actors/cases/actions.json excludes it. The forward's target is forwardTo(({ context }) => context.child!), the ActorRef an assign stored there from spawn(child, { id: 'x' }), and an actor reference as data is out of scope. A forward by the child's id is the actor cases' port of 'should forward an event to a service' ('forwardTo hands the event to an invoked child, which answers its parent')."
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > forwardTo() > should not cause an infinite loop when forwarding to undefined",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > enqueueActions > should execute a simple referenced action",
+      "reason": "enqueueActions is not ported"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > enqueueActions > should execute multiple different referenced actions",
+      "reason": "enqueueActions is not ported"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > enqueueActions > should execute multiple same referenced actions",
+      "reason": "enqueueActions is not ported"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > enqueueActions > should execute a parameterized action",
+      "reason": "enqueueActions is not ported"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > enqueueActions > should execute a function",
+      "reason": "enqueueActions is not ported"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > enqueueActions > should execute a builtin action using its own action creator",
+      "reason": "enqueueActions is not ported (also uses raise inside enqueue)"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > enqueueActions > should execute a builtin action using its bound action creator",
+      "reason": "enqueueActions is not ported"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > enqueueActions > should execute assigns when resolving the initial snapshot",
+      "reason": "enqueueActions is not ported"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > enqueueActions > should be able to check a simple referenced guard",
+      "reason": "enqueueActions is not ported"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > enqueueActions > should be able to check a parameterized guard",
+      "reason": "enqueueActions is not ported"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > enqueueActions > should provide self",
+      "reason": "enqueueActions is not ported"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > enqueueActions > should be able to communicate with the parent using params",
+      "reason": "not ported with the actor cases: fixtures/actors/cases/actions.json excludes it. enqueueActions is not ported. The child also sends to its parent's self, which the parent passes as the invoke's input through the function ({ self }) => ({ parent: self }) and the child keeps in its context, and an actor reference as data is out of scope."
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > enqueueActions > should enqueue.sendParent",
+      "reason": "not ported with the actor cases: fixtures/actors/cases/actions.json excludes it. The child's entry is enqueue.sendParent inside an enqueueActions, and enqueueActions is not ported. A plain send_parent entry would test sendParent, not enqueueActions."
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > sendParent > TS: should compile for any event",
+      "reason": "TypeScript compile-check test ('TS: should compile'); the only runtime assertion is trivial truthiness, not meaningful for the port"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > sendTo > should be able to send an event to an actor",
+      "reason": "not ported in either case file: the target is the ActorRef the context function spawned and holds, sendTo(({ context }) => context.child, { type: 'EVENT' }); a context that spawns and an actor reference as data are out of scope. fixtures/actors/cases/actions.json excludes it for the same reason; its case 'a sendTo by id reaches a child the root's entry spawned' ports the named-actor variant."
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > sendTo > should be able to send an event from expression to an actor",
+      "reason": "not ported in either case file: the target is the ActorRef the context function spawned and holds, sendTo(({ context }) => context.child, ...), an actor reference as data, which is out of scope. The event expression alone is now expressible as a computed send_to event, {\"type\": \"EVENT\", \"count\": {\"$context\": \"count\"}}, but not the target it is sent to. fixtures/actors/cases/actions.json excludes it too, for the same reason."
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > sendTo > should report a type error for an invalid event",
+      "reason": "TypeScript's type checker: the test only creates a machine whose sendTo names an event the child does not accept (@ts-expect-error) and never runs it. fixtures/actors/cases/actions.json excludes it for the same reason."
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > sendTo > should be able to send an event to a named actor",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > sendTo > should be able to send an event directly to an ActorRef",
+      "reason": "not ported in either case file: the test's subject is a sendTo whose target is the ActorRef the context function spawned and holds, sendTo(({ context }) => context.child, { type: 'EVENT' }); a context that spawns and an actor reference as data are out of scope. fixtures/actors/cases/actions.json excludes it for the same reason."
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > sendTo > should be able to read from event",
+      "reason": "not ported in either case file: fromCallback is not ported (out of scope for the actor layer), and the callback's receive is the assertion; the target is also read from the context by a member of the event, context[event.value], an ActorRef the context function spawned (an actor reference as data is out of scope). fixtures/actors/cases/actions.json excludes it for the same reasons."
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > sendTo > a self-event \"handler\" of an event sent using sendTo should be able to read updated snapshot of self",
+      "reason": "reads self.getSnapshot() from inside an action; not expressible via the vocabulary, which has no action that queries self"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > sendTo > should not attempt to deliver a delayed event to the spawned actor's ID that was stopped since the event was scheduled",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > sendTo > should not attempt to deliver a delayed event to the invoked actor's ID that was stopped since the event was scheduled",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > cancel > should cancel only the delayed event in the machine that scheduled it when canceling the event with the same ID in the machine that sent it first",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > cancel > should cancel only the delayed event in the machine that scheduled it when canceling the event with the same ID in the machine that sent it second",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > cancel > should not try to clear an undefined timeout when canceling an unscheduled timer",
+      "reason": "asserts that the clock's clearTimeout is never called, through a custom clock handed to createActor; a case has no clock of its own (the actor oracle runs XState's SimulatedClock, the core oracle a scheduler of its own), neither oracle records the calls an actor makes to its clock, and a cancel of an id never scheduled changes no event, snapshot or status; it would need a record of the clock's setTimeout and clearTimeout calls"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > cancel > should be able to cancel a just scheduled delayed event to a just invoked child",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > cancel > should not be able to cancel a just scheduled non-delayed event to a just invoked child",
+      "reason": "ported with the actor cases, fixtures/actors/cases/actions.json"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > assign action order > should deeply preserve action order",
+      "reason": "enqueueActions is not ported"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > types > assign actions should be inferred correctly",
+      "reason": "TypeScript-only test (ts-expect-error assertions); no runtime behavior"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > action meta > base action objects should have meta.action as the same base action object",
+      "reason": "it.todo in XState's own suite"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > action meta > should provide self",
+      "reason": "asserts that self.send is defined from inside an inline action; not expressible via the vocabulary (no action exposes self)"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > actions > should call inline entry builtin action with undefined parametrized action object",
+      "reason": "asserts the params an inline assign(fn) in entry receives (undefined); a case's assign is one of the vocabulary's named assigns, each of which fails without params (set, set_computed, increment, push, push_event and set_from_event need a key, fail always throws), and an assign is resolved rather than executed, so neither oracle records the params it received; it would need an assign that takes no params and writes into the context whether it received any, named by a string as the custom-action ports stand a string for an inline function"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > actions > should call inline transition builtin action with undefined parameters",
+      "reason": "asserts the params an inline assign(fn) on a transition receives (undefined); a case's assign is one of the vocabulary's named assigns, each of which fails without params (set, set_computed, increment, push, push_event and set_from_event need a key, fail always throws), and an assign is resolved rather than executed, so neither oracle records the params it received; it would need an assign that takes no params and writes into the context whether it received any, named by a string as the custom-action ports stand a string for an inline function"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > actions > should warn if called in custom action",
+      "reason": "asserts the console.warn messages XState's development build writes when a custom action calls assign(), raise(), sendTo() and emit() itself; a case's custom action is handed to the oracle's callback and runs no code of the case, so nothing can call an action creator from inside one, and neither oracle records console output; it would need a custom action that calls action creators imperatively and a record of console.warn"
+    },
+    {
+      "test": "actions.test.ts > actions.test.ts > actions > inline actions should not leak into provided actions object",
+      "reason": "asserts that createMachine does not add the inline entry function to the actions object the test passes as its implementations, a property of XState's JavaScript API: a case provides no implementations object of its own (the oracles build the vocabulary's table), cannot hold an inline function, and no record shows the implementations after the machine is created; it would need a case-provided implementations object and a step that reads it back"
+    }
+  ]
+}

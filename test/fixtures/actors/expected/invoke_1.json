@@ -1,0 +1,550 @@
+{
+  "source": "invoke.test.ts (lines 1 to 414)",
+  "cases": [
+    {
+      "name": "a child answers one forwarded event with three events to its parent",
+      "steps": [
+        {
+          "actors": {
+            "root/someService": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "init",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.init"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {
+                      "count": 0
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.start"
+                    ],
+                    "children": {
+                      "someService": "child"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/someService": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/someService": {
+              "events": [
+                {
+                  "event": {
+                    "type": "FORWARD_DEC"
+                  },
+                  "snapshot": {
+                    "value": "init",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.init"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "FORWARD_DEC"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {
+                      "count": 0
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.start"
+                    ],
+                    "children": {
+                      "someService": "child"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "DEC"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {
+                      "count": -1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.start"
+                    ],
+                    "children": {
+                      "someService": "child"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "DEC"
+                  },
+                  "snapshot": {
+                    "value": "start",
+                    "context": {
+                      "count": -2
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.start"
+                    ],
+                    "children": {
+                      "someService": "child"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "DEC"
+                  },
+                  "snapshot": {
+                    "value": "stop",
+                    "context": {
+                      "count": -3
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "parent.stop",
+                      "parent"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/someService": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an invoked machine started from a fixed input reaches its final state, and the fixed output it declares passes its parent's onDone guard",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {
+                      "selectedUserId": "42"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "fetcher",
+                      "fetcher.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/0.fetcher.waiting": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": {
+                      "userId": "42"
+                    }
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {
+                      "userId": "42",
+                      "user": {
+                        "name": "David"
+                      }
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "fetch.success",
+                      "fetch"
+                    ],
+                    "output": {
+                      "user": {
+                        "name": "David"
+                      }
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "GO_TO_WAITING"
+                  },
+                  "snapshot": {
+                    "value": "waiting",
+                    "context": {
+                      "selectedUserId": "42"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "fetcher",
+                      "fetcher.waiting"
+                    ],
+                    "children": {
+                      "0.fetcher.waiting": "fetch"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.fetcher.waiting",
+                    "output": {
+                      "user": {
+                        "name": "David"
+                      }
+                    },
+                    "actorId": "0.fetcher.waiting"
+                  },
+                  "snapshot": {
+                    "value": "received",
+                    "context": {
+                      "selectedUserId": "42"
+                    },
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "fetcher.received",
+                      "fetcher"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.fetcher.waiting": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an invoked machine that raises its way to its final state completes its parent",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/0.(machine).waiting": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).success",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "GO_TO_WAITING"
+                  },
+                  "snapshot": {
+                    "value": "waiting",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "(machine)",
+                      "(machine).waiting"
+                    ],
+                    "children": {
+                      "0.(machine).waiting": "child"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.done.actor.0.(machine).waiting",
+                    "actorId": "0.(machine).waiting"
+                  },
+                  "snapshot": {
+                    "value": "received",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "(machine).received",
+                      "(machine)"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.(machine).waiting": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child's entry sendParent takes its parent to its final state",
+      "steps": [
+        {
+          "actors": {
+            "root/0.machine-invoke.pending": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "sending",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.sending"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "pending",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "machine-invoke",
+                      "machine-invoke.pending"
+                    ],
+                    "children": {
+                      "0.machine-invoke.pending": "child"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "SUCCESS",
+                    "data": 42
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "machine-invoke.success",
+                      "machine-invoke"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.machine-invoke.pending": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a child invoked by a nested state reaches the root's transition through sendParent",
+      "steps": [
+        {
+          "actors": {
+            "root/0.parent.a.b": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "sending",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "child",
+                      "child.sending"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {
+                      "a": "b"
+                    },
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "parent",
+                      "parent.a",
+                      "parent.a.b"
+                    ],
+                    "children": {
+                      "0.parent.a.b": "child"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "SUCCESS",
+                    "data": 42
+                  },
+                  "snapshot": {
+                    "value": "success",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "success",
+                      "parent"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "done",
+            "root/0.parent.a.b": "stopped"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,3203 @@
+{
+  "source": "actions that name actors, through the pure functions",
+  "cases": [
+    {
+      "name": "spawnChild adds a child, stopChild removes it",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "SPAWN": [
+                {
+                  "actions": [
+                    "spawn_kid"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "SPAWN"
+                }
+              ],
+              "STOP": [
+                {
+                  "actions": [
+                    "stop_kid"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "STOP"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "spawn_kid"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "SPAWN"
+              },
+              {
+                "actions": [
+                  "stop_kid"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "STOP"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "SPAWN"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "SPAWN"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "src": "child",
+                    "input": {
+                      "n": 1
+                    }
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "STOP"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "STOP"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.stopChild",
+                  "params": {
+                    "id": "kid"
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "STOP"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "STOP"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.stopChild"
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "spawnChild's input is read from the context as the earlier actions left it",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "SPAWN": [
+                {
+                  "actions": [
+                    {
+                      "type": "set",
+                      "params": {
+                        "key": "n",
+                        "value": 5
+                      }
+                    },
+                    "spawn_kid"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "SPAWN"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  {
+                    "type": "set",
+                    "params": {
+                      "key": "n",
+                      "value": 5
+                    }
+                  },
+                  "spawn_kid"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "SPAWN"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {
+                  "n": 0
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "SPAWN"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "SPAWN"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "systemId": "worker",
+                    "src": "child",
+                    "input": 5
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {
+                  "n": 5
+                },
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "spawnChild under an id already there replaces the child in place",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "AGAIN": [
+                {
+                  "actions": [
+                    "spawn_other"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "AGAIN"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "spawn_other"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "AGAIN"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [
+              {
+                "src": "child",
+                "id": "first",
+                "type": "xstate.invoke"
+              },
+              {
+                "src": "child",
+                "id": "kid",
+                "type": "xstate.invoke"
+              }
+            ],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "first",
+                    "src": "child"
+                  }
+                },
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "src": "child"
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ],
+                "children": {
+                  "first": "child",
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "AGAIN"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "AGAIN"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "src": "other"
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ],
+                "children": {
+                  "first": "child",
+                  "kid": "other"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sendTo a child by its id and by #_ and its id",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "PING": [
+                {
+                  "actions": [
+                    "send_plain",
+                    "send_hash"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "PING"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "send_plain",
+                  "send_hash"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "PING"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [
+              {
+                "src": "child",
+                "id": "kid",
+                "type": "xstate.invoke"
+              }
+            ],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "src": "child"
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "PING"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "PING"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.sendTo",
+                  "params": {
+                    "targetId": "kid",
+                    "event": {
+                      "type": "HELLO",
+                      "n": 1
+                    }
+                  }
+                },
+                {
+                  "type": "xstate.sendTo",
+                  "params": {
+                    "targetId": "#_kid",
+                    "event": {
+                      "type": "HELLO",
+                      "n": 2
+                    }
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sendTo with an id and a delay, by number and by name",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "PING": [
+                {
+                  "actions": [
+                    "send_later",
+                    "send_named",
+                    "send_unknown"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "PING"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "send_later",
+                  "send_named",
+                  "send_unknown"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "PING"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [
+              {
+                "src": "child",
+                "id": "kid",
+                "type": "xstate.invoke"
+              }
+            ],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "src": "child"
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "PING"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "PING"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.sendTo",
+                  "params": {
+                    "targetId": "kid",
+                    "event": {
+                      "type": "LATER"
+                    },
+                    "id": "later",
+                    "delay": 100
+                  }
+                },
+                {
+                  "type": "xstate.sendTo",
+                  "params": {
+                    "targetId": "kid",
+                    "event": {
+                      "type": "NAMED"
+                    },
+                    "delay": 10
+                  }
+                },
+                {
+                  "type": "xstate.sendTo",
+                  "params": {
+                    "targetId": "kid",
+                    "event": {
+                      "type": "NOW"
+                    }
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sendTo the machine itself and its parent",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "PING": [
+                {
+                  "actions": [
+                    "send_self",
+                    "send_parent"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "PING"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "send_self",
+                  "send_parent"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "PING"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "PING"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "PING"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.sendTo",
+                  "params": {
+                    "targetId": "#_internal",
+                    "event": {
+                      "type": "SELF"
+                    }
+                  }
+                },
+                {
+                  "type": "xstate.sendTo",
+                  "params": {
+                    "targetId": "#_parent",
+                    "event": {
+                      "type": "UP"
+                    }
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sendTo a child that does not exist fails the macrostep",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "PING": [
+                {
+                  "actions": [
+                    "send_nope"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "PING"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "send_nope"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "PING"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "sendTo #_ and a child that does not exist fails the macrostep",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "PING": [
+                {
+                  "actions": [
+                    "send_nope"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "PING"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "send_nope"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "PING"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "an entry sendTo to its own state's invoke resolves before the spawn",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "GO": [
+                {
+                  "target": [
+                    "#m.b"
+                  ],
+                  "actions": [],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "GO"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#m.b"
+                ],
+                "actions": [],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "GO"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "b": {
+            "id": "m.b",
+            "key": "b",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.b",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "send_kid"
+              }
+            ],
+            "exit": [],
+            "order": 2,
+            "invoke": [
+              {
+                "src": "child",
+                "id": "kid",
+                "type": "xstate.invoke"
+              }
+            ],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "GO"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "GO",
+                  "target": [
+                    "#m.b"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.sendTo",
+                  "params": {
+                    "targetId": "kid",
+                    "event": {
+                      "type": "HELLO"
+                    }
+                  }
+                },
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "src": "child"
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "b",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.b"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an initial entry sendTo to its own state's invoke resolves",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "send_kid"
+              }
+            ],
+            "exit": [],
+            "order": 1,
+            "invoke": [
+              {
+                "src": "child",
+                "id": "kid",
+                "type": "xstate.invoke"
+              }
+            ],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "xstate.sendTo",
+                  "params": {
+                    "targetId": "kid",
+                    "event": {
+                      "type": "HELLO"
+                    }
+                  }
+                },
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "src": "child"
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an entry sendTo with #_ to its own state's invoke fails",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "GO": [
+                {
+                  "target": [
+                    "#m.b"
+                  ],
+                  "actions": [],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "GO"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#m.b"
+                ],
+                "actions": [],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "GO"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "b": {
+            "id": "m.b",
+            "key": "b",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.b",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "send_kid"
+              }
+            ],
+            "exit": [],
+            "order": 2,
+            "invoke": [
+              {
+                "src": "child",
+                "id": "kid",
+                "type": "xstate.invoke"
+              }
+            ],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "a transition's sendTo to its target's invoke fails",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "GO": [
+                {
+                  "target": [
+                    "#m.b"
+                  ],
+                  "actions": [
+                    "send_kid"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "GO"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#m.b"
+                ],
+                "actions": [
+                  "send_kid"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "GO"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "b": {
+            "id": "m.b",
+            "key": "b",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.b",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [
+              {
+                "src": "child",
+                "id": "kid",
+                "type": "xstate.invoke"
+              }
+            ],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "a parent's entry sendTo to a child state's invoke fails",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "GO": [
+                {
+                  "target": [
+                    "#m.p"
+                  ],
+                  "actions": [],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "GO"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#m.p"
+                ],
+                "actions": [],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "GO"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "p": {
+            "id": "m.p",
+            "key": "p",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#m.p.q"
+              ],
+              "source": "#m.p",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "q": {
+                "id": "m.p.q",
+                "key": "q",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#m.p.q",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [],
+                "exit": [],
+                "order": 3,
+                "invoke": [
+                  {
+                    "src": "child",
+                    "id": "kid",
+                    "type": "xstate.invoke"
+                  }
+                ],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [
+              {
+                "type": "send_kid"
+              }
+            ],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "a child state's entry sendTo to its parent's invoke resolves",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "GO": [
+                {
+                  "target": [
+                    "#m.p"
+                  ],
+                  "actions": [],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "GO"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#m.p"
+                ],
+                "actions": [],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "GO"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "p": {
+            "id": "m.p",
+            "key": "p",
+            "type": "compound",
+            "initial": {
+              "target": [
+                "#m.p.q"
+              ],
+              "source": "#m.p",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {
+              "q": {
+                "id": "m.p.q",
+                "key": "q",
+                "type": "atomic",
+                "initial": {
+                  "target": [],
+                  "source": "#m.p.q",
+                  "actions": [],
+                  "eventType": null
+                },
+                "history": false,
+                "states": {},
+                "on": {},
+                "transitions": [],
+                "entry": [
+                  {
+                    "type": "send_kid"
+                  }
+                ],
+                "exit": [],
+                "order": 3,
+                "invoke": [],
+                "tags": []
+              }
+            },
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [
+              {
+                "src": "child",
+                "id": "kid",
+                "type": "xstate.invoke"
+              }
+            ],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "GO"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "GO",
+                  "target": [
+                    "#m.p"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "src": "child"
+                  }
+                },
+                {
+                  "type": "xstate.sendTo",
+                  "params": {
+                    "targetId": "kid",
+                    "event": {
+                      "type": "HELLO"
+                    }
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": {
+                  "p": "q"
+                },
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.p",
+                  "m.p.q"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an exit sendTo to its own state's invoke comes before the stop",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "GO": [
+                {
+                  "target": [
+                    "#m.b"
+                  ],
+                  "actions": [],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "GO"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#m.b"
+                ],
+                "actions": [],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "GO"
+              }
+            ],
+            "entry": [],
+            "exit": [
+              {
+                "type": "send_kid"
+              }
+            ],
+            "order": 1,
+            "invoke": [
+              {
+                "src": "child",
+                "id": "kid",
+                "type": "xstate.invoke"
+              }
+            ],
+            "tags": []
+          },
+          "b": {
+            "id": "m.b",
+            "key": "b",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.b",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "src": "child"
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "GO"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "GO",
+                  "target": [
+                    "#m.b"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.sendTo",
+                  "params": {
+                    "targetId": "kid",
+                    "event": {
+                      "type": "BYE"
+                    }
+                  }
+                },
+                {
+                  "type": "xstate.stopChild",
+                  "params": {
+                    "id": "kid"
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "b",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.b"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a sendTo after a spawn of the same actions finds the child",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "GO": [
+                {
+                  "actions": [
+                    "spawn_kid",
+                    "send_kid"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "GO"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "spawn_kid",
+                  "send_kid"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "GO"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "GO"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "GO"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "src": "child"
+                  }
+                },
+                {
+                  "type": "xstate.sendTo",
+                  "params": {
+                    "targetId": "kid",
+                    "event": {
+                      "type": "HELLO"
+                    }
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a sendTo before a spawn of the same actions fails",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "GO": [
+                {
+                  "actions": [
+                    "send_kid",
+                    "spawn_kid"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "GO"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "send_kid",
+                  "spawn_kid"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "GO"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "forwardTo sends the microstep's event to a child",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "FWD": [
+                {
+                  "actions": [
+                    "forward",
+                    "forward_later"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "FWD"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "forward",
+                  "forward_later"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "FWD"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [
+              {
+                "src": "child",
+                "id": "kid",
+                "type": "xstate.invoke"
+              }
+            ],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "src": "child"
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "FWD",
+                "x": 1
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "FWD"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.sendTo",
+                  "params": {
+                    "targetId": "kid",
+                    "event": {
+                      "type": "FWD",
+                      "x": 1
+                    }
+                  }
+                },
+                {
+                  "type": "xstate.sendTo",
+                  "params": {
+                    "targetId": "kid",
+                    "event": {
+                      "type": "FWD",
+                      "x": 1
+                    },
+                    "id": "f",
+                    "delay": 5
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "forwardTo a child that does not exist fails",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "FWD": [
+                {
+                  "actions": [
+                    "forward"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "FWD"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "forward"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "FWD"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "emit returns its event",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "GO": [
+                {
+                  "actions": [
+                    "emit_go"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "GO"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "emit_go"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "GO"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [
+          {
+            "type": "emit_hello"
+          }
+        ],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "xstate.emit",
+                  "params": {
+                    "event": {
+                      "type": "HELLO"
+                    }
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "GO"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "GO"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.emit",
+                  "params": {
+                    "event": {
+                      "type": "WENT",
+                      "n": 1
+                    }
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "stopChild of an invoked child leaves its state's stop without one",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "STOP": [
+                {
+                  "actions": [
+                    "stop_kid"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "STOP"
+                }
+              ],
+              "LEAVE": [
+                {
+                  "target": [
+                    "#m.b"
+                  ],
+                  "actions": [],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "LEAVE"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "actions": [
+                  "stop_kid"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "STOP"
+              },
+              {
+                "target": [
+                  "#m.b"
+                ],
+                "actions": [],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "LEAVE"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [
+              {
+                "src": "child",
+                "id": "kid",
+                "type": "xstate.invoke"
+              }
+            ],
+            "tags": []
+          },
+          "b": {
+            "id": "m.b",
+            "key": "b",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.b",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "src": "child"
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "STOP"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "STOP"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.stopChild",
+                  "params": {
+                    "id": "kid"
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "LEAVE"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "LEAVE",
+                  "target": [
+                    "#m.b"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.stopChild"
+                }
+              ],
+              "snapshot": {
+                "value": "b",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.b"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a spawned child is stopped when the machine is done",
+      "definition": {
+        "id": "m",
+        "key": "m",
+        "type": "compound",
+        "initial": {
+          "target": [
+            "#m.a"
+          ],
+          "source": "#m",
+          "actions": [],
+          "eventType": null
+        },
+        "history": false,
+        "states": {
+          "a": {
+            "id": "m.a",
+            "key": "a",
+            "type": "atomic",
+            "initial": {
+              "target": [],
+              "source": "#m.a",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {
+              "GO": [
+                {
+                  "target": [
+                    "#m.f"
+                  ],
+                  "actions": [
+                    "spawn_kid"
+                  ],
+                  "source": "#m.a",
+                  "reenter": false,
+                  "eventType": "GO"
+                }
+              ]
+            },
+            "transitions": [
+              {
+                "target": [
+                  "#m.f"
+                ],
+                "actions": [
+                  "spawn_kid"
+                ],
+                "source": "#m.a",
+                "reenter": false,
+                "eventType": "GO"
+              }
+            ],
+            "entry": [],
+            "exit": [],
+            "order": 1,
+            "invoke": [],
+            "tags": []
+          },
+          "f": {
+            "id": "m.f",
+            "key": "f",
+            "type": "final",
+            "initial": {
+              "target": [],
+              "source": "#m.f",
+              "actions": [],
+              "eventType": null
+            },
+            "history": false,
+            "states": {},
+            "on": {},
+            "transitions": [],
+            "entry": [],
+            "exit": [],
+            "order": 2,
+            "invoke": [],
+            "tags": []
+          }
+        },
+        "on": {},
+        "transitions": [],
+        "entry": [],
+        "exit": [],
+        "order": -1,
+        "invoke": [],
+        "tags": []
+      },
+      "steps": [
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "xstate.init"
+              },
+              "transitions": null,
+              "actions": [],
+              "snapshot": {
+                "value": "a",
+                "context": {},
+                "status": "active",
+                "tags": [],
+                "nodes": [
+                  "m",
+                  "m.a"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "microsteps": [
+            {
+              "event": {
+                "type": "GO"
+              },
+              "transitions": [
+                {
+                  "source": "#m.a",
+                  "eventType": "GO",
+                  "target": [
+                    "#m.f"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "xstate.spawnChild",
+                  "params": {
+                    "id": "kid",
+                    "src": "child",
+                    "input": {
+                      "n": 1
+                    }
+                  }
+                }
+              ],
+              "snapshot": {
+                "value": "f",
+                "context": {},
+                "status": "done",
+                "tags": [],
+                "nodes": [
+                  "m.f",
+                  "m"
+                ],
+                "children": {
+                  "kid": "child"
+                }
+              }
+            }
+          ],
+          "trailing": [
+            {
+              "type": "xstate.stopChild",
+              "params": {
+                "id": "kid"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

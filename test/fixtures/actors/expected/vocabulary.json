@@ -1,0 +1,1778 @@
+{
+  "source": "the cases' own vocabulary and oracle, against XState: findings 30 to 33 of the review of the actor layer",
+  "cases": [
+    {
+      "name": "a guard that fails in a child reaches its parent as implementation_failed",
+      "steps": [
+        {
+          "actors": {
+            "root/kid": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "picky"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "picky"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.kid",
+                    "error": "implementation_failed",
+                    "actorId": "kid"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "reason": "implementation_failed"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "picky"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a context that cannot be made from a missing input reaches the parent as implementation_failed",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "needs_input"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.error.actor.kid",
+                    "error": "implementation_failed",
+                    "actorId": "kid"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "reason": "implementation_failed"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "needs_input"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a context made from an input that is not an object lacks the members it would take",
+      "steps": [
+        {
+          "actors": {
+            "root/number": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": 5
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "needs_input"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/list": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": [
+                      1,
+                      2
+                    ]
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "needs_input"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "number": "needs_input",
+                      "list": "needs_input"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/number": "active",
+            "root/list": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "set_from_event copies a member that is null",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "k": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "E",
+                    "v": null
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "k": null
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "host requests are listed and answered in the order of their actors' keys, whatever their depth",
+      "steps": [
+        {
+          "actors": {
+            "root/m": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "m"
+                    ],
+                    "children": {
+                      "b": "fetch"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "a": "fetch",
+                      "m": "m",
+                      "c": "fetch"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/a": "active",
+            "root/m": "active",
+            "root/m/b": "active",
+            "root/c": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/a",
+              "src": "fetch"
+            },
+            {
+              "actor": "root/c",
+              "src": "fetch"
+            },
+            {
+              "actor": "root/m/b",
+              "src": "fetch"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.a",
+                    "output": 1,
+                    "actorId": "a"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "a": "fetch",
+                      "m": "m",
+                      "c": "fetch"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/a": "done",
+            "root/m": "active",
+            "root/m/b": "active",
+            "root/c": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/c",
+              "src": "fetch"
+            },
+            {
+              "actor": "root/m/b",
+              "src": "fetch"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.c",
+                    "output": 2,
+                    "actorId": "c"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "a": "fetch",
+                      "m": "m",
+                      "c": "fetch"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/a": "done",
+            "root/m": "active",
+            "root/m/b": "active",
+            "root/c": "done"
+          },
+          "requests": [
+            {
+              "actor": "root/m/b",
+              "src": "fetch"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root/m": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.b",
+                    "output": 3,
+                    "actorId": "b"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "m"
+                    ],
+                    "children": {
+                      "b": "fetch"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/a": "done",
+            "root/m": "active",
+            "root/m/b": "done",
+            "root/c": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "requests whose actors nested deliveries create in another order are listed and answered by key",
+      "steps": [
+        {
+          "actors": {
+            "root/a/x": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/a": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "relay"
+                    ],
+                    "children": {
+                      "x": "worker"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/b": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "idle",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.idle"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "a": "relay",
+                      "b": "worker"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/a": "active",
+            "root/a/x": "active",
+            "root/b": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root/a/x": {
+              "events": [
+                {
+                  "event": {
+                    "type": "PING"
+                  },
+                  "snapshot": {
+                    "value": "busy",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.busy"
+                    ],
+                    "children": {
+                      "job": "job"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/a": {
+              "events": [
+                {
+                  "event": {
+                    "type": "PING"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "relay"
+                    ],
+                    "children": {
+                      "x": "worker"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/b": {
+              "events": [
+                {
+                  "event": {
+                    "type": "PING"
+                  },
+                  "snapshot": {
+                    "value": "busy",
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "worker",
+                      "worker.busy"
+                    ],
+                    "children": {
+                      "job": "job"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "GO"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "a": "relay",
+                      "b": "worker"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/a": "active",
+            "root/a/x": "active",
+            "root/b": "active",
+            "root/a/x/job": "active",
+            "root/b/job": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/a/x/job",
+              "src": "job"
+            },
+            {
+              "actor": "root/b/job",
+              "src": "job"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root/a": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.x",
+                    "actorId": "x"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "relay"
+                    ],
+                    "children": {
+                      "x": "worker"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/a/x": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.job",
+                    "output": 1,
+                    "actorId": "job"
+                  },
+                  "snapshot": {
+                    "value": "done",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "worker.done",
+                      "worker"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/a": "active",
+            "root/a/x": "done",
+            "root/b": "active",
+            "root/a/x/job": "done",
+            "root/b/job": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/b/job",
+              "src": "job"
+            }
+          ]
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.b",
+                    "actorId": "b"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "a": "relay",
+                      "b": "worker"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/b": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.done.actor.job",
+                    "output": 2,
+                    "actorId": "job"
+                  },
+                  "snapshot": {
+                    "value": "done",
+                    "context": {},
+                    "status": "done",
+                    "tags": [],
+                    "nodes": [
+                      "worker.done",
+                      "worker"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/a": "active",
+            "root/a/x": "done",
+            "root/b": "done",
+            "root/a/x/job": "done",
+            "root/b/job": "done"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a higher-order guard over a failing guard reaches the parent as implementation_failed",
+      "steps": [
+        {
+          "actors": {
+            "root/kid": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "picky"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "kid_logic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.kid",
+                    "error": "implementation_failed",
+                    "actorId": "kid"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "reason": "implementation_failed"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "kid_logic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "increment of a key the context lacks fails",
+      "steps": [
+        {
+          "actors": {
+            "root/kid": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "counting"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "kid_logic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.kid",
+                    "error": "implementation_failed",
+                    "actorId": "kid"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "reason": "implementation_failed"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "kid_logic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "push onto text fails",
+      "steps": [
+        {
+          "actors": {
+            "root/kid": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "k": "ab"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "listing"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "kid_logic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.kid",
+                    "error": "implementation_failed",
+                    "actorId": "kid"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "reason": "implementation_failed"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "kid_logic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "context_at_least of a key the context lacks fails",
+      "steps": [
+        {
+          "actors": {
+            "root/kid": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "measuring"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "kid_logic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.kid",
+                    "error": "implementation_failed",
+                    "actorId": "kid"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "reason": "implementation_failed"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "kid_logic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "set without a value fails",
+      "steps": [
+        {
+          "actors": {
+            "root/kid": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "setting"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "kid_logic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.kid",
+                    "error": "implementation_failed",
+                    "actorId": "kid"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "reason": "implementation_failed"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "kid_logic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "an entry named without params fails",
+      "steps": [
+        {
+          "actors": {
+            "root/kid": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "bare"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "kid_logic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.error.actor.kid",
+                    "error": "implementation_failed",
+                    "actorId": "kid"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "reason": "implementation_failed"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "kid_logic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "error"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "context_equals compares as JSON.stringify writes: 1 and 1.0 alike, key order and null against a missing key told apart",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": "s",
+                    "context": {
+                      "n": 1,
+                      "o": {
+                        "a": 1,
+                        "b": 2
+                      },
+                      "z": null
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.s"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "INT"
+                  },
+                  "snapshot": {
+                    "value": "s",
+                    "context": {
+                      "n": 1,
+                      "o": {
+                        "a": 1,
+                        "b": 2
+                      },
+                      "z": null,
+                      "int": true
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.s"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "ORDER"
+                  },
+                  "snapshot": {
+                    "value": "s",
+                    "context": {
+                      "n": 1,
+                      "o": {
+                        "a": 1,
+                        "b": 2
+                      },
+                      "z": null,
+                      "int": true
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.s"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "NULL"
+                  },
+                  "snapshot": {
+                    "value": "s",
+                    "context": {
+                      "n": 1,
+                      "o": {
+                        "a": 1,
+                        "b": 2
+                      },
+                      "z": null,
+                      "int": true
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.s"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        },
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "BOTH"
+                  },
+                  "snapshot": {
+                    "value": "s",
+                    "context": {
+                      "n": 1,
+                      "o": {
+                        "a": 1,
+                        "b": 2
+                      },
+                      "z": null,
+                      "int": true,
+                      "both": true
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root",
+                      "root.s"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a host given a null input is asked with null",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "f": "fetch"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/f": "active"
+          },
+          "requests": [
+            {
+              "actor": "root/f",
+              "src": "fetch",
+              "input": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a context reads an input as JavaScript does: an array's length, a number key, a string's UTF-16 length and __proto__",
+      "steps": [
+        {
+          "actors": {
+            "root/list": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": [
+                      7,
+                      8,
+                      9
+                    ]
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "length": 3,
+                      "first": 7,
+                      "proto": []
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "reader"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/text": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": "a😀b"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "length": 4,
+                      "first": "a",
+                      "proto": ""
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "reader"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root/object": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init",
+                    "input": {
+                      "x": 1
+                    }
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "proto": {},
+                      "x": 1
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "reader"
+                    ]
+                  }
+                }
+              ],
+              "emitted": []
+            },
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "list": "reader",
+                      "text": "reader",
+                      "object": "reader"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/list": "active",
+            "root/text": "active",
+            "root/object": "active"
+          },
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a context that reads half of a surrogate pair fails",
+      "steps": [
+        {
+          "actors": {
+            "root": {
+              "events": [
+                {
+                  "event": {
+                    "type": "xstate.init"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {},
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "kid_logic"
+                    }
+                  }
+                },
+                {
+                  "event": {
+                    "type": "xstate.error.actor.kid",
+                    "error": "implementation_failed",
+                    "actorId": "kid"
+                  },
+                  "snapshot": {
+                    "value": {},
+                    "context": {
+                      "reason": "implementation_failed"
+                    },
+                    "status": "active",
+                    "tags": [],
+                    "nodes": [
+                      "root"
+                    ],
+                    "children": {
+                      "kid": "kid_logic"
+                    }
+                  }
+                }
+              ],
+              "emitted": []
+            }
+          },
+          "statuses": {
+            "root": "active",
+            "root/kid": "error"
+          },
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

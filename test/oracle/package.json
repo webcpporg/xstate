@@ -1,0 +1,10 @@
+{
+  "name": "webcpp-xstate-oracle",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Runs xstate's test cases on XState itself, the port's oracle.",
+  "dependencies": {
+    "xstate": "5.33.2"
+  }
+}

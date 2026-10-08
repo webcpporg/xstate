@@ -1,0 +1,285 @@
+{
+  "source": "after.test.ts",
+  "cases": [
+    {
+      "name": "transition after delay through yellow",
+      "test": "after.test.ts > delayed transitions > should transition after delay",
+      "machine": {
+        "id": "light",
+        "initial": "green",
+        "context": {
+          "canTurnGreen": true
+        },
+        "states": {
+          "green": {
+            "after": {
+              "1000": "yellow"
+            }
+          },
+          "yellow": {
+            "after": {
+              "1000": [
+                {
+                  "target": "red"
+                }
+              ]
+            }
+          },
+          "red": {
+            "after": {
+              "1000": "green"
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "query": {
+            "matches": "green"
+          }
+        },
+        {
+          "advance": 500
+        },
+        {
+          "query": {
+            "matches": "green"
+          }
+        },
+        {
+          "advance": 510
+        },
+        {
+          "query": {
+            "matches": "yellow"
+          }
+        }
+      ]
+    },
+    {
+      "name": "nested initial delayed transition completes",
+      "test": "after.test.ts > delayed transitions > should be able to transition with delay from nested initial state",
+      "machine": {
+        "initial": "nested",
+        "states": {
+          "nested": {
+            "initial": "wait",
+            "states": {
+              "wait": {
+                "after": {
+                  "10": "#end"
+                }
+              }
+            }
+          },
+          "end": {
+            "id": "end",
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 10
+        }
+      ]
+    },
+    {
+      "name": "relative target enters child without re-entering parent",
+      "test": "after.test.ts > delayed transitions > parent state should enter child state without re-entering self (relative target)",
+      "machine": {
+        "initial": "one",
+        "states": {
+          "one": {
+            "initial": "two",
+            "entry": "enter_one",
+            "states": {
+              "two": {
+                "entry": "enter_two"
+              },
+              "three": {
+                "entry": "enter_three",
+                "always": "#end"
+              }
+            },
+            "after": {
+              "10": ".three"
+            }
+          },
+          "end": {
+            "id": "end",
+            "type": "final"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 10
+        }
+      ]
+    },
+    {
+      "name": "defers a single delayed send for guarded candidates",
+      "test": "after.test.ts > delayed transitions > should defer a single send event for a delayed conditional transition (#886)",
+      "machine": {
+        "initial": "X",
+        "context": {
+          "flag": 1
+        },
+        "states": {
+          "X": {
+            "after": {
+              "1": [
+                {
+                  "target": "Y",
+                  "guard": {
+                    "type": "context_at_least",
+                    "params": {
+                      "key": "flag",
+                      "value": 0
+                    }
+                  }
+                },
+                {
+                  "target": "Z"
+                }
+              ]
+            }
+          },
+          "Y": {
+            "on": {
+              "*": {
+                "actions": "spy"
+              }
+            }
+          },
+          "Z": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 10
+        }
+      ]
+    },
+    {
+      "name": "two equal delays in sibling regions come due in scheduling order",
+      "test": "(review of the port) the plan's review focus: two delayed events due at the same time",
+      "machine": {
+        "id": "m",
+        "type": "parallel",
+        "states": {
+          "r1": {
+            "initial": "a",
+            "states": {
+              "a": {
+                "after": {
+                  "100": "b"
+                }
+              },
+              "b": {}
+            }
+          },
+          "r2": {
+            "initial": "a",
+            "states": {
+              "a": {
+                "after": {
+                  "100": "b"
+                }
+              },
+              "b": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 100
+        }
+      ]
+    },
+    {
+      "name": "the first delivery cancels a second delay due at the same time",
+      "test": "(review of the port) the first due event exits the state whose timer is due with it",
+      "machine": {
+        "id": "m",
+        "type": "parallel",
+        "states": {
+          "r1": {
+            "initial": "a",
+            "states": {
+              "a": {
+                "after": {
+                  "100": "#m.r2.done"
+                }
+              },
+              "b": {}
+            }
+          },
+          "r2": {
+            "initial": "waiting",
+            "states": {
+              "waiting": {
+                "after": {
+                  "100": "timed_out"
+                }
+              },
+              "timed_out": {},
+              "done": {}
+            }
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "advance": 100
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "after.test.ts > delayed transitions > should not try to clear an undefined timeout when exiting source state of a delayed transition",
+      "reason": "what it asserts is the clock: XState's actor-system scheduler must not call the clock's clearTimeout when the exit of the source state cancels a delayed event that has already fired (a custom clock option with a clearTimeout spy, and a real sleep); core cases run the pure functions with the oracle's own scheduler, and no record holds a call to the clock, while the value it also checks (the target after the delay) is what \"transition after delay through yellow\" shows. It would need a record of the clock's clearTimeout calls, which neither oracle writes"
+    },
+    {
+      "test": "after.test.ts > delayed transitions > should format transitions properly",
+      "reason": "inspects the internal transitions Map of a state node directly; no query exposes this"
+    },
+    {
+      "test": "after.test.ts > delayed transitions > should execute an after transition after starting from a state resolved using `.getPersistedSnapshot`",
+      "reason": "it.skip in XState's own suite"
+    },
+    {
+      "test": "after.test.ts > delayed transitions > should execute an after transition after starting from a persisted state",
+      "reason": "persistence/rehydration: restores an actor from a snapshot taken via getSnapshot/getPersistedSnapshot"
+    },
+    {
+      "test": "after.test.ts > delayed transitions > delay expressions > should evaluate the expression (function) to determine the delay",
+      "reason": "ported with the actor cases, fixtures/actors/cases/after.json"
+    },
+    {
+      "test": "after.test.ts > delayed transitions > delay expressions > should evaluate the expression (string) to determine the delay",
+      "reason": "ported with the actor cases, fixtures/actors/cases/after.json"
+    }
+  ]
+}

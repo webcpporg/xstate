@@ -1,0 +1,326 @@
+{
+  "source": "stateIn.test.ts",
+  "cases": [
+    {
+      "name": "stateIn object form matches sibling",
+      "test": "stateIn.test.ts > transition \"in\" check > should transition if string state path matches current state value",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "EVENT2": {
+                    "target": "a2",
+                    "guard": { "type": "xstate.stateIn", "stateValue": { "b": "b2" } }
+                  }
+                }
+              },
+              "a2": { "id": "a_a2" }
+            }
+          },
+          "b": {
+            "initial": "b2",
+            "states": {
+              "b1": {
+                "on": {
+                  "EVENT": { "target": "b2", "guard": { "type": "xstate.stateIn", "stateValue": "#a_a2" } }
+                }
+              },
+              "b2": {
+                "id": "b_b2",
+                "type": "parallel",
+                "states": {
+                  "foo": { "initial": "foo2", "states": { "foo1": {}, "foo2": {} } },
+                  "bar": { "initial": "bar1", "states": { "bar1": { "id": "bar1" }, "bar2": {} } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [{ "start": true }, { "send": { "type": "EVENT2" } }]
+    },
+    {
+      "name": "stateIn id reference matches",
+      "test": "stateIn.test.ts > transition \"in\" check > should transition if state node ID matches current state value",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "EVENT3": {
+                    "target": "a2",
+                    "guard": { "type": "xstate.stateIn", "stateValue": "#b_b2" }
+                  }
+                }
+              },
+              "a2": { "id": "a_a2" }
+            }
+          },
+          "b": {
+            "initial": "b2",
+            "states": {
+              "b1": {},
+              "b2": {
+                "id": "b_b2",
+                "type": "parallel",
+                "states": {
+                  "foo": { "initial": "foo2", "states": { "foo1": {}, "foo2": {} } },
+                  "bar": { "initial": "bar1", "states": { "bar1": { "id": "bar1" }, "bar2": {} } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [{ "start": true }, { "send": { "type": "EVENT3" } }]
+    },
+    {
+      "name": "stateIn path mismatch keeps state",
+      "test": "stateIn.test.ts > transition \"in\" check > should not transition if string state path does not match current state value",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "EVENT1": {
+                    "target": "a2",
+                    "guard": { "type": "xstate.stateIn", "stateValue": "b.b2" }
+                  }
+                }
+              },
+              "a2": { "id": "a_a2" }
+            }
+          },
+          "b": {
+            "initial": "b1",
+            "states": {
+              "b1": {},
+              "b2": {
+                "id": "b_b2",
+                "type": "parallel",
+                "states": {
+                  "foo": { "initial": "foo1", "states": { "foo1": {}, "foo2": {} } },
+                  "bar": { "initial": "bar1", "states": { "bar1": { "id": "bar1" }, "bar2": {} } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [{ "start": true }, { "send": { "type": "EVENT1" } }]
+    },
+    {
+      "name": "stateIn object form matches again",
+      "test": "stateIn.test.ts > transition \"in\" check > should not transition if state value matches current state value",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "a": {
+            "initial": "a1",
+            "states": {
+              "a1": {
+                "on": {
+                  "EVENT2": {
+                    "target": "a2",
+                    "guard": { "type": "xstate.stateIn", "stateValue": { "b": "b2" } }
+                  }
+                }
+              },
+              "a2": { "id": "a_a2" }
+            }
+          },
+          "b": {
+            "initial": "b2",
+            "states": {
+              "b1": {},
+              "b2": {
+                "id": "b_b2",
+                "type": "parallel",
+                "states": {
+                  "foo": { "initial": "foo2", "states": { "foo1": {}, "foo2": {} } },
+                  "bar": { "initial": "bar1", "states": { "bar1": { "id": "bar1" }, "bar2": {} } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [{ "start": true }, { "send": { "type": "EVENT2" } }]
+    },
+    {
+      "name": "stateIn grandparent id match",
+      "test": "stateIn.test.ts > transition \"in\" check > matching should be relative to grandparent (match)",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "a": { "initial": "a1", "states": { "a1": {}, "a2": { "id": "a_a2" } } },
+          "b": {
+            "initial": "b2",
+            "states": {
+              "b1": {},
+              "b2": {
+                "id": "b_b2",
+                "type": "parallel",
+                "states": {
+                  "foo": {
+                    "initial": "foo1",
+                    "states": {
+                      "foo1": {
+                        "on": {
+                          "EVENT_DEEP": {
+                            "target": "foo2",
+                            "guard": { "type": "xstate.stateIn", "stateValue": "#bar1" }
+                          }
+                        }
+                      },
+                      "foo2": {}
+                    }
+                  },
+                  "bar": { "initial": "bar1", "states": { "bar1": { "id": "bar1" }, "bar2": {} } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [{ "start": true }, { "send": { "type": "EVENT_DEEP" } }]
+    },
+    {
+      "name": "stateIn grandparent id mismatch",
+      "test": "stateIn.test.ts > transition \"in\" check > matching should be relative to grandparent (no match)",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "a": { "initial": "a1", "states": { "a1": {}, "a2": { "id": "a_a2" } } },
+          "b": {
+            "initial": "b2",
+            "states": {
+              "b1": {},
+              "b2": {
+                "id": "b_b2",
+                "type": "parallel",
+                "states": {
+                  "foo": {
+                    "initial": "foo1",
+                    "states": {
+                      "foo1": {
+                        "on": {
+                          "EVENT_DEEP": {
+                            "target": "foo2",
+                            "guard": { "type": "xstate.stateIn", "stateValue": "#bar1" }
+                          }
+                        }
+                      },
+                      "foo2": {}
+                    }
+                  },
+                  "bar": { "initial": "bar2", "states": { "bar1": { "id": "bar1" }, "bar2": {} } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "steps": [{ "start": true }, { "send": { "type": "EVENT_DEEP" } }]
+    },
+    {
+      "name": "stateIn forbids events until matching nested state",
+      "test": "stateIn.test.ts > transition \"in\" check > should work to forbid events",
+      "machine": {
+        "initial": "green",
+        "states": {
+          "green": { "on": { "TIMER": "yellow" } },
+          "yellow": { "on": { "TIMER": "red" } },
+          "red": {
+            "initial": "walk",
+            "states": {
+              "walk": { "on": { "TIMER": "wait" } },
+              "wait": { "on": { "TIMER": "stop" } },
+              "stop": {}
+            },
+            "on": {
+              "TIMER": [
+                {
+                  "target": "green",
+                  "guard": { "type": "xstate.stateIn", "stateValue": { "red": "stop" } }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "steps": [
+        { "start": true },
+        { "send": { "type": "TIMER" } },
+        { "send": { "type": "TIMER" } },
+        { "send": { "type": "TIMER" } },
+        { "send": { "type": "TIMER" } },
+        { "send": { "type": "TIMER" } }
+      ]
+    },
+    {
+      "name": "stateIn referenced by name over sibling",
+      "test": "stateIn.test.ts > transition \"in\" check > should be possible to use a referenced `stateIn` guard",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "selected": {},
+          "location": {
+            "initial": "home",
+            "states": {
+              "home": {
+                "on": {
+                  "NEXT": {
+                    "target": "success",
+                    "guard": { "type": "xstate.stateIn", "stateValue": "selected" }
+                  }
+                }
+              },
+              "success": {}
+            }
+          }
+        }
+      },
+      "steps": [{ "start": true }, { "send": { "type": "NEXT" } }]
+    },
+    {
+      "name": "stateIn with id and path runs action",
+      "test": "stateIn.test.ts > transition \"in\" check > should be possible to check an ID with a path",
+      "machine": {
+        "type": "parallel",
+        "states": {
+          "A": {
+            "initial": "A1",
+            "states": {
+              "A1": {
+                "on": {
+                  "MY_EVENT": {
+                    "guard": { "type": "xstate.stateIn", "stateValue": "#b.B1" },
+                    "actions": "hit"
+                  }
+                }
+              }
+            }
+          },
+          "B": {
+            "id": "b",
+            "initial": "B1",
+            "states": { "B1": {} }
+          }
+        }
+      },
+      "steps": [{ "start": true }, { "send": { "type": "MY_EVENT" } }]
+    }
+  ],
+  "excluded": []
+}

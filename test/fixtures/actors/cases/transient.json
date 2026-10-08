@@ -1,0 +1,70 @@
+{
+  "source": "transient.test.ts (the tests that need actors)",
+  "cases": [
+    {
+      "name": "an invoked machine whose initial eventless transition reads its input starts",
+      "test": "transient.test.ts > transient states (eventless transitions) > shouldn't crash when invoking a machine with initial transient transition depending on custom data (the invoke's input as the fixed JSON its function computes from the constant context; the absence of a throw as the child active in the state its guard chose)",
+      "machine": {
+        "initial": "active",
+        "context": {
+          "customDuration": 3000
+        },
+        "states": {
+          "active": {
+            "invoke": {
+              "src": "timerMachine",
+              "input": {
+                "duration": 3000
+              }
+            }
+          }
+        }
+      },
+      "actors": {
+        "timerMachine": {
+          "kind": "machine",
+          "machine": {
+            "initial": "initial",
+            "states": {
+              "initial": {
+                "always": [
+                  {
+                    "target": "finished",
+                    "guard": {
+                      "type": "xstate.not",
+                      "guards": [
+                        {
+                          "type": "context_at_least",
+                          "params": {
+                            "key": "duration",
+                            "value": 1000
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "target": "active"
+                  }
+                ]
+              },
+              "active": {},
+              "finished": {
+                "type": "final"
+              }
+            }
+          },
+          "context_from_input": {
+            "duration": "duration"
+          }
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        }
+      ]
+    }
+  ],
+  "excluded": []
+}

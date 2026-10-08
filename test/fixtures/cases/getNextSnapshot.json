@@ -1,0 +1,60 @@
+{
+  "source": "getNextSnapshot.test.ts",
+  "cases": [
+    {
+      "name": "next snapshot through machine transitions",
+      "test": "getNextSnapshot.test.ts > getNextSnapshot > should calculate the next snapshot for machine logic",
+      "machine": {
+        "initial": "a",
+        "states": {
+          "a": {
+            "on": {
+              "NEXT": "b"
+            }
+          },
+          "b": {
+            "on": {
+              "NEXT": "c"
+            }
+          },
+          "c": {}
+        }
+      },
+      "steps": [
+        {
+          "start": true
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "query": {
+            "matches": "b"
+          }
+        },
+        {
+          "send": {
+            "type": "NEXT"
+          }
+        },
+        {
+          "query": {
+            "matches": "c"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "test": "getNextSnapshot.test.ts > getNextSnapshot > should calculate the next snapshot for transition logic",
+      "reason": "uses fromTransition, actor logic other than a machine"
+    },
+    {
+      "test": "getNextSnapshot.test.ts > getNextSnapshot > should not execute actions",
+      "reason": "no step runs getNextSnapshot: a send step runs machine.transition through the oracle's actor scope, whose executor receives every action, records it and runs a built-in one's execution (a delayed raise is scheduled on the clock), and a custom action such as the test's fn is recorded as XState returns it whether or not anything runs it, so no record can show that getNextSnapshot hands its actions to no executor; the value it also checks is what \"next snapshot through machine transitions\" shows. It would need a step that runs getNextSnapshot with XState's inert actor scope and records the snapshot alone (xstate's get_next_snapshot), for example followed by an advance that delivers no delayed raise"
+    }
+  ]
+}

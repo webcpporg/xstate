@@ -1,0 +1,2 @@
+shop {"type":"xstate.error.actor.checkout","error":{"code":"declined"},"actorId":"checkout"}
+checkout: error {"code":"declined"}
