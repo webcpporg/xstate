@@ -8,20 +8,22 @@
 # Each was measured on these tests.
 #
 # misc-use-internal-linkage would report every BOOST_AUTO_TEST_CASE of
-# cases_test.cpp: the macro defines a struct per case at namespace scope,
-# where Boost.Test's documentation writes every case. AnalyzeTypes off leaves
-# those structs alone, and the check still reports a free function or a
-# variable that should have internal linkage. BOOST_DATA_TEST_CASE trips
-# nothing of it.
+# cases_test.cpp and actors_cases_test.cpp: the macro defines a struct per
+# case at namespace scope, where Boost.Test's documentation writes every case.
+# AnalyzeTypes off leaves those structs alone, and the check still reports a
+# free function or a variable that should have internal linkage.
+# BOOST_DATA_TEST_CASE trips nothing of it.
 #
 # bugprone-unchecked-optional-access reports an optional that a test reads
 # where its value must be there. Either the test has asserted it first, with
 # `if (!BOOST_TEST(x.has_value())) { return; }`, and BOOST_TEST is a call
 # returning whether its condition held, which the checker does not look into;
-# or vocabulary.hpp has checked it through a helper (is_number) or through a
-# result's member, which the checker does not follow. The library's headers
-# are still analysed with it, through the aggregate translation unit
-# tools/lint/compile_commands.py writes.
+# or a helper has, with `require(BOOST_TEST(...))`, which ends the program
+# when it does not hold (actor_helpers.hpp's child); or vocabulary.hpp has
+# checked it through a helper (is_number) or through a result's member, which
+# the checker does not follow. The library's headers are still analysed with
+# it, through the aggregate translation unit tools/lint/compile_commands.py
+# writes.
 #
 # cert-err58-cpp, and bugprone-throwing-static-initialization, which it
 # aliases, report the row tables the tests loop over, a const std::array at
