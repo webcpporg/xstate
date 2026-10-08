@@ -114,11 +114,16 @@ struct actor_record {
  snapshot.
 
  @note A macrostep that fails where XState throws is not heard, as XState
- inspects no snapshot for an actor whose transition threw: one whose cursor
- fails, by an implementation's failure, @ref errc::unknown_state,
- @ref errc::invalid_event for an event of the type `*`, or
- @ref errc::unknown_target for the default of a history state that is the
- machine's root; and one that fails while its actions resolve (a systemId
+ inspects no snapshot for an actor whose transition threw. That is every
+ failure of its cursor but @ref errc::actor_failed (@ref macrostep::next
+ lists them): an implementation's own failure;
+ @ref errc::implementation_failed from a built-in `assign` on a context that
+ is not an object, or from a context function whose value is not one;
+ @ref errc::unknown_state for a value or a `stateIn` id that names no state;
+ @ref errc::invalid_event for an event of the type `*`; and
+ @ref errc::unknown_target for a sendTo the core finds naming no actor, or
+ for the default of a history state that is the machine's root. Nor is one
+ that fails while its actions resolve (a systemId
  taken, a target that names no actor). One a deferred effect fails, a send
  bound to a child that is gone, is heard with the snapshot it reached, as
  XState's update inspects it.

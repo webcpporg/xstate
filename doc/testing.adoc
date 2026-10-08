@@ -560,8 +560,9 @@ Each is a target of b2, run from the root of a webcpp checkout:
 `b2 libs/xstate/test`::
 The {n-tests-native} tests, natively: the lightweight_test programs, the
 {n-boost-test-suites} Boost.Test suites that run the ported cases, each of
-the {n-headers} public headers compiled alone, and two programs that must
-compile (<<testing-suites>>). It needs a {cpp}20 compiler and Boost's
+the {n-headers} public headers compiled alone, and `core_alone` and
+`user_aggregates`, which must compile (<<testing-suites>>). It needs a
+{cpp}20 compiler and Boost's
 headers, and no Node.
 
 `b2 libs/xstate/example`::
@@ -603,8 +604,8 @@ alone:
 | native
 | Any toolset not listed below. As the build makes it: with exceptions,
   unless its user asks for `exception-handling=off`, which links webcpp's
-  `tools/throw_exception.cpp`, as on wasip2. The two Boost.Test suites are
-  built for this target alone.
+  `tools/throw_exception.cpp`, as on wasip2. The {n-boost-test-suites}
+  Boost.Test suites are built for this target alone.
 
 | wasip2
 | The toolset `clang-wasip2`, the Clang of wasi-sdk for wasm32-wasip2, run by
@@ -622,8 +623,8 @@ against wasi-sdk, as
 link:{webcpp-libs}/xactor/{webcpp-page}#xactor-testing-targets[xactor's page]
 shows. The Boost.Test suites read the fixture files at run time, which a
 wasm program cannot without a directory its runtime opens for it, so they
-run natively; every other test, and every example, runs on all three
-targets.
+run natively; every other test, and every example, runs on native, wasip2
+and wasip3.
 
 The continuous integration runs xstate's tests and examples in lanes, one
 toolset each: GCC 14 and 15, Clang 18 and 22, Apple Clang, MSVC 14.3 and
@@ -654,7 +655,7 @@ xstate never reaches (<<xstate-invariant-15,guarantee 15>>).
 `test/oracle/` pins the npm package `xstate` at 5.33.2, exactly, with its
 lockfile, from which the first target that needs it installs it with
 `npm ci`; its `Jamfile` declares the lane with webcpp's `webcpp.cases` and
-`webcpp.twins`. Two scripts run xstate's test cases on it and write what
+`webcpp.twins`. Its scripts run xstate's test cases on it and write what
 XState produced:
 
 * `oracle.mjs` runs the machine cases. Each macrostep after the initial one
@@ -765,7 +766,7 @@ The machine cases are {n-machine-cases} cases of {n-machine-steps} steps,
 those are ported with the actor cases, and the others need a function JSON
 cannot hold, TypeScript's type checker, `enqueueActions`, an actor reference
 held as data, callbacks or observables, persistence, `machine.provide` or
-XState's `options.maxIterations`, which xstate does not read (two tests of
+XState's `options.maxIterations`, which xstate does not read (tests of
 `transient.test.ts`, <<testing-bounds>>); assert on spies, warnings or
 XState's internal objects; or are skipped in XState's own suite. XState's
 SCXML suite is left out whole, because the published package exports no
@@ -898,7 +899,7 @@ function among them.
 | The cursor, which XState does not have: the microstep that settles and no
 other, an event that selects no transition, a copy that resumes, a cycle that
 never settles, and a failure that settles in error, reporting what it
-resolved before the failure apart from its actions. And four rules of the
+resolved before the failure apart from its actions. And rules of the
 machine core, stated by hand: a spawn whose input fails settles in error
 without the child; a `sendTo` to a systemId is returned for its caller to
 resolve; a `sendTo` to an invoke of the state being entered is bound at the
@@ -938,11 +939,11 @@ actions, logs, snapshots and emitted events, which cannot call the system
 back.
 |===
 
-The ported cases run in two Boost.Test suites, declared with
-`webcpp.boost-test`, which read the fixture files and register one test case
-for each case, so that a failure names its case. A wasm program cannot read
-them without a directory its runtime opens for it, so these two run
-natively only:
+The ported cases run in {n-boost-test-suites} Boost.Test suites, `cases` and
+`actors_cases`, declared with `webcpp.boost-test`, which read the fixture
+files and register one test case for each case, so that a failure names its
+case. A wasm program cannot read them without a directory its runtime opens
+for it, so these suites run natively only:
 
 [cols="2,5",options="header"]
 |===
@@ -1005,7 +1006,7 @@ result of an earlier one.
 The same programs build for wasm32-wasip2 and wasm32-wasip3, and run under
 wasmtime, through which `run_example.py` runs each (<<testing-targets>>). A
 program's output is compared with the same `<name>.expected` on every target,
-so it prints the same on all three. On wasm32-wasip2 every program is built
+so it prints the same on every target. On wasm32-wasip2 every program is built
 without exceptions, so each example also shows that xstate does what the
 page says with exceptions off.
 
@@ -1022,7 +1023,7 @@ show.
 XState's output is committed: the oracle's under `test/fixtures/expected/`
 and `test/fixtures/actors/expected/`, and that of each twin that diverges
 beside the twin (<<testing-twins>>). After a case is added or changed, or a
-twin that diverges, `update-expected` runs both scripts on every case and
+twin that diverges, `update-expected` runs the scripts on every case and
 replaces the committed output with what they write, then rewrites the output
 of every twin that diverges with what XState prints. Its diff is what XState
 does, and so what the suites and this page will hold xstate to; read it,

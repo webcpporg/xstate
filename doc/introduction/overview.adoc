@@ -445,7 +445,7 @@ XState's own tests are ported to cases written as JSON, one file per test
 file of XState's, each with the tests it leaves out and why. Further cases
 pin what XState does where its own tests are silent, such as a machine whose
 root is a history node, an event of the type `*` or a timer armed twice
-under one id. Two scripts in `test/oracle/` run every case on XState 5.33.2
+under one id. The scripts of `test/oracle/` run every case on XState 5.33.2
 and record what XState produced: `oracle.mjs` the machine cases, one
 macrostep at a time through `machine.transition`, which XState's pure
 functions call, and `actors.mjs` the actor cases, on XState's actors.
@@ -456,7 +456,7 @@ snapshot each left, the events it emitted, its status, and the host's
 pending requests.
 
 What XState produced is committed, so xstate's suites run without Node. The
-oracle lane, `b2 libs/xstate/test/oracle//oracle`, runs both scripts on
+oracle lane, `b2 libs/xstate/test/oracle//oracle`, runs the scripts on
 XState again, and fails when what XState produces is no longer what the
 suites hold.
 

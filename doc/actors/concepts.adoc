@@ -130,8 +130,7 @@ the actor at the front of the queue its next message, and puts the actor
 back at the end of the queue while it has more. So a delivery is queued,
 never nested in the sender's call, a run depends on nothing but the order in
 which messages were queued, and the same input always gives the same run
-(
-link:{webcpp-libs}/xactor/{webcpp-page}#xactor-invariant-1[xactor's guarantees 1]
+(link:{webcpp-libs}/xactor/{webcpp-page}#xactor-invariant-1[xactor's guarantees 1]
 and
 link:{webcpp-libs}/xactor/{webcpp-page}#xactor-invariant-2[2]).
 An actor receives what one sender sends it in the order sent. Between actors
