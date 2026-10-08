@@ -14,7 +14,8 @@
  system is built from.
 
  @note The machine core, `<webcpp/xstate.hpp>`, includes nothing of xactor;
- this is the one header that joins the two.
+ the actor layer's headers, which this one gathers, include the xactor
+ headers each needs.
 
  @see "Actors", in the guide.
  @see "Two layers", in the guide.

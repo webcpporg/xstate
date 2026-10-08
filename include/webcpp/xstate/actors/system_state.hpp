@@ -113,11 +113,15 @@ struct actor_record {
  unhandled `xstate.error.actor.<id>` event gives, is heard with that
  snapshot.
 
- @note A macrostep that fails where XState throws, in an implementation or
- while an action resolves (a systemId taken, a target that names no actor),
- is not heard, as XState inspects no snapshot for an actor whose transition
- threw; one a deferred effect fails, a send bound to a child that is gone,
- is heard with the snapshot it reached, as XState's update inspects it.
+ @note A macrostep that fails where XState throws is not heard, as XState
+ inspects no snapshot for an actor whose transition threw: one whose cursor
+ fails, by an implementation's failure, @ref errc::unknown_state,
+ @ref errc::invalid_event for an event of the type `*`, or
+ @ref errc::unknown_target for the default of a history state that is the
+ machine's root; and one that fails while its actions resolve (a systemId
+ taken, a target that names no actor). One a deferred effect fails, a send
+ bound to a child that is gone, is heard with the snapshot it reached, as
+ XState's update inspects it.
 
  @see "Inspection", in the guide.
  @see "Guarantees", in the guide: guarantees A9 and A12.

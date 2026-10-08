@@ -13,10 +13,12 @@
 # reported.
 show-enum-constants: true
 
-# A class lists only its own members. The two actor logics derive from
-# xactor's actor_logic, whose members MrDocs would otherwise copy into each,
-# its pure handle beside the logic's own and its deleted assignments, with
-# xactor's Doc Comments read in xstate's namespace, where a reference to
-# xactor's status::error names xstate's status::error and one to
-# scheduler::error_of names nothing. xactor's reference documents them.
-inherit-base-members: never
+# A class lists what it inherits from a base this reference documents as a
+# reference to the base's member, never as a copy of it. The two actor
+# logics derive from xactor's actor_logic, which is outside this reference's
+# corpus: a copy would put xactor's Doc Comments in xstate's namespace, where
+# a reference to xactor's status::error names xstate's status::error and
+# one to scheduler::error_of names nothing, and xactor's reference documents
+# them. A base of xstate's own, should one come, keeps its inherited members
+# visible in the class that derives from it, as references.
+inherit-base-members: reference

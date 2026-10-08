@@ -17,7 +17,8 @@
  wait, in order, and `resume()` applies them once it has settled, as XState
  runs each input to its end before the next (doc: #xstate-invariant-a1).
  A callback runs inside an actor's turn: a call from it that changes the
- system is `invalid_argument`, and the `const` ones are free.
+ system is `webcpp::xactor::errc::invalid_argument`, and the `const` ones
+ are free.
 
  @see "Creating an actor", in the guide.
  @see "Fuel, parking and resume", in the guide.

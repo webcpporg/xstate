@@ -148,7 +148,8 @@ public:
      while the actor has not started or has work left; a @ref resume
      continues a parked actor; a @ref relay forwards a delayed sendTo; a
      @ref delayed is taken as its event; a @ref stop_actor stops the actor
-     once its work is done; and a @ref host_answer is ignored.
+     once its work is done, and an event that arrives after it is dropped,
+     as XState drops it; and a @ref host_answer is ignored.
 
      @param turn What the actor may do while it handles the message.
      @param cause The message, in the envelope that says who sent it.

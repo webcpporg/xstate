@@ -42,7 +42,7 @@ namespace webcpp::xstate {
  no counterpart here: XState's macrostep gives it, through `transition` too,
  to a snapshot that receives the event `xstate.stop`, while xstate runs
  `xstate.stop` as any other event. For an actor of the actor layer,
- `actor_system::status_of` tells it, as an `xactor::status`.
+ `actor_system::status_of` tells it, as a `webcpp::xactor::status`.
 
  @see "The snapshot", in the guide.
 */
