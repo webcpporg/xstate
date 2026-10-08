@@ -9,6 +9,8 @@
  send, a timer or a unit it cannot pay with resource_limit and changes
  nothing, and the actor parks to do it again on resume
  (doc: #xstate-invariant-a3).
+
+ @see "Fuel, parking and resume", in the guide.
 */
 #ifndef WEBCPP_XSTATE_ACTORS_FUEL_HPP
 #define WEBCPP_XSTATE_ACTORS_FUEL_HPP
