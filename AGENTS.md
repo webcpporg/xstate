@@ -14,7 +14,7 @@ holds only what is specific to xstate.
   `LICENSE-XSTATE.txt` is XState's notice, unchanged, and the README names
   what derives from XState.
 - **Two layers, one boundary.** The machine core is `<webcpp/xstate.hpp>`
-  and every header beside `actors.hpp` in `include/webcpp/xstate/`: machines
+  and every header other than `actors.hpp` in `include/webcpp/xstate/`: machines
   read from XState's JSON config and stepped by XState's pure functions. It
   depends on Boost's headers and Boost.JSON alone, and includes nothing of
   xactor or of the actor layer. The actor layer is `actors.hpp` and
@@ -24,11 +24,11 @@ holds only what is specific to xstate.
   target `/webcpp/xstate//xstate` brings xactor for the actor layer, and
   Boost.JSON's definitions, `/webcpp//boost_json`, for both.
 - **Errors are values.** Every operation that can fail returns `result<T>`,
-  whose errors are of the category `webcpp.xstate`, except where the actor
-  layer refuses a call as xactor would, with xactor's own errors, of the
-  category `webcpp.xactor` (`actor_system`'s `invalid_argument`). The values of `errc` are fixed and
-  never reused. xstate throws nothing of its own, so it builds without
-  exceptions on wasip2, and without exceptions and RTTI in every native
+  whose errors are of the category `webcpp.xstate`, except where the actor layer
+  refuses a call as xactor would, with xactor's own errors, of the category
+  `webcpp.xactor` (`actor_system`'s `invalid_argument`). The values of `errc`
+  are fixed and never reused. xstate throws nothing of its own, so it builds
+  without exceptions on wasip2, and without exceptions and RTTI in every native
   test's `-noexcept` variant.
 - **How the oracle drives XState.** Under `test/oracle/`, Node runs XState's
   development build, `node --conditions=development`, which makes the checks
@@ -41,14 +41,13 @@ holds only what is specific to xstate.
   order between two actors, which XState and xactor deliver differently.
   Their output is the expected results under `test/fixtures/`, which only
   `b2 libs/xstate/test/oracle//update-expected` writes.
-- **The case suites.** XState's tests are ported as data:
-  `test/fixtures/cases/` for the machine core and
-  `test/fixtures/actors/cases/` for the actor layer, one JSON file per test
-  file of XState's, which names its `source` and holds its `cases`, with the
-  expected results beside them under `expected/`. A test of XState's left
-  out of the port is listed under the file's `excluded`, with its reason. `cases` and
-  `actors_cases` are the two Boost.Test suites, native only, which read the
-  fixture files and register one test case per case file.
+- **The case suites.** XState's tests are ported as data: `test/fixtures/cases/`
+  for the machine core and `test/fixtures/actors/cases/` for the actor layer,
+  one JSON file per test file of XState's, which names its `source` and holds
+  its `cases`, with the expected results beside them under `expected/`. A test
+  of XState's left out of the port is listed under the file's `excluded`, with
+  its reason. `cases` and `actors_cases` are the two Boost.Test suites, native
+  only, which read the fixture files and register one test case per case file.
 - **The examples and their twins.** `example/xstate/` holds the machines run
   through the pure functions, `example/actors/` those run as actors: the
   page's two parts. `example/Jamfile` names every program, so a removed one
