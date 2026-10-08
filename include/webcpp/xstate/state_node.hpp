@@ -155,7 +155,7 @@ struct guard_node {
         /** `xstate.and`, which holds when every operand does. */
         conjunction,
 
-        /** `xstate.or`, which holds when one operand does. */
+        /** `xstate.or`, which holds when at least one operand does. */
         disjunction,
 
         /** `xstate.stateIn`, which holds when the snapshot is in a state. */

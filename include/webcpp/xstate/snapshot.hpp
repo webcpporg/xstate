@@ -50,7 +50,7 @@ enum class status {
     /** The machine runs. */
     active,
 
-    /** The machine reached a final state at the top level, its output set. */
+    /** The machine reached a final state at the top level, with its output, when it has one. */
     done,
 
     /** A macrostep failed, the snapshot's `error` saying why. */
@@ -109,7 +109,7 @@ struct snapshot {
      when the machine is done. @ref resolve_state sorts nothing, done or not,
      as XState's `resolveState` does not.
 
-     @see "Guarantees", in the guide.
+     @see "Guarantees", in the guide: guarantee 10.
     */
     std::vector<std::size_t> nodes{};
 
@@ -127,7 +127,7 @@ struct snapshot {
      that are array indices first, by number, then the others in spawning
      order.
 
-     @see "Guarantees", in the guide.
+     @see "Guarantees", in the guide: guarantee 18.
     */
     std::vector<std::pair<std::string, std::string>> children{};
 

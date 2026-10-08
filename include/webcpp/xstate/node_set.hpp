@@ -34,7 +34,7 @@ namespace webcpp::xstate {
  holds its @ref ordered list.
 
  @see "The active state nodes", in the guide.
- @see "Guarantees", in the guide.
+ @see "Guarantees", in the guide: guarantee 10.
 */
 class node_set {
 public:
@@ -119,7 +119,7 @@ public:
     [[nodiscard]] std::size_t at(std::size_t index) const { return order_.at(index); }
 
     /**
-     The first node, in insertion order.
+     An iterator to the first node, in insertion order.
 
      @return An iterator over the nodes, as @ref ordered lists them.
     */
