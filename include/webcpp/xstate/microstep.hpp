@@ -10,7 +10,7 @@
  and enter, the history they record and the done events they raise
  (stateUtils.ts, https://www.w3.org/TR/scxml/#microstepProcedure).
 
- Tip: every function here is a port of the stateUtils.ts function its
+ @note Every function here is a port of the stateUtils.ts function its
  comment names; XState's recursion is an explicit list or stack, so a
  machine as deep as its JSON never exhausts the stack.
 */
@@ -40,7 +40,10 @@
 
 namespace webcpp::xstate::detail {
 
+/** Transitions of a machine, as pointers into it, in the order they were selected. */
 using transition_list = std::vector<const transition_definition*>;
+
+/** What each history node remembers, by its id, as @ref snapshot::history holds it. */
 using history_value = std::vector<std::pair<std::string, std::vector<std::size_t>>>;
 
 /** What a history node remembers in `history`, or nothing. */
@@ -163,9 +166,16 @@ inline result<std::size_t> state_node_named(const machine& owner, std::size_t no
  they selected.
 */
 struct selection_frame {
+    /** The node the frame walks. */
     std::size_t node{};
+
+    /** The children the value names under the node, each with its own value. */
     std::vector<std::pair<std::size_t, const boost::json::value*>> children{};
+
+    /** How many of the children have been walked. */
     std::size_t next_child = 0;
+
+    /** The transitions the walked children selected. */
     transition_list selected{};
 };
 
@@ -505,10 +515,14 @@ inline result<transition_list> select_eventless(const machine& owner, const snap
 */
 class entry_set {
 public:
+    /** Makes an empty entry set for a machine, with the history it reads. */
     entry_set(const machine& owner, const history_value& history)
         : owner_(owner), history_(history) {}
 
+    /** The nodes to enter, in the order XState adds them. */
     node_set to_enter;
+
+    /** The nodes among them entered by default, whose initial actions run. */
     node_set for_default_entry;
 
     /**
@@ -732,9 +746,16 @@ private:
  that ended it, if one did, after `actions` were resolved.
 */
 struct microstep_outcome {
+    /** The snapshot the microstep left. */
     snapshot next{};
+
+    /** The actions it returned, or resolved before its failure. */
     std::vector<action> actions{};
+
+    /** Whether it changed the snapshot, which re-enables eventless transitions. */
     bool changed = false;
+
+    /** The error that ended it, if one did. */
     std::optional<boost::system::error_code> failure{};
 };
 

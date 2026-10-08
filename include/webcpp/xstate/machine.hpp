@@ -10,8 +10,10 @@
  the lookup of a node by id or by path (StateMachine.ts, StateNode.ts,
  stateUtils.ts).
 
- Tip: a machine is a handle to data nothing changes once created, so copying
+ @note A machine is a handle to data nothing changes once created, so copying
  one is cheap and a cursor may keep it.
+
+ @see "Machines", in the guide.
 */
 #ifndef WEBCPP_XSTATE_MACHINE_HPP
 #define WEBCPP_XSTATE_MACHINE_HPP
@@ -95,13 +97,27 @@ inline std::vector<const boost::json::key_value_pair*> enumerated(
     return members;
 }
 
+/** What a machine holds, shared by every copy of it and changed by none. */
 struct machine_data {
+    /** The config's `id`, or "(machine)". */
     std::string id{};
+
+    /** The nodes, in document order, the root first. */
     std::vector<state_node> nodes{};
+
+    /** Every guard of the config, a higher-order guard's operands included. */
     std::vector<guard_node> guards{};
+
+    /** Each node's index by its id, the last node registered under an id winning. */
     std::map<std::string, std::size_t, std::less<>> ids{};
+
+    /** The initial context: the config's, or `{}`. */
     boost::json::value context = boost::json::object{};
+
+    /** The implementations the machine was created with. */
     implementations registry{};
+
+    /** The config, as given. */
     boost::json::object config{};
 };
 
@@ -188,7 +204,7 @@ inline result<std::size_t> node_by_path(const machine_data& data, std::size_t fr
 /**
  A member of the config, or none when it is missing or null.
 
- Tip: XState reads most members so. A state's null `meta` it keeps, where
+ @note XState reads most members so. A state's null `meta` it keeps, where
  xstate, reading it here too, has none (doc: #differences-null-meta).
 */
 inline const boost::json::value* member(const boost::json::object& object, std::string_view key) {
@@ -393,7 +409,7 @@ inline result<std::vector<boost::json::object>> transition_configs(const boost::
  target. An id names any node; a target that is not an id names a sibling,
  or, with a leading '.', a descendant of the source.
 
- Tip: an empty target names the source's parent, as XState's empty path
+ @note An empty target names the source's parent, as XState's empty path
  does.
 */
 inline result<std::size_t> resolve_target(const machine_data& data, std::size_t source,
@@ -572,7 +588,7 @@ inline result<std::vector<transition_definition>> format_all(machine_data& data,
  An `after` key as a delay: a whole number of milliseconds, or the name of a
  registered delay.
 
- Tip: XState reads any numeric key as a number; a fraction or a negative
+ @note XState reads any numeric key as a number; a fraction or a negative
  number is refused here, as no delay of the clock can hold it.
 */
 inline result<delay_ref> delay_of(const implementations& registry, std::string_view key) {
@@ -989,7 +1005,7 @@ inline result<void> check_default_entries(const machine_data& data) {
  A node's `invoke`, one object or a list, each naming its actor by a string
  `src`; XState's StateNode invoke, whose default id is createInvokeId.
 
- Tip: XState also takes inline logic as `src`, which JSON cannot hold.
+ @note XState also takes inline logic as `src`, which JSON cannot hold.
 */
 inline result<std::vector<invoke_definition>> invokes_of(const boost::json::object& config,
                                                          std::string_view node_id) {
@@ -1149,32 +1165,131 @@ inline result<void> build_nodes(machine_data& data) {
 
 }  // namespace detail
 
+/**
+ The immutable tree of state nodes @ref create_machine builds from a config,
+ with the implementations it was given.
+
+ It ports XState's `StateMachine`. Only @ref create_machine makes one, so
+ `machine` has no default constructor. It is a handle to data nothing
+ changes once created: a copy is cheap and shares that data, and a cursor,
+ an actor and a @ref machine_actor each keep one.
+
+ Nodes are numbered in document order: the root 0, a parent before its
+ children, and siblings in the order JavaScript enumerates the keys of
+ `states`. The number is XState's `order` unless two nodes share an id
+ (@ref state_node::order). Everything names a node by that index
+ (@ref snapshot::nodes, @ref transition_definition::target), so the tree
+ holds no pointer and copies as a value.
+
+ @see "Machines", in the guide.
+ @see "A machine is immutable", in the guide.
+ @see "State nodes and ids", in the guide.
+*/
 class machine {
 public:
+    /**
+     The machine's id.
+
+     @return The config's `id`, or "(machine)" when it has none.
+    */
     [[nodiscard]] const std::string& id() const noexcept { return data_->id; }
 
+    /**
+     How many nodes the machine has.
+
+     @return The number of nodes, the root included.
+    */
     [[nodiscard]] std::size_t size() const noexcept { return data_->nodes.size(); }
 
+    /**
+     The node at an index.
+
+     @param index The node's index, its position in document order.
+     @return The node.
+     @pre `index < size()`.
+    */
     [[nodiscard]] const state_node& node(std::size_t index) const { return data_->nodes.at(index); }
 
+    /**
+     The root node.
+
+     @return `node(0)`.
+    */
     [[nodiscard]] const state_node& root() const { return data_->nodes.front(); }
 
+    /**
+     The guard at an index of the machine's flat list of guards.
+
+     A transition's @ref transition_definition::guard and a higher-order
+     guard's @ref guard_node::operands index that list.
+
+     @param index The guard's index.
+     @return The guard.
+     @pre `index` is the index of a transition's guard or of an operand.
+    */
     [[nodiscard]] const guard_node& guard(std::size_t index) const {
         return data_->guards.at(index);
     }
 
+    /**
+     The initial context, unless `implementations::context` computes it.
+
+     It is the config's `context`, or `{}` when it has none or it is null,
+     as XState starts a machine whose context is falsy with `{}`. Any other
+     value is kept as written: a `context` of `false`, `0` or `""`, which
+     XState also replaces with `{}`, stays what it is, and an `assign` on a
+     context that is not an object fails with
+     @ref errc::implementation_failed, where XState's `Object.assign` makes
+     it an object, dropping `true` or a number and spreading a string or a
+     list into numbered members.
+
+     @return The initial context.
+
+     @see "Initial context", in the guide.
+     @see "A context that is not an object", in the guide.
+    */
     [[nodiscard]] const boost::json::value& context() const noexcept { return data_->context; }
 
+    /**
+     The implementations the machine was created with.
+
+     @return The implementations.
+    */
     [[nodiscard]] const implementations& registry() const noexcept { return data_->registry; }
 
+    /**
+     The config the machine was created from.
+
+     @return The config, as given.
+    */
     [[nodiscard]] const boost::json::object& config() const noexcept { return data_->config; }
 
-    /** The node a state id names; XState's getStateNodeById. */
+    /**
+     Finds the node a state id names.
+
+     It ports XState's `getStateNodeById`. The leading `#` is optional. The
+     first dot-separated segment is an id, and each segment after it walks
+     down by key, so a default id such as `(machine).a.a2` resolves through
+     the root's id.
+
+     @param state_id The state id.
+     @return The node's index; @ref errc::unknown_state when the id or a key
+     names no node.
+    */
     [[nodiscard]] result<std::size_t> node_by_id(std::string_view state_id) const {
         return detail::node_by_id(*data_, state_id);
     }
 
-    /** The child of `node` whose key is `key`, a dot being part of the key. */
+    /**
+     Finds the child of a node by its key.
+
+     A dot is part of the key, not a path.
+
+     @param node The parent's index.
+     @param key The child's key.
+     @return The child's index; @ref errc::unknown_state when `node` is not
+     below @ref size or has no such child.
+    */
     [[nodiscard]] result<std::size_t> child(std::size_t node, std::string_view key) const {
         if (node >= data_->nodes.size()) {
             return failure<std::size_t>(errc::unknown_state);
@@ -1182,7 +1297,17 @@ public:
         return detail::child_of(*data_, node, key);
     }
 
-    /** The node a path names relative to `from`; XState's getStateNodeByPath. */
+    /**
+     Finds the node a dotted path names, walking down from a node.
+
+     It ports XState's `getStateNodeByPath`. A path that starts with `#`
+     names the node an id names, as @ref node_by_id finds it.
+
+     @param from The index of the node the path starts from.
+     @param state_path The dotted path, or a `#` id.
+     @return The node's index; @ref errc::unknown_state when `from` is not
+     below @ref size or the path names no node.
+    */
     [[nodiscard]] result<std::size_t> node_by_path(std::size_t from,
                                                    std::string_view state_path) const {
         if (from >= data_->nodes.size()) {
@@ -1277,7 +1402,7 @@ inline bool outputs_name_final_states(const machine_data& data) {
  spawnChild the config names as an action, is one of the implementations'
  actors.
 
- Tip: XState creates no child for an unknown src and fails later, when
+ @note XState creates no child for an unknown src and fails later, when
  something reads it; xstate refuses it with the machine. A registered
  spawnChild the config never names is not the machine's, and XState's
  setup accepts it.
@@ -1318,16 +1443,69 @@ inline bool names_known_actors(const machine_data& data) {
 }  // namespace detail
 
 /**
- Builds a machine from XState's createMachine config and the implementations
- it names; XState's StateMachine constructor. Refuses a config XState would
- refuse, an implementation holding an empty function, a guard or a delay the
- registry does not hold, and a target that names no state
- (doc: #xstate-invariant-1).
+ Builds a machine from the JSON of XState's `createMachine` config, with the
+ implementations its names stand for.
 
- Tip: nodes are built in document order, a parent before its children,
+ It ports XState's `setup({ ... }).createMachine(config)`. A config is
+ refused here, at once, with an error and no machine, including what XState
+ refuses only later, when it first evaluates a guard, enters a state or
+ runs a list of actions. Two things are checked only when they are used, as
+ in XState: the `#id` of an `xstate.stateIn` guard, which fails the
+ macrostep or @ref can with @ref errc::unknown_state, and the default of a
+ history state that is the machine's root, which has no parent to resolve
+ it against and fails the microstep that needs it with
+ @ref errc::unknown_target. A machine whose root is a history state is
+ accepted, as XState accepts it. A history state below the root, a child of
+ the root included, resolves its default against its parent.
+
+ A config's `states`, `on` and `after` are read in the order JavaScript
+ enumerates an object's keys, as XState reads them: a key that is an array
+ index, such as `"0"` or `"500"`, first, by number, then the rest as
+ written. That order is the document order of the states, and so the order
+ in which a parallel state's regions are entered; the order of a state's
+ transitions; and the order of the raises its `after` returns on entry, so
+ an `after` that writes `"1000"` before `"500"` returns the raise of 500
+ first.
+
+ It fails with one of these errors:
+
+ - @ref errc::invalid_config when the config is not an object or a member
+   has the wrong type; an `entry` or an `exit`, or the `actions` of a
+   transition or of an object `initial`, is null, which XState's `toArray`
+   reads as a list that holds null and fails on when it runs it; a `tags`,
+   or a history state's `target`, is neither a string nor a list of
+   strings, null included, the `target` of a history at the root too; a
+   compound state has no `initial`; an `on` key is `""`; a transition
+   declares a truthy `cond`, renamed `guard` in XState v5; an `after` key
+   starts with a digit, `.`, `-` or `+` and is not a whole number of
+   milliseconds (`"1.5"`, `"-5"`, and also `"5abc"`, which XState would
+   read as the name of a delay); an invoke has no string `src`; entering a
+   state by default leads back to it; an implementation holds an empty
+   function; an entry of `implementations::inputs` or
+   `implementations::outputs` names what it may not;
+ - @ref errc::unknown_target when a transition, an `initial` or a history
+   state's `target` names no state;
+ - @ref errc::unknown_guard when a guard the config names is not in
+   `implementations::guards`;
+ - @ref errc::unknown_delay when an `after` key names no entry of
+   `implementations::delays`;
+ - @ref errc::unknown_actor when an invoke's `src`, or the `src` of a
+   @ref spawn_child_action the config names, is not in
+   `implementations::actors`.
+
+ @note Nodes are built in document order, a parent before its children,
  and the children in the order JavaScript enumerates the keys of `states`,
  which is XState's `order`; transitions are formatted once every node
  exists, because a target may name any id.
+
+ @param config The config, a JSON object.
+ @param registry The implementations the config's names stand for.
+ @return The machine, or the error that refused the config.
+
+ @see "Creating a machine", in the guide.
+ @see "The config", in the guide.
+ @see "What creation refuses", in the guide.
+ @see "A config is refused when it is created", in the guide.
 */
 inline result<machine> create_machine(const boost::json::value& config, implementations registry) {
     if (!config.is_object() || detail::holds_empty_function(registry)) {

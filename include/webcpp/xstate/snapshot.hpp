@@ -8,6 +8,9 @@
  A snapshot of a machine: where it is, its context, its status and output,
  and the active nodes it was computed from; and the tree queries that
  compute a state value from active nodes (State.ts, stateUtils.ts).
+
+ @see "The snapshot", in the guide.
+ @see "A snapshot is a value", in the guide.
 */
 #ifndef WEBCPP_XSTATE_SNAPSHOT_HPP
 #define WEBCPP_XSTATE_SNAPSHOT_HPP
@@ -32,39 +35,134 @@
 
 namespace webcpp::xstate {
 
-enum class status { active, done, error };
+/**
+ A snapshot's status.
 
+ It ports XState's `snapshot.status`. XState's fourth status, `stopped`, has
+ no counterpart here: XState's macrostep gives it, through `transition` too,
+ to a snapshot that receives the event `xstate.stop`, while xstate runs
+ `xstate.stop` as any other event. For an actor of the actor layer,
+ `actor_system::status_of` tells it, as an `xactor::status`.
+
+ @see "The snapshot", in the guide.
+*/
+enum class status {
+    /** The machine runs. */
+    active,
+
+    /** The machine reached a final state at the top level, its output set. */
+    done,
+
+    /** A macrostep failed, the snapshot's `error` saying why. */
+    error,
+};
+
+/**
+ Where a machine is, as a plain value to keep, copy or store.
+
+ It ports XState's machine snapshot. xstate makes snapshots and keeps none:
+ a caller keeps the one a macrostep settled in and runs the next event from
+ it. A default-constructed snapshot is no machine's; start from
+ @ref get_initial_snapshot or a cursor.
+
+ @see "The snapshot", in the guide.
+ @see "A snapshot is a value", in the guide.
+ @see "Persisted state", in the guide.
+*/
 struct snapshot {
-    // XState's state value, computed from `nodes`.
+    /**
+     XState's state value, computed from @ref nodes.
+
+     The keys of each of its objects are in the order JavaScript enumerates
+     them in XState's value: those that are array indices first, by number,
+     then the others in the order of @ref nodes.
+    */
     boost::json::value value{};
+
+    /** The context. */
     boost::json::value context{};
+
+    /** Whether the machine runs, is done, or failed. */
     enum status status = status::active;
+
+    /** The machine's output once it is done; absent when it has none, JavaScript's `undefined`. */
     std::optional<boost::json::value> output{};
+
+    /** Why the status is @ref status::error; an empty code otherwise. */
     boost::system::error_code error{};
-    // With the error actor_failed, the failed actor's error, when its error
-    // event carried one.
+
+    /**
+     With the error @ref errc::actor_failed, the failed actor's error, when
+     its error event carried one.
+    */
     std::optional<boost::json::value> error_value{};
-    // The active nodes, in XState's order (doc: #xstate-invariant-10).
+
+    /**
+     The active nodes, by index, in XState's order.
+
+     A node kept active keeps its place, an exited one leaves, and entered
+     ones are appended in document order. The order decides which eventless
+     transition a parallel region takes first, and the order of the keys of
+     the state value that are not array indices. A microstep that leaves the
+     machine done lists the nodes by descending `order`, each after its
+     descendants, because XState sorts its array of active nodes in place
+     when the machine is done. @ref resolve_state sorts nothing, done or not,
+     as XState's `resolveState` does not.
+
+     @see "Guarantees", in the guide.
+    */
     std::vector<std::size_t> nodes{};
-    // What each history node remembers, by its id, in recording order.
+
+    /** What each history node remembers, by its id, in recording order. */
     std::vector<std::pair<std::string, std::vector<std::size_t>>> history{};
-    // The tags of the active nodes, each once, in the order of `nodes`.
+
+    /** The tags of the active nodes, each once, in the order of @ref nodes. */
     std::vector<std::string> tags{};
-    // The children, (id, src), in the order JavaScript enumerates XState's
-    // children object (doc: #xstate-invariant-18).
+
+    /**
+     The child actors, `(id, src)`, that the microsteps spawned, for an
+     invoke or a @ref spawn_child_action, and have not stopped since.
+
+     They are listed as JavaScript enumerates XState's `children` object: ids
+     that are array indices first, by number, then the others in spawning
+     order.
+
+     @see "Guarantees", in the guide.
+    */
     std::vector<std::pair<std::string, std::string>> children{};
 
-    /** Whether the snapshot is in `state_value`; XState's snapshot.matches. */
+    /**
+     Whether the snapshot is in a state value.
+
+     It ports XState's `snapshot.matches`: @ref matches_state with the
+     snapshot's @ref value as the child.
+
+     @param state_value A state value, or a dotted string.
+     @return `true` when the snapshot is in `state_value` or a state within it.
+    */
     [[nodiscard]] bool matches(const boost::json::value& state_value) const {
         return matches_state(state_value, value);
     }
 
-    /** Whether an active node carries `tag`; XState's snapshot.hasTag. */
+    /**
+     Whether an active node carries a tag.
+
+     It ports XState's `snapshot.hasTag`.
+
+     @param tag The tag.
+     @return `true` when @ref tags holds `tag`.
+    */
     [[nodiscard]] bool has_tag(std::string_view tag) const {
         return std::ranges::find(tags, tag) != tags.end();
     }
 
-    /** What a history node remembers, or nothing when it has not recorded. */
+    /**
+     What a history node remembers.
+
+     @param history_id The history node's id.
+     @return A pointer into @ref history, or `nullptr` when the node has not
+     recorded.
+    */
     [[nodiscard]] const std::vector<std::size_t>* remembered(std::string_view history_id) const {
         for (const auto& [id, nodes_remembered] : history) {
             if (id == history_id) {
@@ -195,7 +293,7 @@ inline node_set initial_with_ancestors(const machine& owner, std::size_t node) {
  active child enters its initial ones, a parallel enters each region not
  yet active, and every ancestor is active; XState's getAllStateNodes.
 
- Tip: which nodes already have an active child is decided once, from the
+ @note Which nodes already have an active child is decided once, from the
  nodes given, as XState decides it before it adds any.
 */
 inline node_set all_state_nodes(const machine& owner, const std::vector<std::size_t>& nodes) {
@@ -238,7 +336,7 @@ inline node_set all_state_nodes(const machine& owner, const std::vector<std::siz
  The state value of a set of active nodes; XState's getStateValue, whose
  recursion over the adjacency list is a list of the values still to fill.
 
- Tip: XState builds a JavaScript object, so an object value's keys are
+ @note XState builds a JavaScript object, so an object value's keys are
  written in the order JavaScript enumerates them, array indices first.
 */
 inline boost::json::value state_value_of(const machine& owner,
@@ -395,8 +493,17 @@ inline result<std::vector<std::size_t>> state_nodes_of(const machine& owner, std
 }  // namespace detail
 
 /**
- The `meta` of every active node that has one, by node id; XState's
- snapshot.getMeta.
+ The `meta` of every active node that has one, by node id.
+
+ It ports XState's `snapshot.getMeta()`. The members are in the order of
+ `of.nodes`.
+
+ @param owner The machine.
+ @param of A snapshot of `owner`.
+ @return The object of the active nodes' `meta`, keyed by node id.
+ @pre `of` is a snapshot of `owner`.
+
+ @see "Meta and descriptions", in the guide.
 */
 inline boost::json::object get_meta(const machine& owner, const snapshot& of) {
     boost::json::object meta;
@@ -409,8 +516,35 @@ inline boost::json::object get_meta(const machine& owner, const snapshot& of) {
 }
 
 /**
- The snapshot of `state_value`, completed to every node it implies, with
- `context`; XState's machine.resolveState.
+ Builds the snapshot of a state value, completed to every node it implies,
+ with a context.
+
+ It ports XState's `machine.resolveState({ value, context })`. The value is
+ completed with a compound state's initial child, a parallel state's
+ regions and every ancestor. The snapshot's status is @ref status::done when
+ the value is in a final state at the top level and @ref status::active
+ otherwise; it has no output, no history and no children. Its
+ @ref snapshot::nodes are in the order XState's `resolveState` gives them,
+ which for a parallel state differs from the order a microstep gives: each
+ level's named children before their descendants, so the done value
+ `{"a": "a2", "b": "b2"}` of a parallel root `p` gives `p`, `p.a`, `p.b`,
+ `p.a.a2`, `p.b.b2`.
+
+ The keys of an object value are read in the order JavaScript enumerates
+ them, as XState's `getStateNodes` reads `Object.keys`: of a parallel root
+ `p` with the regions `"3"` and `"z"`, the value `{"z": "z2", "3": "d"}`
+ gives `p.3` before `p.z`, and the snapshot's value is
+ `{"3": "d", "z": "z2"}`, in both libraries. A string value names a child of
+ the root by its key, as in XState, so `"a.b"` is the key `a.b`, not a path;
+ a nested value is written as an object.
+
+ @param owner The machine.
+ @param state_value The state value, a string or an object.
+ @param context The snapshot's context.
+ @return The snapshot; @ref errc::unknown_state when the value names a
+ state the machine does not have, or is neither a string nor an object.
+
+ @see "Persisted state", in the guide.
 */
 inline result<snapshot> resolve_state(const machine& owner, const boost::json::value& state_value,
                                       boost::json::value context) {

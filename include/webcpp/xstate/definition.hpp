@@ -9,11 +9,13 @@
  machine loaded back from one (StateNode.ts definition, toSerializableAction;
  stateUtils.ts formatTransition's toJSON).
 
- Tip: XState's definition leaves out what JSON cannot hold or what it does
+ @note XState's definition leaves out what JSON cannot hold or what it does
  not list: eventless transitions, the context, and the event and delay of
  the raise an `after` adds. A machine loaded from a definition is given its
  context, and takes the original's steps when the original has no `always`
  and no higher-order guard (doc: #xstate-invariant-14).
+
+ @see "The definition", in the guide.
 */
 #ifndef WEBCPP_XSTATE_DEFINITION_HPP
 #define WEBCPP_XSTATE_DEFINITION_HPP
@@ -211,8 +213,29 @@ inline boost::json::object node_json(const machine& owner, std::size_t index) {
 }  // namespace detail
 
 /**
- A machine's definition, as XState's machine.toJSON() writes it; built
- deepest first, so each node's children are written before it.
+ Writes a machine's definition, key for key as XState's `machine.toJSON()`
+ writes it.
+
+ For each node it writes its `id`, `key`, `type`, `initial`, `states`,
+ `history`, `on`, `transitions`, `entry`, `exit`, `order` (the root's
+ written `-1`, as XState writes `order || -1`), `invoke` and `tags`, with
+ its `meta`, `output` and `description` and the config's `version` when
+ there are any. A node's `history` is written as XState writes it: `true`
+ as `"shallow"`, a falsy or absent one as `false`, and any other value as
+ the config gave it. A node's `initial` holds the `meta` and `description`
+ an object `initial` gives. The higher-order guards are written where a
+ transition's config holds them, where XState writes nothing, its guards
+ being functions. What XState's definition leaves out, this one leaves out
+ too: the context, the eventless transitions and a history state's default
+ target.
+
+ @note The definition is built deepest first, so each node's children are
+ written before it.
+
+ @param owner The machine.
+ @return The definition of the root, which holds every node's.
+
+ @see "The definition", in the guide.
 */
 inline boost::json::value to_json(const machine& owner) {
     std::vector<boost::json::object> definitions(owner.size());
@@ -454,8 +477,34 @@ inline result<boost::json::object> node_config(const boost::json::object& writte
 }  // namespace detail
 
 /**
- A machine loaded from a definition XState's machine.toJSON() wrote, with
- the context the definition does not hold.
+ Loads a machine back from a definition, with the implementations and the
+ context, which a definition does not hold.
+
+ The definition is one @ref to_json, or XState's `machine.toJSON()`,
+ wrote. A definition also leaves out the eventless transitions and a
+ history state's default target, and one that XState wrote leaves out the
+ higher-order guards as well; two states may share an id when a key holds
+ a dot. The loader drops every entry or exit action of the type
+ `xstate.raise` or `xstate.cancel`, since the raise and the cancel an
+ `after` adds are written so and the `after` it rebuilds adds them again;
+ an entry or exit action the config named so is lost with them. A machine
+ loaded from the definition of one that has none of those takes the
+ original's steps, and its @ref to_json writes what the original's writes,
+ the `version` and the `meta` and `description` of each `initial` included.
+ A node's `key`, `order` and `transitions` in the definition are not read.
+
+ @param definition The definition, as @ref to_json writes it.
+ @param registry The implementations the definition's names stand for.
+ @param context The machine's initial context.
+ @return The machine; @ref errc::invalid_config when `definition` is not an
+ object, or a node's `states` is not an object of objects, its `on` not an
+ object of lists of objects, its `entry` or `exit` not a list, its `invoke`
+ not a list of objects, or the first target of its `initial` not a string,
+ a member of another type than XState writes; or any error of
+ @ref create_machine for the config it rebuilds, which checks what the
+ other members put there, such as a node's `id`, `type` and `tags`.
+
+ @see "The definition", in the guide.
 */
 inline result<machine> create_machine_from_definition(const boost::json::value& definition,
                                                       implementations registry,

@@ -7,6 +7,8 @@
 /**
  Evaluates a transition's guard: a registered predicate, or XState's not,
  and, or and stateIn over other guards (guards.ts).
+
+ @see "Guards", in the guide.
 */
 #ifndef WEBCPP_XSTATE_GUARDS_HPP
 #define WEBCPP_XSTATE_GUARDS_HPP
@@ -45,8 +47,8 @@ inline result<bool> check_state_in(const machine& owner, const snapshot& current
  Evaluates the guard at `index`; XState's evaluateGuard, whose recursion
  over not, and and or is a stack of the guards being evaluated.
 
- Tip: and stops at its first false operand and or at its first true one,
- as every and some do, so an operand after that one never runs.
+ @note `and` stops at its first false operand and `or` at its first true
+ one, as `every` and `some` do, so an operand after that one never runs.
 */
 inline result<bool> evaluate_guard(const machine& owner, std::size_t index,
                                    const boost::json::value& context, const event& happened,

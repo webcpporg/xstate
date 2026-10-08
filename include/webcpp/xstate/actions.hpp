@@ -10,9 +10,11 @@
  resolveAndExecuteActionsWithContext; actions/assign.ts, raise.ts, log.ts,
  cancel.ts, send.ts, spawnChild.ts, stopChild.ts, emit.ts).
 
- Tip: assign only changes the context and is never returned; every other
+ @note An assign only changes the context and is never returned; every other
  built-in is returned with its resolved params, and an action the registry
  does not hold is returned as it was named.
+
+ @see "Actions", in the guide.
 */
 #ifndef WEBCPP_XSTATE_ACTIONS_HPP
 #define WEBCPP_XSTATE_ACTIONS_HPP
@@ -40,27 +42,79 @@
 namespace webcpp::xstate {
 
 /**
- An action returned to the caller, as XState's ExecutableActionObject:
- `params` holds the resolved params of a built-in, or what the config gave
- a custom one, and is null when there are none.
+ An action returned to the caller to execute.
 
- Tip: `builtin` tells the two apart, not the type: a config may name an
- action it gives no implementation "xstate.sendTo", which XState returns as
- a custom action all the same.
+ It ports XState's `ExecutableActionObject`. A custom action (@ref builtin
+ false) has the `type` the config named and the `params` it gave, null when
+ it gave none. A built-in one was resolved by xstate, and `params` holds
+ what it resolved: an `event` in XState's flat form, a `delay` in
+ milliseconds.
+
+ Each built-in type is returned for these actions, with these params:
+
+ - `xstate.raise`, for a @ref raise_action and on entering a state with
+   `after`, its params `event`, `id` when it has one and `delay` when
+   delayed;
+ - `xstate.cancel`, for a @ref cancel_action and on leaving a state with
+   `after`, its params `sendId`;
+ - `xstate.log`, for a @ref log_action, its params `value` unless undefined
+   and `label` when it has one;
+ - `xstate.sendTo`, for a @ref send_to_action, a @ref send_parent_action
+   and a @ref forward_to_action, its params `targetId`, `event`, `id` when
+   it has one and `delay` when delayed;
+ - `xstate.emit`, for an @ref emit_action, its params `event`;
+ - `xstate.spawnChild`, for a @ref spawn_child_action and on entering a
+   state that invokes, its params `id`, `src`, and `input` and `systemId`
+   when there are any;
+ - `xstate.stopChild`, for a @ref stop_child_action, on leaving a state
+   that invokes, and for each child left when a macrostep settles not
+   active, its params `id`, or null when the child was not there.
+
+ An assign is never returned.
+
+ @note @ref builtin tells the two kinds apart, not the type: a config may
+ name an action `xstate.sendTo` and give it no implementation, and it is
+ returned as a custom action all the same, which
+ @ref simulated_clock::apply ignores.
+
+ @see "Built-in and custom actions", in the guide.
+ @see "Custom actions", in the guide.
 */
 struct action {
+    /** The action's type: the name the config gave, or a built-in's `xstate.` name. */
     std::string type{};
+
+    /** The resolved params of a built-in, or the params the config gave, null when none. */
     boost::json::value params{};
-    // Resolved by the library (raise, sendTo, spawnChild, ...), as opposed
-    // to a custom action returned as the config named it.
+
+    /**
+     Whether xstate resolved the action, as a raise, a sendTo or a
+     spawnChild does, as opposed to a custom action returned as the config
+     named it.
+    */
     bool builtin = false;
-    // For a sendTo naming an invoke of the state being entered by its bare
-    // id: how many of its microstep's actions come before the point where
-    // XState binds it to the child that id names, the end of that state's
-    // entry actions, spawns and initial actions (retryResolveSendTo).
+
+    /**
+     Where XState binds a sendTo that names, by its bare id, an invoke of
+     the state being entered.
+
+     It counts how many of its microstep's actions come before the point
+     where XState binds the sendTo to the child that id names: the end of
+     that state's entry actions, spawns and initial actions (XState's
+     `retryResolveSendTo`). When no child has that id at that point, the
+     actor layer fails the actor with @ref errc::unknown_target where XState
+     throws.
+
+     @see "A `sendTo` whose child is gone", in the guide.
+    */
     std::optional<std::size_t> bound_at{};
-    // A forwardTo's sendTo, which XState's development build refuses to
-    // resolve to no actor, where a sendTo goes to the actor itself.
+
+    /**
+     Whether the action is a forwardTo's sendTo.
+
+     XState's development build refuses to resolve a forwardTo to no actor,
+     where a sendTo goes to the actor itself; the actor layer reads it.
+    */
     bool forwarded = false;
 };
 
@@ -68,9 +122,13 @@ namespace detail {
 
 /** What resolving a list of actions changes, outside the snapshot. */
 struct resolution {
+    /** The macrostep's queue, to which a raise without a delay goes. */
     std::deque<event>& queue;
+
+    /** The actions returned to the caller, in order. */
     std::vector<action>& returned;
-    // Set when the snapshot changed, which re-enables eventless transitions.
+
+    /** Set when the snapshot changed, which re-enables eventless transitions. */
     bool& changed;
 };
 
@@ -186,7 +244,7 @@ inline result<void> resolve_send_to(const machine& owner, const snapshot& curren
  A spawn: the child added to the snapshot's children under its id and
  returned for the caller to start; XState's resolveSpawn.
 
- Tip: XState's params also hold the actor reference it creates; here the
+ @note XState's params also hold the actor reference it creates; here the
  caller creates the child from `src`.
 */
 inline void resolve_spawn(snapshot& current, std::string_view id, std::string_view src,
@@ -272,17 +330,27 @@ inline result<void> resolve_log(const log_action& logged, const action_args& arg
  per alternative of action_implementation.
 */
 struct registered_resolver {
+    /** The machine whose implementations the action comes from. */
     const machine& owner;
+
+    /** The snapshot the action changes. */
     snapshot& current;
+
+    /** What the action's implementations are handed. */
     const action_args& args;
-    // The ids a sendTo may name before their child is spawned.
+
+    /** The ids a sendTo may name before their child is spawned. */
     std::span<const invoke_definition> deferred{};
+
+    /** What the action returns or queues. */
     const resolution& into;
 
+    /** An assign: XState's resolveAssign. */
     result<void> operator()(const assign_action& assigned) const {
         return resolve_assign(current, assigned, args, into);
     }
 
+    /** A raise, its event made first: XState's resolveRaise. */
     result<void> operator()(const raise_action& raised) const {
         const result<event> made = raised.event(args);
         if (!made.has_value()) {
@@ -291,6 +359,7 @@ struct registered_resolver {
         return resolve_raise(owner, *made, raised.id, raised.delay, args, into);
     }
 
+    /** A log: XState's resolveLog. */
     result<void> operator()(const log_action& logged) const {
         return resolve_log(logged, args, into);
     }
@@ -305,6 +374,7 @@ struct registered_resolver {
                                into);
     }
 
+    /** A cancel, returned with its id as `sendId`: XState's resolveCancel. */
     result<void> operator()(const cancel_action& cancelled) const {
         into.returned.push_back(action{
             .type = "xstate.cancel",
@@ -314,6 +384,7 @@ struct registered_resolver {
         return {};
     }
 
+    /** A spawnChild, its id and input computed first. */
     result<void> operator()(const spawn_child_action& spawned) const {
         std::string id;
         if (const auto* fixed = std::get_if<std::string>(&spawned.id)) {
@@ -337,11 +408,13 @@ struct registered_resolver {
         return {};
     }
 
+    /** A stopChild: XState's resolveStop. */
     result<void> operator()(const stop_child_action& stopped) const {
         resolve_stop(current, stopped.id, into);
         return {};
     }
 
+    /** A sendTo, its event made first: XState's resolveSendTo. */
     result<void> operator()(const send_to_action& sent) const {
         const result<event> made = sent.event(args);
         if (!made.has_value()) {

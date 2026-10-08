@@ -5,8 +5,19 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 
 /**
- xstate, a header-only port of XState v5's state machines: everything a user
- includes, in one header (doc: #reference-xstate-hpp).
+ The machine core, whole: include this one header to create machines and
+ step them.
+
+ It includes nothing of xactor, so a program that steps machines itself,
+ with the macrostep cursor or with XState's pure functions, depends on Boost
+ alone. It knows XState's actors as data, the `implementations::actors` a
+ machine names and the `children` a snapshot lists, and runs none: it
+ resolves an invoke or a spawnChild into an `xstate.spawnChild` action, and a
+ stopChild or the exit of an invoking state into an `xstate.stopChild`, for
+ its caller to run. The actor layer, `<webcpp/xstate/actors.hpp>`, runs them.
+
+ @see "The machine core", in the guide.
+ @see "Two layers", in the guide.
 */
 #ifndef WEBCPP_XSTATE_HPP
 #define WEBCPP_XSTATE_HPP

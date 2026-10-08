@@ -5,9 +5,16 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 
 /**
- State values, XState's description of where a machine is: a key for a
- compound state's active child, an object for a parallel state's regions,
- nested; and the dotted paths that name them (utils.ts).
+ State values, XState's description of where a machine is, and the dotted
+ paths that name them (utils.ts).
+
+ A state value is JSON: the key of a compound state's active child, as
+ `"green"`, or, when that child has children of its own or the state is
+ parallel, an object from each active child's key to its own state value,
+ as `{"walk": "slow"}` or `{"bold": "on", "italic": "off"}`.
+
+ @see "The state value", in the guide.
+ @see "Matching a state value", in the guide.
 */
 #ifndef WEBCPP_XSTATE_STATE_VALUE_HPP
 #define WEBCPP_XSTATE_STATE_VALUE_HPP
@@ -23,10 +30,19 @@
 namespace webcpp::xstate {
 
 /**
- Splits a state id at each dot, a backslash escaping the character after
- it; XState's toStatePath.
+ Splits a state id into the keys of its path.
 
- Tip: "a\.b.c" is the path ["a.b", "c"], so a key may hold a dot.
+ It ports XState's `toStatePath`. The id is split at each dot, a backslash
+ making the character after it part of the segment, so a key may hold a
+ dot; an empty id is the path of one empty key:
+
+ @code
+ to_state_path("a\\.b.c");  // {"a.b", "c"}
+ to_state_path("");         // {""}
+ @endcode
+
+ @param id The state id, or a dotted path.
+ @return The segments, at least one.
 */
 inline std::vector<std::string> to_state_path(std::string_view id) {
     std::vector<std::string> path;
@@ -50,8 +66,13 @@ inline std::vector<std::string> to_state_path(std::string_view id) {
 }
 
 /**
- The state value a path describes, ["a", "b", "c"] being {"a": {"b": "c"}};
- XState's pathToStateValue.
+ Builds the state value a path describes.
+
+ It ports XState's `pathToStateValue`: `["a", "b", "c"]` is
+ `{"a": {"b": "c"}}`, `["a"]` is `"a"`, and an empty path is `{}`.
+
+ @param path The keys from the root down.
+ @return The state value.
 */
 inline boost::json::value path_to_state_value(std::span<const std::string> path) {
     if (path.empty()) {
@@ -67,8 +88,13 @@ inline boost::json::value path_to_state_value(std::span<const std::string> path)
 }
 
 /**
- A state value in its object form when it was given as a dotted string;
- XState's toStateValue.
+ Converts a state value given as a dotted string to its object form.
+
+ It ports XState's `toStateValue`: `"a.b.c"` is `{"a": {"b": "c"}}`, and
+ any other value is returned as it is.
+
+ @param given A state value, or a dotted string.
+ @return The state value.
 */
 inline boost::json::value to_state_value(const boost::json::value& given) {
     if (!given.is_string()) {
@@ -79,11 +105,19 @@ inline boost::json::value to_state_value(const boost::json::value& given) {
 }
 
 /**
- Whether `child` is `parent` or a state within it; XState's matchesState,
- with its recursion as a list of the pairs still to compare.
+ Whether the state value `child` is `parent` or a state within it.
 
- Tip: a string parent matches a child object that holds it as a key, so
- "b" matches {"b": "b1", "c": "c1"}.
+ It ports XState's `matchesState`, its recursion a list of the pairs still
+ to compare. Either value may be a state value or a dotted string. The
+ parent `"b"` matches the child `{"b": "b1", "c": "c1"}`, and the parent
+ `"a.b"` matches the child `{"a": {"b": "c"}}`; the parent
+ `{"a": {"b": "c"}}` does not match the child `"a.b"`.
+ @ref snapshot::matches is this function with the snapshot's value as
+ `child`.
+
+ @param parent The state value that may hold `child`.
+ @param child The state value that may lie within `parent`.
+ @return `true` when `child` is `parent` or a state within it.
 */
 inline bool matches_state(const boost::json::value& parent, const boost::json::value& child) {
     std::vector<std::pair<boost::json::value, boost::json::value>> pending;
