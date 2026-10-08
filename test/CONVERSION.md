@@ -449,7 +449,8 @@ assertions in the source and 1779 at run time, both old and new.
 | **4 cases, 231 test cases** | | **12** | **466** |
 
 The same on both sides. Its rows are the cases of `test/fixtures/actors/cases/`, which moved
-unchanged. Boost.Test counts one assertion for each row of
+unchanged except the rename in `final.json`'s description, `stately::xstate's recorder` to
+`webcpp::xstate's recorder`. Boost.Test counts one assertion for each row of
 `every_actor_case_does_what_xstates_actors_did` while it passes, old and new alike.
 
 In total, `actors_test.cpp`'s five programs have 73 cases, with 345 assertions in the source and

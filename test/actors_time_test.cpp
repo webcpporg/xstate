@@ -57,9 +57,8 @@ using webcpp::test::xstate_actors::with_host;
 
 namespace {
 
-// The review focus of the plan: a macrostep the fuel cannot finish parks, an
-// event that arrives meanwhile waits, and resume() finishes the macrostep
-// before the event runs.
+// A macrostep the fuel cannot finish parks, an event that arrives meanwhile
+// waits, and resume() finishes the macrostep before the event runs.
 void a_parked_macrostep_settles_before_an_event_that_arrived_meanwhile() {
     // GO runs five microsteps: idle to a, then a to b, c, d and e eventlessly.
     const xstate::machine chain = machine_of(R"({
@@ -96,8 +95,8 @@ void a_parked_macrostep_settles_before_an_event_that_arrived_meanwhile() {
     BOOST_TEST_EQ(system.snapshot_of(actor)->value, parsed(R"("f")"));
 }
 
-// The review focus of the plan: a child that finishes while its parent is
-// parked mid-macrostep; its done event waits for the parent's macrostep.
+// A child that finishes while its parent is parked mid-macrostep has its done
+// event wait until the parent's macrostep is finished.
 void a_child_done_while_its_parent_is_parked_waits_for_the_parent_to_settle() {
     const xstate::machine worker = machine_of(R"({
         "initial": "working",
