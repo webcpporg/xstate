@@ -12,3 +12,11 @@
 # alone, and the details of errc's enumerators say when each error is
 # reported.
 show-enum-constants: true
+
+# A class lists only its own members. The two actor logics derive from
+# xactor's actor_logic, whose members MrDocs would otherwise copy into each,
+# its pure handle beside the logic's own and its deleted assignments, with
+# xactor's Doc Comments read in xstate's namespace, where a reference to
+# xactor's status::error names xstate's status::error and one to
+# scheduler::error_of names nothing. xactor's reference documents them.
+inherit-base-members: never

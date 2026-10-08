@@ -11,11 +11,13 @@
  has settled; XState's createActor for a machine (createActor.ts,
  StateMachine.ts, stateUtils.ts resolveActionsAndContext).
 
- Tip: when the execution cannot pay, the actor keeps what it has not done,
+ @note When the execution cannot pay, the actor keeps what it has not done,
  its cursor, its unresolved actions or its deferred effects, and only a
  resume continues it, so no event starts before the macrostep in progress
  has settled and no work runs unpaid or twice
  (doc: #xstate-invariant-a2 to #xstate-invariant-a6).
+
+ @see "Machine actors", in the guide.
 */
 #ifndef WEBCPP_XSTATE_ACTORS_MACHINE_LOGIC_HPP
 #define WEBCPP_XSTATE_ACTORS_MACHINE_LOGIC_HPP
@@ -60,7 +62,7 @@ inline const boost::json::value* param_of(const action& returned, std::string_vi
 /**
  A string member of an action's params, or the empty string.
 
- Tip: the view is into the action's params, valid while the action lives
+ @note The view is into the action's params, valid while the action lives
  and is not moved.
 */
 inline std::string_view string_param(const action& returned, std::string_view key) {
@@ -89,14 +91,72 @@ inline std::uint64_t milliseconds_of(const boost::json::value& delay) {
 
 }  // namespace detail
 
+/**
+ The logic of a machine actor, XState's `createActor` for a machine.
+
+ Each message is one turn. The actor keeps its snapshot and runs one
+ macrostep at a time with the @ref macrostep cursor, paying one unit of fuel
+ a microstep. It resolves each microstep's actions as the microstep is
+ computed, and runs what they deferred (deliveries and timers, cancels,
+ emits, the stops and starts of children) once the macrostep has settled.
+ When its execution cannot pay, it parks with what it has not done, and
+ only a resume continues it, so no event starts before the macrostep in
+ progress has settled and no work runs unpaid or twice.
+
+ It ends done when its machine is done, after its parent has received its
+ done event, and fails when a macrostep, or an effect it deferred, fails,
+ after its parent has received its error event. That event,
+ `xstate.error.actor.<id>`, carries as `error` the actor's `error_value`,
+ unchanged, when an unhandled error event failed it
+ (@ref errc::actor_failed), and no `error` when that event carried none.
+ Otherwise it carries the name of the actor's error code, its `message()`,
+ such as `"implementation_failed"`. Its turn then returns the failure, and
+ its xactor status is `error`. @ref actor_system::create_actor creates one,
+ and so does a machine actor for each invoke or spawnChild that names a
+ @ref machine_actor; a host does not construct it.
+
+ @see "Machine actors", in the guide.
+ @see "Done and error events", in the guide.
+ @see "Guarantees", in the guide: guarantees A2 to A6 and A9.
+*/
 class machine_logic final : public xactor::actor_logic<actor_message> {
 public:
+    /** What the actor may do while it handles a message: a `webcpp::xactor::turn`. */
     using turn_type = xactor::turn<actor_message>;
+
+    /** A message as the scheduler delivers it: a `webcpp::xactor::envelope`. */
     using envelope_type = xactor::envelope<actor_message>;
 
+    /**
+     Makes the logic of a machine actor, which runs nothing until it is
+     constructed or started.
+
+     @param state The state of the system the actor belongs to, which
+     outlives it.
+     @param logic The machine the actor runs.
+     @param input The actor's input, null for none.
+    */
     machine_logic(system_state& state, machine logic, boost::json::value input)
         : state_(state), machine_(std::move(logic)), input_(std::move(input)) {}
 
+    /**
+     Handles one message of the actor's mailbox.
+
+     A @ref construct_actor runs the initial macrostep and answers
+     @ref constructed; a @ref start_actor starts the actor, constructing it
+     first when no parent did; an @ref event runs its macrostep, or waits
+     while the actor has not started or has work left; a @ref resume
+     continues a parked actor; a @ref relay forwards a delayed sendTo; a
+     @ref delayed is taken as its event; a @ref stop_actor stops the actor
+     once its work is done; and a @ref host_answer is ignored.
+
+     @param turn What the actor may do while it handles the message.
+     @param cause The message, in the envelope that says who sent it.
+     @return Success, also when the actor parks for want of fuel; the
+     failure that ends the actor, once its parent has received its error
+     event; or the error of a call to `turn` refused for another reason than
+     fuel.
+    */
     result<void> handle(turn_type& turn, const envelope_type& cause) override {
         return std::visit([this, &turn](const auto& message) { return this->on(turn, message); },
                           cause.payload);
@@ -215,7 +275,7 @@ private:
      doing; XState's scheduler relays it from the clock. A parked actor
      forwards it on resume, behind the relays it could not pay.
 
-     Tip: a tick stops at the first actor that parks, so no relay reaches a
+     @note A tick stops at the first actor that parks, so no relay reaches a
      parked actor today; forwarding only on resume keeps a parked actor
      parked only while it has something left to do.
     */
@@ -510,7 +570,7 @@ private:
      and constructs a machine child, the resolution waiting for it; its
      start is deferred. XState's resolveSpawn and executeSpawn.
 
-     Tip: the construction costs a message, so the child is created only
+     @note The construction costs a message, so the child is created only
      when the execution can pay for it.
     */
     result<bool> resolve_spawn(turn_type& turn, work& current) {
@@ -619,7 +679,7 @@ private:
      the actor a systemId names, and defers its delivery; XState's
      resolveSendTo and executeSendTo.
 
-     Tip: one naming an invoke of the state being entered waits for the
+     @note One naming an invoke of the state being entered waits for the
      point of the microstep its `bound_at` names (retryResolveSendTo).
     */
     void resolve_send(turn_type& turn, work& current) {
@@ -750,7 +810,7 @@ private:
      (StateMachine.start), then runs every initial action and the immediate
      part of each stop.
 
-     Tip: a child born done or failed is not active, and starts where its
+     @note A child born done or failed is not active, and starts where its
      spawn put it, after what came before.
     */
     void begin_start(turn_type& turn, work& current) {
@@ -827,7 +887,7 @@ private:
      Whether a child born done or failed finds its systemId held by an actor
      this macrostep created; XState's start() claims it again, and throws.
 
-     Tip: XState runs the macrostep whole, so a claim another actor made in
+     @note XState runs the macrostep whole, so a claim another actor made in
      between, which xactor's interleaving lets happen, is one it never meets.
     */
     [[nodiscard]] bool claim_refused(const work& current, actor_ref child) const {
@@ -1043,7 +1103,7 @@ private:
      Ends the actor done, its output kept, after its parent was sent its
      done event; XState's update for a done snapshot.
 
-     Tip: its systemId is released first, as XState's _stopProcedure does,
+     @note Its systemId is released first, as XState's _stopProcedure does,
      so a report that waits for fuel does not keep it.
     */
     result<bool> finish(turn_type& turn) {

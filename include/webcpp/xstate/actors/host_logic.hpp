@@ -10,8 +10,10 @@
  ends it, done with an output or failed with an error, which its parent
  hears as XState's promise actor's parent does (actors/promise.ts).
 
- Tip: the system hands it only an answer to a pending request, as XState
+ @note The system hands it only an answer to a pending request, as XState
  ignores a promise that settles after its actor stopped (actor_system).
+
+ @see "Host actors", in the guide.
 */
 #ifndef WEBCPP_XSTATE_ACTORS_HOST_LOGIC_HPP
 #define WEBCPP_XSTATE_ACTORS_HOST_LOGIC_HPP
@@ -31,14 +33,59 @@
 
 namespace webcpp::xstate {
 
+/**
+ The logic of a host actor, in place of XState's `fromPromise`.
+
+ Once started, it is a pending @ref host_request with its input. The host's
+ answer ends it: done with the answer as its output, its parent receiving
+ `xstate.done.actor.<id>` with `output` and `actorId`; or failed with the
+ answer as its error, its parent receiving `xstate.error.actor.<id>` with
+ `error` and `actorId`, and its turn returning @ref errc::actor_failed, so
+ its xactor status is `error`. Answered, it releases its systemId before it
+ reports. It ignores every other event, as XState's promise actor does.
+ @ref machine_logic creates one when an invoke or a spawnChild names a
+ @ref host_actor; a host does not construct it.
+
+ @see "Host actors", in the guide.
+ @see "Promises become host actors", in the guide.
+ @see "Guarantees", in the guide: guarantee A10.
+*/
 class host_logic final : public xactor::actor_logic<actor_message> {
 public:
+    /** What the actor may do while it handles a message: a `webcpp::xactor::turn`. */
     using turn_type = xactor::turn<actor_message>;
+
+    /** A message as the scheduler delivers it: a `webcpp::xactor::envelope`. */
     using envelope_type = xactor::envelope<actor_message>;
 
+    /**
+     Makes the logic of a host actor.
+
+     @param state The state of the system the actor belongs to, which
+     outlives it.
+     @param input The actor's input; none when it was given none, XState's
+     `undefined`.
+    */
     host_logic(system_state& state, std::optional<boost::json::value> input)
         : state_(state), input_(std::move(input)) {}
 
+    /**
+     Handles one message of the actor's mailbox.
+
+     A @ref start_actor makes the actor a pending request, once. A
+     @ref host_answer to that request ends the actor, as the class says; one
+     that comes before the start or after an answer changes nothing. A
+     @ref resume sends the report that the fuel of an earlier execution
+     could not pay for. A @ref stop_actor releases what the actor holds and
+     stops it. Every other message is ignored.
+
+     @param turn What the actor may do while it handles the message.
+     @param cause The message, in the envelope that says who sent it.
+     @return Success; @ref errc::actor_failed when a rejection ends the
+     actor, which its scheduler keeps for
+     `webcpp::xactor::scheduler::error_of`; or the error of a send refused
+     for another reason than fuel.
+    */
     result<void> handle(turn_type& turn, const envelope_type& cause) override {
         if (std::holds_alternative<start_actor>(cause.payload)) {
             return ask(turn);
