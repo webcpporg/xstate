@@ -43,7 +43,6 @@ namespace webcpp::xstate {
 
  @see "Errors as values", in the guide.
  @see "What creation refuses", in the guide.
- @see "Guarantees", in the guide.
 */
 enum class errc : int {
     /**

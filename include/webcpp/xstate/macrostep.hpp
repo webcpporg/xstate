@@ -112,7 +112,7 @@ struct progress {
      queued, or the status is no longer @ref status::active; and on no
      other.
 
-     @see "Guarantees", in the guide.
+     @see "Guarantees", in the guide: guarantee 7.
     */
     bool settled = false;
 
@@ -180,7 +180,7 @@ struct macrostep_result {
 
  @see "The macrostep cursor", in the guide.
  @see "Fuel", in the guide.
- @see "Guarantees", in the guide.
+ @see "Guarantees", in the guide: guarantee 8.
 */
 class macrostep {
 public:
