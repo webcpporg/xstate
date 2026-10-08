@@ -10,9 +10,11 @@
  time the caller sets reaches it (SimulatedClock.ts, system.ts scheduler;
  doc: #xstate-invariant-13).
 
- Tip: the machine never reads a clock. A caller schedules what a step
+ @note The machine never reads a clock. A caller schedules what a step
  returned, moves the time, and delivers each due event as a macrostep of
  its own, which may schedule more.
+
+ @see "Delayed events and the simulated clock", in the guide.
 */
 #ifndef WEBCPP_XSTATE_CLOCK_HPP
 #define WEBCPP_XSTATE_CLOCK_HPP
@@ -32,24 +34,60 @@
 
 namespace webcpp::xstate {
 
+/**
+ A clock the caller owns, which holds the delayed events of the machine core
+ until the time it is set to reaches them.
+
+ It ports XState's `SimulatedClock` with its scheduler. The machine core
+ never reads a clock: a delayed event comes back as an action, and a clock
+ holds it until the time the caller sets reaches it. Time is in whole
+ milliseconds, where XState's takes fractions, and starts at 0. The actor
+ layer keeps its timers in xactor instead.
+
+ @see "Delayed events and the simulated clock", in the guide.
+ @see "In the machine core", in the guide.
+ @see "Time in whole milliseconds", in the guide.
+*/
 class simulated_clock {
 public:
+    /**
+     The time.
+
+     @return The time, in milliseconds since the clock was made.
+    */
     [[nodiscard]] std::uint64_t now() const noexcept { return now_; }
 
     /**
-     Holds `delayed` until `delay` milliseconds from now; a later schedule
-     with the same id takes the id over, and the earlier one can no longer
-     be cancelled, as in XState's scheduler.
+     Holds an event until a delay from now.
+
+     A later schedule under the same id takes the id over: the earlier event
+     still comes due, but a cancel of the id no longer finds it, as in
+     XState's scheduler.
+
+     @param delayed The event.
+     @param delay The delay, in milliseconds from @ref now.
+     @param id The id a @ref cancel names the event by, or none.
     */
     void schedule(event delayed, std::uint64_t delay, std::optional<std::string> id) {
         hold(std::move(delayed), delay, std::move(id));
     }
 
     /**
-     Applies what a step returned to the clock: an xstate.raise with a delay
-     is scheduled and an xstate.cancel cancels. A delayed sendTo, a
-     sendParent included, is not the machine's to receive, but its timer
-     holds its id, as XState's scheduler keys every delayed event by its id.
+     Applies to the clock a built-in action a step returned.
+
+     A built-in `xstate.raise` with a `delay` is scheduled, under its id when
+     it has one, and a built-in `xstate.cancel` cancels its `sendId`. A
+     delayed built-in `xstate.sendTo` with an id, a sendParent's included, is
+     not the machine's to receive, but holds its id until it comes due, as
+     XState's scheduler keys every delayed event by its id. A raise without
+     a delay, which its macrostep already ran, and every other action are
+     ignored.
+
+     @note A custom action is ignored whatever its type, a config being free
+     to name one `xstate.raise`: XState's scheduler, too, holds only what its
+     built-in actions schedule.
+
+     @param returned An action a step returned.
     */
     void apply(const action& returned) {
         // A custom action is the caller's, whatever the config named it.
@@ -89,12 +127,27 @@ public:
         }
     }
 
-    /** Forgets the event scheduled under `id`; XState's scheduler.cancel. */
+    /**
+     Forgets the event scheduled under an id, if the id still names one.
+
+     It ports XState's `scheduler.cancel`.
+
+     @param id The id.
+    */
     void cancel(std::string_view id) {
         std::erase_if(timers_, [id](const timer& held) { return held.id == id; });
     }
 
-    /** Moves the time to `time`; never backwards, as XState's set refuses. */
+    /**
+     Sets the time, which never goes back.
+
+     It ports XState's `SimulatedClock.set`, which refuses to go back in
+     time.
+
+     @param time The time, in milliseconds.
+     @return Success; @ref errc::invalid_config when `time` is earlier than
+     @ref now, which changes nothing.
+    */
     result<void> set(std::uint64_t time) {
         if (time < now_) {
             return failure<void>(errc::invalid_config);
@@ -103,14 +156,29 @@ public:
         return {};
     }
 
-    /** Moves the time forward by `milliseconds`. */
+    /**
+     Moves the time forward.
+
+     It ports XState's `SimulatedClock.increment`.
+
+     @param milliseconds How far.
+    */
     void increment(std::uint64_t milliseconds) noexcept { now_ += milliseconds; }
 
     /**
-     The earliest event whose time has come, by deadline then by the order
-     it was scheduled in, taken out of the clock; nothing when none is due.
+     Takes the earliest event whose time has come out of the clock.
+
+     The earliest is by deadline, then by the order the events were
+     scheduled in, a rule where XState leaves equal deadlines to its sort.
      The id it was scheduled under then cancels nothing, as XState's firing
-     timeout deletes its entry of timerMap.
+     timeout deletes its entry of `timerMap`. The caller delivers each due
+     event as a macrostep of its own and applies what that returns before
+     the next call, so an event it schedules or cancels is ordered as XState
+     orders it.
+
+     @return The event; none when no event is due.
+
+     @see "Equal deadlines", in the guide.
     */
     std::optional<event> pop_due() {
         while (true) {
