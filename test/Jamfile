@@ -6,8 +6,33 @@
 
 project : requirements <library>/webcpp/xstate//xstate ;
 
+import regex ;
 import webcpp ;
 
 webcpp.targets native wasip2 wasip3 ;
 
 webcpp.headers-alone xstate : ../include ;
+
+# The machine core includes nothing of xactor or of the actor layer.
+webcpp.compile core_alone : core_alone.cpp ;
+
+# A user's designated initializers that leave members out, compiled as user
+# code (not as system headers) with -Wextra -Werror.
+webcpp.compile user_aggregates : user_aggregates.cpp ;
+
+# The machine core, one program per file, each also built natively as
+# <name>-noexcept, without exceptions and without RTTI.
+webcpp.run values : values_test.cpp ;
+webcpp.run machine : machine_test.cpp ;
+webcpp.run cursor : cursor_test.cpp ;
+
+# The cases ported from XState's tests: a Boost.Test suite, native only,
+# which reads the fixture files and registers one test case for each case.
+# The fixtures' directory with forward slashes, the whole define quoted, as
+# xstate-cpp's test/Jamfile did, for a checkout whose path holds a space.
+path-constant FIXTURES : fixtures ;
+local fixtures = [ regex.replace $(FIXTURES) "\\\\" "/" ] ;
+.case-files = [ glob fixtures/cases/*.json fixtures/expected/*.json
+                     fixtures/actors/cases/*.json fixtures/actors/expected/*.json ] ;
+webcpp.boost-test cases : cases_test.cpp
+  : <define>"\"WEBCPP_TEST_XSTATE_FIXTURES=\\\"$(fixtures)\\\"\"" <dependency>$(.case-files) ;

@@ -5,7 +5,7 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 
 // The implementations xstate's test cases may name, written once for XState.
-// test/xstate/vocabulary.hpp is the same table in C++, and the two must
+// test/vocabulary.hpp is the same table in C++, and the two must
 // agree entry for entry.
 //
 // A case names three kinds of thing. The assigns and the guards below are
@@ -95,7 +95,7 @@ export function computed(expression) {
 const fixedOrComputed = (expression) =>
   isComputed(expression) ? computed(expression) : expression;
 
-// The vocabulary is strict, and test/xstate/vocabulary.hpp is
+// The vocabulary is strict, and test/vocabulary.hpp is
 // the same: an entry given what it is not for fails with the vocabulary's
 // failure, where JavaScript would coerce ("a" + 1, undefined >= 0) or throw
 // a TypeError of its own, so that both define the same function.
