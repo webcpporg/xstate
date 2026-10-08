@@ -1,0 +1,454 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#context]
+== Context
+
+A machine's finite states say which mode it is in: `idle` or `loading`,
+`inactive` or `active`. Most machines also carry data that no finite set of
+states holds well: a count, the text of a form, a user's id, the last error.
+That data is the machine's _context_, which statecharts call extended state.
+It lives in the snapshot, beside the state value, and it is available in
+every state.
+
+The context never changes in place. An `assign` action computes a new one, the
+microstep that runs it returns a new snapshot that holds it, and the snapshot
+it began from keeps the old one. The context is optional: a machine that only
+needs its finite states leaves it out, and its snapshots then hold an empty
+object.
+
+In xstate the context is JSON, a `boost::json::value`, and in practice an
+object. The smallest example is a machine with an initial context, and the
+snapshot it starts in:
+
+[source]
+----
+include::{examples}/xstate/context_initial.cpp[tag=initial,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/context_initial.expected[lines=1]
+----
+
+The config's `context` is the one XState's `createMachine` takes, written in
+JSON. `get_initial_snapshot`, XState's `getInitialSnapshot`, computes the
+snapshot a machine starts in (<<pure>>), and the snapshot's `context` is a
+`boost::json::value`, which `boost::json::serialize` writes. Stately's own
+page reads the context through an actor and its subscription; that program
+is in <<context-actors>>.
+
+[#context-initial]
+=== Initial context
+
+The config's `context` is the initial context of every snapshot the machine
+starts in. xstate copies it into each one, so every snapshot owns its context
+and no two snapshots, or two actors, share one. XState hands every actor the
+config's object itself, which is why Stately's page warns that mutating it
+may change the context of other actors; a `boost::json::value` held by value
+leaves nothing for that warning to guard.
+
+A machine without a `context`, or with `"context": null`, starts with an empty
+object, as XState's does:
+
+[source]
+----
+include::{examples}/xstate/context_initial.cpp[tag=none,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/context_initial.expected[lines=2]
+----
+
+Write the context as an object. xstate keeps any other value as written,
+`false`, a number, a string or a list, and an `assign` on it fails with
+`implementation_failed`. XState starts a `context` of `false`, `0` or `""` as
+`{}`, and its assign, which merges with JavaScript's `Object.assign`, drops a
+context of `true` or a number and spreads a string or a list into numbered
+members (<<differences-object-context>>).
+
+[#context-lazy]
+=== Lazy initial context
+
+Some context is not known when the machine is written: a timestamp, an id,
+anything that must be computed when the machine starts. XState takes the
+context as a function for that, which runs once for each actor, when the
+actor is created, so that each actor computes its own. A function cannot be
+JSON, so xstate takes it from the implementations, as it takes all the code a
+machine names: `implementations.context`, a `context_maker`. When it is set,
+it replaces the config's `context`.
+
+It runs at the start of every initial macrostep: in each
+`get_initial_snapshot`, `initial_transition`, `get_initial_microsteps` and
+`begin_initial`, and when an actor is constructed. A child is constructed
+when its parent resolves the spawn of an invoke or a `spawn_child_action`. A
+root is constructed on `start`, not on `create_actor`, which runs nothing;
+XState's `createActor` runs the function at once
+(<<differences-construction>>).
+
+[source]
+----
+include::{examples}/xstate/context_lazy.cpp[tag=lazy,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/context_lazy.expected[]
+----
+
+The machine was created while `now` was 1000, and each snapshot holds the
+time at which it was computed. xstate itself never reads a clock, and a
+`context_maker` that read one would make the initial snapshot depend on the
+moment it ran, so the time here comes from a variable the function captures,
+where Stately's page reads `Date.now()`. A program whose results must follow
+from what it is given passes the time in the input (<<context-input>>).
+
+[#context-input]
+=== Initial context from the input
+
+The input is the data a machine is started with, as a function is called with
+its arguments; <<input-output>> covers it whole. The initial context is often
+computed from it: a user's id, a default rating. XState's context function
+receives `{ input }`. xstate's `context_maker` receives the input itself, a
+`boost::json::value`, null when none was given. The input is the second
+argument of `get_initial_snapshot`, `initial_transition`,
+`get_initial_microsteps` and `begin_initial`, and the `input` of an actor's
+`actor_options`.
+
+[source]
+----
+include::{examples}/actors/context_input.cpp[tag=context_maker,indent=0]
+include::{examples}/actors/context_input.cpp[tag=input,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/context_input.expected[lines=1]
+----
+
+`initial_feedback` checks the input before it reads it, and returns an error
+when the input lacks what it needs: xstate throws no exception, and where
+XState's function throws, xstate's returns the error as a value. A context
+that cannot be computed fails the initial macrostep on its first `next()`,
+before any state is entered: the snapshot's `status` is `error`, its `error`
+the code the function returned, and its context an empty object, the
+snapshot XState's `getInitialSnapshot` returns when its function throws. The
+same machine without an input:
+
+[source]
+----
+include::{examples}/actors/context_input.cpp[tag=missing,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/context_input.expected[lines=2]
+----
+
+An actor takes the same input in its options, as XState's
+`createActor(machine, { input })` does (<<actors-options>>):
+
+[source]
+----
+include::{examples}/actors/context_input.cpp[tag=actor,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/context_input.expected[lines=3]
+----
+
+Three rules hold for the function:
+
+* It returns an object. Any other value fails the initial macrostep with
+  `implementation_failed`, where XState merges whatever its function returns
+  into an empty object (<<differences-object-context>>).
+* It takes the input only. XState also hands it `spawn` and `self`; an xstate
+  context cannot spawn a child (<<differences-context>>).
+* An empty `std::function` is refused by `create_machine` with
+  `invalid_config`, because calling it would abort in a build without
+  exceptions.
+
+[#context-assign]
+=== Updating context with assign
+
+The context changes through one action: `assign`. Like any action, it is
+named by a transition, an `entry` or an `exit`, and runs when that transition
+is taken or that state entered or left (<<actions-assign>>). Its
+implementation is an `assigner`: a function of the `action_args` that returns
+a partial update, an object. The update is merged into the context as
+`Object.assign` merges it: each of its members replaces the context's member
+of that name, or is added, and every other member is kept.
+
+XState writes an assign in the config or in the actions of `setup`. xstate
+registers it by name, as an `assign_action` in `implementations.actions`,
+because a config is JSON and a function is not. Here `update_feedback` copies
+the event's `feedback` into the context:
+
+[source]
+----
+include::{examples}/xstate/context_assign.cpp[tag=assigner,indent=0]
+include::{examples}/xstate/context_assign.cpp[tag=assign,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/context_assign.expected[]
+----
+
+The update named `feedback` only, so `rating` was kept. The event's members
+other than `type` are its payload, `args.event.payload`
+(<<transitions-events>>). `transition` returned no action: the library runs
+an assign while it computes the microstep and never returns it to the caller,
+as XState does. The snapshot `initial` still holds the context it had.
+
+XState's `assign` takes either a function that returns the update,
+`+assign(({ context, event }, params) => ({ ... }))+`, or an object of
+property assigners and fixed values. An xstate assigner is the function form:
+it builds every member of the update itself, as `update_feedback` builds
+`feedback`. XState's assigner also receives `spawn`, `self` and `system`, and
+can put an actor it spawns in the context. An xstate assigner receives only
+the `action_args`, a context holds no actor, and a child is spawned by a
+`spawn_child_action` (<<actors-spawn>>, <<differences-context>>).
+
+The rules of an assign:
+
+* The merge is shallow, as the merge of `Object.assign` is: a member that
+  holds an object is replaced whole, not merged.
+* An update adds and replaces members; it removes none. Set a member to null
+  to clear it.
+* The context must be an object (<<context-initial>>).
+* An assigner that returns an error fails the macrostep, and no assign of
+  that macrostep reaches the context (<<context-snapshot>>).
+* `create_machine` refuses an `assign_action` whose `assignment` is empty, with
+  `invalid_config`.
+
+[#context-guards-actions]
+=== How guards and actions read the context
+
+Every function of the implementations but the context function, which
+receives the input (<<context-input>>), receives an `action_args`: `context`,
+the context as it is when the implementation runs; `event`, the microstep's
+event; and `params`, the params the config gave the action or the guard, null
+when it gave none. These are the three XState hands an implementation, the
+first two in its first argument and `params` in its second. The machine's
+output is the one exception to `event`, as in XState: it receives the done
+event that completed the machine, that of the top-level final state that
+completed it or, for a parallel root, the root's own
+(<<input-output-machine-output-event>>).
+
+* A guard runs while its transition is selected, before any action of the
+  microstep, and reads the context of the snapshot the microstep starts from.
+* An action reads the context as the actions before it in the same microstep
+  left it, in XState's order: the exit actions, the transitions' actions, the
+  entry actions (<<actions>>). Two assigns in one microstep apply in order,
+  each to the context the one before it left.
+* The eventless transitions are selected again after the microstep of an
+  event, and after the microstep of an eventless transition when it changed
+  the snapshot; a microstep that ran an assign has changed it, whatever values
+  the assign wrote. So an `always` guarded on the context sees, in the same
+  macrostep, the context an assign left (<<transitions-eventless>>).
+
+A counter shows the first two. `belowLimit` guards `inc`, `add` adds its
+param `by`, and `report` is a log whose value is the count it sees. Each
+reads its numbers with `integer_at`, which returns the integer an object
+holds under a key, or none:
+
+[source]
+----
+include::{examples}/xstate/context_guards.cpp[tag=implementations,indent=0]
+include::{examples}/xstate/context_guards.cpp[tag=config,indent=0]
+
+include::{examples}/xstate/context_guards.cpp[tag=run,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/context_guards.expected[]
+----
+
+Each `inc` that was taken logged the count twice: `report` ran before `add`
+and after it, and saw each context. The third `inc` found the count at the
+limit: the guard was false, no transition was taken, and nothing ran or was
+returned. `report` is returned as `xstate.log`, its value resolved from the
+context at its turn (<<actions-log>>).
+
+A custom action, one the implementations do not hold, is returned to the
+caller with the params the config gave it, and nothing of the context, where
+XState's carries the context it ran with in its `info`
+(<<differences-custom>>). The code that executes it reads the context from a
+snapshot, which holds it as a whole microstep left it: the snapshot of the
+microstep that returned the action, from the cursor or `get_microsteps`,
+holds the context after every action of that microstep (<<pure-microsteps>>).
+A value that must be computed from the context at the action's turn is
+computed by a registered implementation, as the value of `report` is here.
+
+[#context-snapshot]
+=== A snapshot is a value
+
+A snapshot is a plain {cpp} value: the state value, the context, the status
+and the rest. A transition never changes the snapshot it begins from; it
+returns a new one. The same event taken twice from the same snapshot gives
+two snapshots equal member by member, and the first is still there, to be
+used again or stored. A counter whose `inc` adds one, and whose `set`
+increments, then assigns the count its event carries, and fails without one:
+
+[source]
+----
+include::{examples}/xstate/context_value.cpp[tag=functions,indent=0]
+include::{examples}/xstate/context_value.cpp[tag=value,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/context_value.expected[lines=1]
+----
+
+A failure keeps the snapshot a macrostep began from too. When an
+implementation fails, the macrostep ends in that snapshot, its `status`
+`error` and its `error` the code the implementation returned: no assign of
+the failed macrostep reaches the context, not even one that ran before the
+failure. That is the snapshot XState's actor keeps, where its pure functions
+throw (<<pure-cursor-failure>>, <<differences-failures>>). A `set` without a
+count, from the snapshot `second`:
+
+[source]
+----
+include::{examples}/xstate/context_value.cpp[tag=failure,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/context_value.expected[lines=2]
+----
+
+The count is 1, the count of `second`: `increment` ran and made it 2, then
+`setCount` failed, and the increment was dropped with the rest of the
+macrostep.
+
+Since a snapshot is a value, its caller keeps it where it likes: in a
+variable, a queue, a map of sessions. Its state value and its context are
+JSON, so they can be stored, in a database or across two requests, and
+`resolve_state(machine, value, context)` builds a snapshot back from them, as
+XState's `machine.resolveState({ value, context })` does. It returns a
+`result` and refuses a value that names no state with `unknown_state`. It
+restores the value and the context and nothing else: the status comes from
+the value, `done` or `active`, never `error`, and the output, what history
+states remember and the children are not restored (<<pure-persisted>>).
+Inside a macrostep, the snapshot of each microstep holds the context as that
+microstep left it, and the macrostep cursor hands each one to its caller
+(<<pure-cursor>>).
+
+[#context-actors]
+=== Context in an actor
+
+An actor keeps the snapshot for its caller: it starts in the initial
+snapshot, takes each event sent to it, and keeps the snapshot each macrostep
+settles in. Stately's page shows the context through an actor that a
+listener watches. Here the actor is one of xstate's `actor_system`, and its
+machine updates the context with `update_feedback`, the assigner of
+<<context-assign>>:
+
+[source]
+----
+include::{examples}/actors/context_actor.cpp[tag=actor,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/context_actor.expected[]
+----
+
+`subscribe` hands its listener each snapshot the actor settles in while it is
+active, and the one it is done in, as XState's `subscribe` does; `snapshot_of`
+returns the latest. The listener runs inside the actor's turn: it may read the
+system, but a call from it that changes the system, a `send` among them, is
+refused with xactor's
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`invalid_argument`]
+and changes nothing, where XState
+accepts a send from a subscriber and handles it after the update in progress
+(<<differences-callbacks>>). Actors, their fuel (<<actors-fuel>>) and their
+children are the subject of <<actors>>.
+
+[#context-types]
+=== Context and types
+
+XState types the context with TypeScript, in `setup({ types: { context } })`,
+and the compiler checks every implementation against it. An xstate machine is
+loaded from JSON at run time, so no type exists for a compiler to check: the
+context is a `boost::json::value`, and each implementation checks what it
+reads, before it reads it. It returns an error when a member is missing or of
+the wrong kind, as `integer_at` and its callers do in
+<<context-guards-actions>>. That error is a value: it ends the macrostep in the
+snapshot's `status` (<<context-snapshot>>).
+
+Read members with `if_object` and `if_contains`, which return a null pointer
+when the value is not an object or the member is missing. `at` throws on a
+missing member, and in a build without exceptions, as this page's examples
+are on wasm32-wasip2, the throw aborts the program.
+
+[#context-cheatsheet]
+=== Context cheatsheet
+
+[cols="1,1",options="header"]
+|===
+| XState | xstate
+
+| `context: { feedback: '' }`
+| `"context": {"feedback": ""}` in the config
+
+| `+context: () => ({ ... })+`
+| `implementations.context`, a `context_maker`
+
+| `+context: ({ input }) => ({ ... })+`
+| the same, reading its `const boost::json::value& input`
+
+| `getInitialSnapshot(machine, input)`
+| `get_initial_snapshot(machine, input)`
+
+| `createActor(machine, { input })`
+| `system.create_actor(machine, {.input = input})`
+
+| `+assign({ feedback: ({ event }) => event.feedback })+`
+| an `assign_action` whose `assignment` returns `+{"feedback": ...}+`, read
+from `args.event.payload`
+
+| `+assign(({ context, event }, params) => ({ ... }))+`
+| an `assign_action` whose `assignment` returns the partial update
+
+| `context`, `event` and `params` in an implementation
+| `args.context`, `args.event` (its `type`, and its other members in
+`args.event.payload`) and `args.params`
+
+| `snapshot.context`
+| `snapshot.context`, a `boost::json::value`
+
+| `setup({ types: { context } })`
+| none: each implementation checks what it reads
+|===

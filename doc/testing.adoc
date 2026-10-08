@@ -1,0 +1,1043 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#testing]
+== Testing
+
+A test checks that a machine's logic does what it should: from a known state,
+given some events, it reaches the states it should and asks for the effects it
+should. Stately's https://stately.ai/docs/testing[testing guide] writes each
+test in three parts, and so does this chapter:
+
+* *Arrange*: create the machine, and the actor that runs it when the test needs
+  one.
+* *Act*: send it events.
+* *Assert*: check the states it reached and the effects it asked for.
+
+A test is worth its assertions only when the run it checks is the same every
+time. In xstate nothing in a run depends on the world outside the test:
+
+* There is no real clock. A delay waits on a clock the test owns, and only
+  the test moves its time (<<testing-time>>).
+* There is no thread and no promise. A pure function returns when its
+  macrostep has settled; a call of the actor system returns when its work is
+  done, or says that it ran out of fuel; the work a promise would do is asked
+  of the host, which the test plays (<<testing-effects>>).
+* There is no exception. An implementation that fails puts the snapshot in
+  error, where the test reads it (<<testing-failures>>).
+* A custom action comes back as data, with its params, so the test reads it
+  where XState's test registers a mock (<<testing-machines>>).
+* Work is counted. A test can bound the microsteps an event may take, and run
+  an actor system with every budget of fuel (<<testing-bounds>>,
+  <<testing-budgets>>).
+
+A machine is tested at two levels. With the machine core,
+`<webcpp/xstate.hpp>`, a test calls it as a function, a snapshot and an
+event in, the next snapshot and its actions out, through XState's pure
+functions or the macrostep cursor (<<pure>>). With the actor layer,
+`<webcpp/xstate/actors.hpp>`, a test runs machines as actors, with their
+children, their timers and their requests to the host (<<actors>>). A
+program that uses xactor alone, without machines, tests its actors as
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-testing[xactor's page]
+shows. The last part of the chapter tells how xstate itself is tested,
+against XState (<<testing-xstate>>).
+
+The examples are programs that print what they check and return 1 when a
+check fails, which fails `b2 libs/xstate/example` (<<testing-examples>>),
+and each shows its whole `main`. In a test framework each check is an
+assertion; xstate's own tests use Boost.Core's lightweight_test, and
+Boost.Test for the suites that run the ported cases (<<testing-suites>>).
+
+[#testing-machines]
+=== Testing a machine
+
+The shortest test of a machine uses its pure functions:
+`get_initial_snapshot` returns the snapshot the machine starts in, and
+`transition` takes a snapshot and an event and returns the next snapshot with
+the actions its macrostep returned. No actor is created, and nothing runs
+between two calls. Stately's first example tests a toggle that notifies each
+time it becomes active. On the pure functions, the test reads:
+
+[source]
+----
+include::{examples}/xstate/testing_logic.cpp[tag=main]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/testing_logic.expected[]
+----
+
+`notify` has no implementation, so it is a custom action, and `transition`
+returns it to its caller with its params, `{"message": "Active!"}`. The test
+is that caller, and keeps the message of each `notify` it is returned, where
+Stately's test registers `notify` as a mock, a function that records the
+params it is called with. A function cannot be JSON, so a config names its
+actions and leaves the custom ones to the code that runs the machine
+(<<actions-custom>>); a test is such code, and needs no mock. XState's own
+`transition` returns its custom actions the same way. An `assign` is the one
+action never returned: it changes the context, and the test asserts on
+`snapshot.context` instead.
+
+`get_initial_snapshot`, `transition` and the other pure functions run each
+macrostep to its end, without a bound: on a machine whose eventless
+transitions never settle, they never return. A test of such a machine drives
+the cursor itself (<<testing-bounds>>).
+
+[#testing-failures]
+=== Testing failures
+
+An implementation can fail: an assign handed an event without the member it
+needs, a guard that cannot decide. Where XState's implementation throws,
+xstate's returns an error, a `result` holding an error code: xstate throws
+nothing, and reports every error as a value. The macrostep then settles at
+once, with the snapshot it began from, its `status` `error` and its `error`
+the code the implementation returned. That is the snapshot XState's actor
+keeps when an implementation throws, while XState's pure functions throw
+instead (<<differences-failures>>). So a test of a failure needs no actor.
+`save_age` fails when the event carries no age, and the test sends `save`
+without one:
+
+[source]
+----
+include::{examples}/xstate/testing_errors.cpp[tag=implementation]
+include::{examples}/xstate/testing_errors.cpp[tag=main]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/testing_errors.expected[]
+----
+
+The machine stays where it was before `save`: in `editing`, with its context
+unchanged. The snapshot holds the `error_code` the implementation returned,
+here `implementation_failed`, where XState's actor holds the thrown `Error`.
+An implementation may return any `error_code`, so a test can tell its own
+failures apart.
+
+An actor of xstate fails the same way, so the test carries over to the actor
+layer: after a `send` that fails, `status_of(actor)` holds
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-status-error[`xactor::status::error`],
+and `snapshot_of(actor)` has the status `error` and
+the error code (<<actors-snapshots>>). The test reads the failure there:
+xstate has no `error` callback, and a listener `subscribe` registers is not
+handed a failed snapshot (<<actors-watching>>). A parent hears of a child's
+failure through the child's error event (<<actors-done-error>>).
+
+[#testing-microsteps]
+=== Every microstep
+
+A macrostep is everything one event causes: the transition the event selects,
+then every eventless transition and raised event that follows, each one
+microstep, until the machine is stable. A snapshot shows where the macrostep
+ended, and nothing of the way there. A state entered and left by an eventless
+(`always`) transition in one macrostep never appears in a snapshot: XState's
+subscribers and `getSnapshot()` never see it, and neither does a test that
+asserts on the snapshot. Stately's page suggests listening to the inspection
+API's `@xstate.microstep` events, or changing the machine so that a zero delay
+replaces the `always`.
+
+xstate's cursor shows each microstep without changing the machine
+(<<pure-cursor>>). `begin` starts the macrostep an event runs, and each call
+of `next()` runs exactly one microstep and returns a `progress`: the
+microstep, with the snapshot it left and the actions it returned, and
+`settled`, true on the microstep that ends the macrostep and on no other. In
+this machine `submit` enters `validating`, which an eventless transition
+leaves at once:
+
+[source]
+----
+include::{examples}/xstate/testing_microsteps.cpp[tag=main]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/testing_microsteps.expected[]
+----
+
+`submit` entered `validating`, which returned its entry action `validate`,
+and the eventless transition left it in the same macrostep, which settled in
+`submitted`. `get_microsteps`, XState's `getMicrosteps`, is the same cursor
+run to its end: it returns the microsteps as a list, whose last one settles,
+for a test that needs the list only (<<pure-get-microsteps>>).
+
+[#testing-bounds]
+=== Bounding a macrostep
+
+A cycle of eventless transitions never reaches a stable state. XState runs it
+until the config's `options.maxIterations`, when one is set, makes the
+macrostep throw; by default there is no bound, and the call never returns
+(<<transitions-eventless-loops>>). xstate never stops a macrostep on its own,
+and does not read that option: the caller that drives the cursor pays for
+each microstep and decides how many it allows, which is its fuel
+(<<pure-cursor-fuel>>). A test uses the same bound to assert that an event
+settles within a number of microsteps, and to report a cycle as a failure
+instead of hanging on it.
+
+In this machine `GO` takes three microsteps, through two states that
+eventless transitions leave at once, and `SPIN` enters a cycle that never
+settles. `settle_within` runs at most `fuel` microsteps of a macrostep, and
+returns its result only when it has settled:
+
+[source]
+----
+include::{examples}/xstate/testing_bounds.cpp[tag=bound]
+include::{examples}/xstate/testing_bounds.cpp[tag=main]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/testing_bounds.expected[]
+----
+
+The test learns of the cycle from a cursor that has not settled when its fuel
+is spent, where XState's learns of it from the error its bound throws. The
+test holds that cursor, `spinning`, by name: it is still there, where it
+stopped, to resume or to drop.
+
+[#testing-bounds-resume]
+==== Resuming a cursor
+
+A cursor is a value. A caller that runs out of fuel keeps it, or a copy of
+it, and resumes it later, perhaps in a later request the same process serves;
+the macrostep goes on exactly where it stopped, with the raised events it had
+queued. A test of code that pays fuel checks that, wherever it stops, the
+cursor and a copy of it settle where a run without a stop settles. XState has
+no cursor, so this test has no twin (<<testing-twins>>). `finish` runs a
+cursor to its end, and `same` compares two settled macrosteps:
+
+[source]
+----
+include::{examples}/xstate/testing_resume.cpp[tag=helpers]
+----
+
+The test stops a cursor after every number of microsteps from 0 to the
+macrostep's length, copies it there, and finishes both:
+
+[source]
+----
+include::{examples}/xstate/testing_resume.cpp[tag=test,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/testing_resume.expected[]
+----
+
+[#testing-time]
+=== Time
+
+A delayed transition, `after`, waits for time to pass. A test that waits for
+real time is slow, and fails when the machine running it is slower still, so
+the test brings the time, as XState's tests do with a `SimulatedClock`.
+xstate's actor system reads no real clock: `clock_tick(now)` moves the
+system's clock to `now`, in milliseconds, and the timers due by then fire
+one at a time. Like the `set(now)` of XState's `SimulatedClock`, and unlike
+its `increment(ms)`, it takes the time to move to, not an increment, so a
+second tick 510 ms after a first at 500 is `clock_tick(1010)`
+(<<actors-time>>). The test runs a traffic light and checks it at 500 ms and
+at 1010 ms:
+
+[source]
+----
+include::{examples}/actors/testing_time_actor.cpp[tag=tick]
+include::{examples}/actors/testing_time_actor.cpp[tag=main]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/testing_time_actor.expected[]
+----
+
+The light and the test are those of the first test of XState's
+`after.test.ts`, with a simulated clock where XState's test uses Vitest's
+fake timers; xstate's cases port that test (<<testing-cases>>). Time is
+counted in whole milliseconds, where XState's clock takes fractions
+(<<differences-time>>).
+
+Without the actor layer, a delay is data. The machine never reads a clock:
+entering a state with `after` returns a built-in delayed `xstate.raise`, and
+leaving it returns a built-in `xstate.cancel`. A `simulated_clock` the test
+owns takes every action a step returns (`apply`): it schedules a built-in
+delayed raise, applies a built-in cancel, and leaves a custom action to the
+test whatever its type or params. The test moves the time by a duration
+(`increment`, as XState's `increment`), and `pop_due` releases each event
+whose time has come, which the test sends to the machine as a macrostep of
+its own (<<pure-clock>>). The same test, on the pure functions:
+
+[source]
+----
+include::{examples}/xstate/testing_time.cpp[tag=advance]
+include::{examples}/xstate/testing_time.cpp[tag=main]
+----
+
+It prints what the actor's test prints:
+
+[listing]
+----
+include::{examples}/xstate/testing_time.expected[]
+----
+
+`pop_due` releases the due events one at a time, by deadline and then in the
+order they were scheduled, so an event that a delivered one schedules is
+ordered as XState orders it.
+
+[#testing-actors]
+=== Testing actors
+
+An actor runs a machine over time: it starts, receives events one at a time,
+keeps its snapshot, and works with its children. A test of an actor creates
+it from its machine, starts it, sends it events and checks its snapshot after
+each. In xstate an `actor_system` is XState's `createActor` and its system in
+one: `create_actor` makes the actor, `start` and `send` deliver to it, and
+`snapshot_of` reads its snapshot. Each call that delivers runs the system
+until nothing is left to do before it returns, as XState's `send()` processes
+at once, so the check that follows it sees all the event did. The call
+returns a `result<run_outcome>`: `settled`; `out_of_fuel` when an actor ran
+out of the fuel its budget gives (<<testing-budgets>>); or, when the call is
+refused, xactor's
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`errc::invalid_argument`],
+of the category `webcpp.xactor`,
+which changes nothing. A call is refused for an actor the system does not
+know, for an answer to a request no longer pending
+(<<testing-effects-promises>>), and when it is made from inside a callback the
+test registered on the system, such as a mock (<<testing-effects-actions>>).
+A test with plenty of fuel expects `settled`.
+
+Stately's second example tests a toggle that counts its activations. Its
+assign, a function in XState's config, is `count_activation` here,
+registered as `countActivation`: it reads the context it is handed and fails
+when `count` is not an integer there (<<context-assign>>). `expect` gathers
+the test's checks of the snapshot, Stately's `expect` calls, in one function
+that also prints what it checks:
+
+[source]
+----
+include::{examples}/actors/testing_actors.cpp[tags=assign;expect]
+include::{examples}/actors/testing_actors.cpp[tag=main]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/testing_actors.expected[]
+----
+
+Each `send` returned `settled` once the system had done everything the event
+caused, so each `expect` after it saw the transition and the assign.
+
+[#testing-effects]
+=== Mocking effects
+
+An effect is what a machine asks of the world: send an email, write a log,
+fetch data. A test of the logic replaces each effect with a stand-in that
+records what was asked and answers as the test decides, so that the test is
+fast, isolated and the same on every run.
+
+[#testing-effects-actions]
+==== Actions
+
+xstate's actor system hands every custom action to the function `on_action`
+registers, with the actor that returned it, as the actor resolves it
+(<<actors-watching>>). That function is the mock: it records each call, and
+the test checks the records. Stately's test makes its mock with Vitest's
+`vi.fn()` and checks it with `toHaveBeenCalledWith`; here the mock is a
+lambda that keeps the type and the params of each action it is handed:
+
+[source]
+----
+include::{examples}/actors/testing_effects.cpp[tag=main]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/testing_effects.expected[]
+----
+
+A built-in `log` never reaches `on_action`: it reaches the function `on_log`
+registers, with its value and its label, and an event the machine emits
+reaches the listeners `on_emitted` registers. A test records them the same
+way (<<actors-watching>>).
+
+A mock only records. It runs inside an actor's turn, while the system runs:
+it may read the system, with `snapshot_of` or `status_of`, but any call from
+it that changes the system, such as a `send`, a `resolve` or a registration,
+is refused with `invalid_argument` and changes nothing. A test whose mock must
+answer reads the records once the call that ran the system has returned, and
+answers then. XState accepts a send from an action, through its `self`, or
+from a subscriber, and handles it after the update in progress
+(<<differences-callbacks>>).
+
+[#testing-effects-promises]
+==== Promise actors
+
+XState runs a promise in a `fromPromise` actor; a test replaces the promise
+with a mock and waits a tick for it to settle. xstate has no promise. A
+`host_actor` stands for one: its work is done by the host, outside the
+machines (<<actors-host>>). Once started, it is a pending `host_request` in
+`host_requests()`, with its src and its input, and the host answers it with
+`resolve(request, output)` or `reject(request, error)`. In a test the test is
+the host: it checks what was asked once the call that started the request has
+returned, answers when it chooses with what it chooses, and has nothing to
+wait for. Here the machine invokes `fetchData`, a host actor, while it is
+`loading`, and the test answers with the data:
+
+[source]
+----
+include::{examples}/actors/testing_host.cpp[tag=main]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/testing_host.expected[]
+----
+
+`reject` fails the request instead, and the invoke's `onError` takes the
+error. A request whose actor has ended, because the state that invoked it was
+left, is no longer pending: answering it is refused with `invalid_argument`
+and changes nothing, as XState ignores a promise that settles too late.
+
+[#testing-budgets]
+=== Every fuel budget
+
+An actor system runs on fuel (<<actors-fuel>>). Each host call opens
+executions with the fuel its budget gives, `actor_system({.fuel = n})`, and
+every microstep, every message an actor sends and every timer it arms costs
+one unit. When an execution runs out, its actor parks with what it has not
+done, the call returns `out_of_fuel`, and `resume()` gives every parked actor
+a new execution. While an actor is parked, the host's own calls, `start`,
+`send`, `clock_tick`, `resolve` and `reject`, are held in the order made and
+return `out_of_fuel`, and `resume()` applies them once the parked actors have
+settled. So a run that is resumed until it settles must do what a run with
+plenty of fuel does, whatever the budget: the same macrosteps, in the same
+order for each actor, to the same end. That is what this test checks. XState
+has no fuel, so this test has no twin (<<testing-twins>>); xstate's own actor
+test, `actors_time`, runs the same test on more scripts (<<testing-suites>>).
+
+The family: `app` invokes a `worker`, a `machine_actor` (<<actors-invoke>>).
+On `go` the app sends `ping` to the worker, a `send_to_action`, and the
+worker counts it and answers its parent with `pong`, a `send_parent_action`,
+which the app counts (<<actors-sending>>); after 1000 ms the app finishes,
+which stops the worker.
+
+[source]
+----
+include::{examples}/actors/testing_fuel.cpp[tag=machines,indent=0]
+----
+
+`run_with` runs a script of host calls on a system with a given budget,
+resuming after each call until the system settles, and records what each
+actor did, by its id: every macrostep it settled, which the inspector
+(`inspect`) reports with the event that began it (<<actors-inspection>>), and
+its status at the end. `clock_tick(1000)` moves the system's clock to 1000 ms,
+the time to move to and not an increment (<<testing-time>>), and the app's
+timer, due then, fires.
+
+[source]
+----
+include::{examples}/actors/testing_fuel.cpp[tag=run]
+----
+
+The test runs the script with plenty of fuel, and then with every budget from
+1 to 40, and compares the records:
+
+[source]
+----
+include::{examples}/actors/testing_fuel.cpp[tag=test,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/testing_fuel.expected[]
+----
+
+With one unit of fuel per execution the host had to resume the system 14
+times, and each actor did what it did with plenty. The records are compared
+actor by actor, not as one sequence. xactor queues every delivery: each actor
+has a first-in first-out mailbox, the actors that have work wait in a
+first-in first-out queue, and a turn hands one message to its actor. XState
+delivers an event to an idle actor at once, nested in its sender's call, and
+queues it for a busy one. So the order between two actors may differ, while
+the order within each is XState's (<<differences-interleaving>>).
+
+[#testing-model-based]
+=== Model-based testing
+
+A test written by hand checks the paths its author thought of. Model-based
+testing takes the paths from the machine: every state it can reach, and a
+shortest sequence of events that reaches it, each path a test to run against
+the system the machine models. Stately's page closes with XState's tools for
+it, `xstate/graph`, formerly `@xstate/test`.
+
+xstate has no port of `xstate/graph`. A snapshot is a value and `transition`
+a pure function, so a test walks a machine itself: `get_next_transitions`
+lists the transitions a snapshot could take (<<pure-next-transitions>>), as
+XState's graph takes its events from the snapshot's own event descriptors.
+The list holds every transition, so a type may come more than once, from
+several guarded transitions of a state or from a state and its ancestor,
+where XState's descriptors are a set. `shortest_paths` walks breadth first.
+From each snapshot it sends each event type offered once, with
+`get_next_snapshot`, and keeps each snapshot it has not seen, known by its
+value and its context, as XState's graph keys a snapshot. An eventless
+transition is no event to send: the macrostep takes it on its own. The
+machine runs, pauses, resumes and stops:
+
+[source]
+----
+include::{examples}/xstate/testing_paths.cpp[tag=walk]
+include::{examples}/xstate/testing_paths.cpp[tag=main]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/testing_paths.expected[]
+----
+
+Each path is a test: start the machine, send the path's events after its
+first, then check the state the system reached. The first entry,
+`xstate.init`, stands for the start, as in XState's paths, and is not sent:
+from outside, XState's macrostep selects no transition for it, where
+xstate's selects transitions for it as for any other event
+(<<transitions-events>>). The walk sends each event with an empty payload. A
+machine whose guards read the payload needs the events chosen for it, as
+XState's `getShortestPaths` takes them in its `events` option.
+
+When two events reach a snapshot in as many steps, the walk keeps the path
+of the event it tries first, in the order `get_next_transitions` lists them.
+Within one state that is the order in which XState formats the state's
+transitions: its `on` events, then its `onDone`, invoke and `after` events,
+wherever the config writes those. Within `on` and within `after`, the keys
+come in the order JavaScript enumerates an object's keys: a key that is an
+array index, such as `1` or `100`, first, by number, then the others as the
+config writes them. Across states, an active atomic state's transitions come
+before those of its ancestors, where XState's graph takes the event
+descriptors of the active states root first. So in a machine whose initial
+state `a` goes to its sibling `b` on `go` and on `stop`, and whose root also
+takes `stop` to `b`, the walk reaches `b` by `go`, the first event `a` lists,
+and XState's graph by `stop`, which the root lists.
+
+[#testing-xstate]
+=== How xstate is tested
+
+xstate is a port, and a port is right when it does what the original does.
+So the tests that check behaviour XState also has do not state by hand what
+XState does, which could carry a translation error that nothing catches: they
+ask XState itself. XState runs every case, each ported from its own tests or
+written where they are silent, and what it records is what the suites hold
+xstate to (<<testing-oracle>>, <<testing-cases>>); and XState runs a twin of
+every example of this page that it can run (<<testing-twins>>). The tests
+written by hand cover the rest: what XState has no test for, what the oracle
+cannot see, and a few of XState's expectations, copied where no case can
+hold them (<<testing-suites>>). Every program of this page is a test too,
+built and run on every target (<<testing-examples>>).
+
+Each is a target of b2, run from the root of a webcpp checkout:
+
+`b2 libs/xstate/test`::
+The {n-tests-native} tests, natively: the lightweight_test programs, the
+{n-boost-test-suites} Boost.Test suites that run the ported cases, each of
+the {n-headers} public headers compiled alone, and two programs that must
+compile (<<testing-suites>>). It needs a {cpp}20 compiler and Boost's
+headers, and no Node.
+
+`b2 libs/xstate/example`::
+The {n-examples} examples, each built, run, and its output compared with the
+one committed beside it (<<testing-examples>>).
+
+`b2 libs/xstate/test libs/xstate/example toolset=clang-wasip2 testing.launcher=wasmtime`::
+The same for wasm32-wasip2, without exceptions: {n-tests-wasip2} tests, the
+Boost.Test suites being native only, and the {n-examples-wasip2} examples,
+each run by wasmtime (<<testing-targets>>). `toolset=clang-wasip3` does the
+same for wasm32-wasip3, with exceptions: {n-tests-wasip3} tests and
+{n-examples-wasip3} examples.
+
+`b2 libs/xstate/test/oracle//oracle`::
+The oracle lane: XState 5.33.2 runs every case, and what it records must be
+what the suites hold (<<testing-oracle>>); and every twin runs on XState and
+must print what its program printed (<<testing-twins>>). It needs Node and
+npm.
+
+`b2 libs/xstate/test/oracle//update-expected`::
+Not a check: it writes XState's output again, over the committed one
+(<<testing-expected>>).
+
+b2 compares timestamps, so a result that counts is built from scratch, with
+`b2 -a`. `b2 libs/xstate/test//machine` builds and runs one test alone, while
+working on it.
+
+[#testing-targets]
+==== Targets
+
+`test/Jamfile` and `example/Jamfile` declare the targets they are built for,
+`webcpp.targets native wasip2 wasip3`, and b2 builds each program for those
+alone:
+
+[cols="1,3",options="header"]
+|===
+| Target | How it is built and run
+
+| native
+| Any toolset not listed below. As the build makes it: with exceptions,
+  unless its user asks for `exception-handling=off`, which links webcpp's
+  `tools/throw_exception.cpp`, as on wasip2. The two Boost.Test suites are
+  built for this target alone.
+
+| wasip2
+| The toolset `clang-wasip2`, the Clang of wasi-sdk for wasm32-wasip2, run by
+  wasmtime. Without exceptions, which some WebAssembly hosts lack: with
+  `BOOST_NO_EXCEPTIONS` and `tools/throw_exception.cpp`. This is the build
+  that proves xstate works without exceptions.
+
+| wasip3
+| The toolset `clang-wasip3`, for wasm32-wasip3, run by wasmtime. With
+  exceptions, as WebAssembly's exception handling.
+|===
+
+The WASI toolsets are b2's `clang`, which a `user-config.jam` registers
+against wasi-sdk, as
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-testing-targets[xactor's page]
+shows. The Boost.Test suites read the fixture files at run time, which a
+wasm program cannot without a directory its runtime opens for it, so they
+run natively; every other test, and every example, runs on all three
+targets.
+
+The continuous integration runs xstate's tests and examples in lanes, one
+toolset each: GCC 14 and 15, Clang 18 and 22, Apple Clang, MSVC 14.3 and
+14.5, and wasip2 and wasip3. On Linux, GCC and Clang build with libstdc{plus}{plus},
+the system's standard library there, so the lanes `clang-linux-18` and
+`clang-linux-22` run xstate with Clang on libstdc{plus}{plus}. Each lane builds from
+scratch and records what b2 built and ran:
+
+[source,bash]
+----
+b2 -a --dump-tests --out-xml=<lane>.xml toolset=<toolset> libs/xstate/test libs/xstate/example
+----
+
+webcpp's `tools/report/report.py` merges the files of every lane into the
+test matrix, published at https://webcpporg.github.io/webcpp/report/, where
+each cell says whether a program passed in a lane, or how it failed. Beside
+the lanes, `tools/lint/lint.sh` runs clang-format and clang-tidy from
+wasi-sdk, with rules of webcpp's own: the licence notice every source file
+opens with, the layout of JSON literals, the machine core's boundary, which
+names the file and the line of any include of xactor or of the actor layer
+from the core, and the patterns webcpp bans, among them any real
+clock, file, socket or process a header could name, which no test can show
+xstate never reaches (<<xstate-invariant-15,guarantee 15>>).
+
+[#testing-oracle]
+==== XState as the oracle
+
+`test/oracle/` pins the npm package `xstate` at 5.33.2, exactly, with its
+lockfile, from which the first target that needs it installs it with
+`npm ci`; its `Jamfile` declares the lane with webcpp's `webcpp.cases` and
+`webcpp.twins`. Two scripts run xstate's test cases on it and write what
+XState produced:
+
+* `oracle.mjs` runs the machine cases. Each macrostep after the initial one
+  runs through XState's `machine.transition`, with an actor scope of the
+  script's own that records every action and every `@xstate.microstep`
+  inspection event, and whose actor has a parent, so that a `sendParent`
+  resolves as it does in an actor that has one. XState's pure functions cannot
+  serve: their actor has no parent, and throws on `sendParent`. The initial
+  macrostep runs through `machine.getInitialSnapshot`, with the same scope;
+  XState's inspection does not report its first microstep, so the snapshots
+  and actions of its microsteps are taken from `getInitialMicrosteps`.
+  Delayed events go to XState's own `SimulatedClock`.
+* `actors.mjs` runs the actor cases on XState's actors, where a host actor is
+  a promise the script settles when a step says so. After each step it
+  writes, for every actor, the events it processed with the snapshot each
+  left and the events it emitted, then every actor's status and the host's
+  pending requests. An actor is keyed by its path of ids from the root, and,
+  when an earlier actor had the same path, by its rank among them
+  (`root/n#2`); the requests come in the order of the keys of their actors.
+  No nesting of deliveries changes those keys. It never writes the order
+  between two actors, which xactor's queues may change
+  (<<differences-interleaving>>).
+
+Both run XState's development build, which XState's own tests run. It makes
+checks the production build leaves out, and three of them are checks a JSON
+machine can meet: an event of the type `*` sent from outside, a transition
+that declares a truthy `cond`, a `forwardTo` whose target is no actor. xstate
+makes the same three, so its oracle must (<<differences-development>>):
+`development.mjs` refuses any other build, and every command runs node with
+`--conditions=development`. No library, suite or example uses the package,
+and its output is committed, so the suites run without node.
+
+[#testing-cases]
+==== The ported cases
+
+XState's tests are TypeScript with inline functions. Each test that a machine
+written in JSON can express is ported to a case: under
+`test/fixtures/cases/` for the machine core, and
+`test/fixtures/actors/cases/` for the actor layer. A file
+holds the cases ported from one XState test file, or from a range of lines of
+a long one (`invoke_1.json` to `invoke_5.json`), under `source`, `cases` and
+`excluded`. A case names the test it ports, holds the machine's config as
+JSON, and lists its steps. The first case of `after.json`, ported from
+`after.test.ts`, is the test of <<testing-time>>:
+
+[source,json]
+----
+{
+    "name": "transition after delay through yellow",
+    "test": "after.test.ts > delayed transitions > should transition after delay",
+    "machine": {
+        "id": "light",
+        "initial": "green",
+        "context": {"canTurnGreen": true},
+        "states": {
+            "green": {"after": {"1000": "yellow"}},
+            "yellow": {"after": {"1000": [{"target": "red"}]}},
+            "red": {"after": {"1000": "green"}}
+        }
+    },
+    "steps": [
+        {"start": true},
+        {"query": {"matches": "green"}},
+        {"advance": 500},
+        {"query": {"matches": "green"}},
+        {"advance": 510},
+        {"query": {"matches": "yellow"}}
+    ]
+}
+----
+
+A step of a machine case starts the machine (`start`, with an optional
+`input`), sends it an event (`send`), moves the clock (`advance`), resolves a
+state value (`resolve`) or asks a question of the snapshot (`query`:
+`matches`, `has_tag`, `can`, `meta`, `next_transitions`). A case may also
+expect the machine to be refused: `expect_create_error` when XState refuses it
+too, `xstate_refuses` with the error code when xstate refuses at creation what
+XState throws on only once it runs (<<differences-refused>>).
+
+An actor case lists the actors its machine may run, machines, each with
+implementations of its own, and host actors. Its steps create or start the
+root (`create`, `start`, with an optional `input` and `system_id`), send to it
+or to a child (`send`, with `to`), move the clock (`advance`), answer a host
+request (`resolve`, `reject`), find an actor by its systemId (`get`) and stop
+the root (`stop`).
+
+The implementations a case names come from a vocabulary written twice, entry
+for entry, `test/oracle/vocabulary.mjs` for XState and
+`test/vocabulary.hpp` for xstate: fixed assigns and guards
+(`increment`, `push`, `context_at_least` and others), the built-in actions a
+case declares with their options under `actions`, and any other name, which
+is a custom action.
+
+A test that cannot be ported is not dropped in silence: each file lists the
+tests it leaves out, with the reason.
+
+[source,json]
+----
+{
+    "test": "after.test.ts > delayed transitions > should execute an after transition after starting from a persisted state",
+    "reason": "persistence/rehydration: restores an actor from a snapshot taken via getSnapshot/getPersistedSnapshot"
+}
+----
+
+The machine cases are {n-machine-cases} cases of {n-machine-steps} steps,
+{n-machine-cases-ported} of them ported from XState's tests, and leave
+{n-machine-tests-excluded} tests out: {n-machine-tests-to-actor-cases} of
+those are ported with the actor cases, and the others need a function JSON
+cannot hold, TypeScript's type checker, `enqueueActions`, an actor reference
+held as data, callbacks or observables, persistence, `machine.provide` or
+XState's `options.maxIterations`, which xstate does not read (two tests of
+`transient.test.ts`, <<testing-bounds>>); assert on spies, warnings or
+XState's internal objects; or are skipped in XState's own suite. XState's
+SCXML suite is left out whole, because the published package exports no
+SCXML converter. The actor cases are {n-actor-cases} cases of
+{n-actor-steps} steps, {n-actor-cases-ported} of them ported from XState's
+actor tests (actor, interpreter, invoke, spawnChild, spawn, system, errors,
+emit, predictableExec, and the actor tests of input, after and the core's
+files), and leave {n-actor-tests-excluded} tests out: callbacks, observables
+and transition functions, persistence, actor references as data, functions
+JSON cannot hold, and the places where the actor layer differs from XState.
+
+Other files are xstate's own, still checked against XState. The two
+`review.json` files, {n-machine-cases-review} machine cases and
+{n-actor-cases-review} actor cases, pin what XState does where its own tests
+are silent: among them a machine whose root is a history node, an event of
+the type `*`, a transition that declares `cond`, a value computed as
+undefined, a timer armed twice under one id, a `history` that is neither
+`shallow` nor `deep`, the order in which JavaScript enumerates the keys of
+delays, regions, events and state values, and, among actors, the systemId of
+a child born done and the snapshot a deferred failure reached.
+`resolution.json`, {n-actor-cases-resolution} actor cases, pins how XState
+resolves `spawnChild`, `stopChild` and `sendTo` in an actor;
+`vocabulary.json`, {n-actor-cases-vocabulary} actor cases, pins the
+vocabulary of the cases against XState; `actor_actions.json`,
+`computed.json` and `invoke_pure.json`, {n-machine-cases-through-pure}
+machine cases, run the actions that name actors, the computed values and
+invokes through the pure functions; and each oracle has a `smoke.json` of
+its own.
+
+[#testing-twins]
+==== The XState twins
+
+The cases hold the library to XState; the twins hold this page to it. This
+page shows {cpp} only, and the comparison with XState that a reader no
+longer sees stays a test. Every program of `example/xstate/` and
+`example/actors/`, the programs of this page, has a twin in
+`test/oracle/twins/`, under the same group and name: `<name>.mjs`, a Node
+program that does on XState 5.33.2 what `<name>.cpp` does on xstate, and
+prints what it finds the same way. Of the twins of this chapter's programs,
+`testing_<name>.mjs`, {n-twins-node-test} are tests of Node's own runner,
+`node:test`, and assert with `node:assert`, where Stately's page uses
+Vitest, so that each runs on Node alone.
+
+A program is of one of three kinds:
+
+* *Its twin agrees*, and prints the program's output, the one this page shows
+  under the program. {n-twins-agreeing} twins agree.
+* *Its twin diverges*, on purpose. The program shows a place where xstate
+  differs from XState, and the twin prints what XState does there. That
+  output is committed beside the twin, as `<name>.expected`, and must differ
+  from the program's: an output equal to it is a fault, since that twin
+  agrees. {n-twins-divergent} twins diverge, and <<differences>> shows each
+  output beside its program's, with the reason for the difference.
+* *It has no twin*, because it shows what XState has no counterpart for: the
+  macrostep cursor, fuel, a registry of inputs and outputs by invoke id or
+  state id, a machine created again from its definition, an event read from
+  JSON. {n-examples-without-twin} programs have none, and each has a line
+  `<group>/<name>: <reason>` in `test/oracle/twins/without-twin.txt`.
+
+So the {n-examples} programs, {n-examples-xstate} of `example/xstate/` and
+{n-examples-actors} of `example/actors/`, are {n-twins-agreeing} that agree,
+{n-twins-divergent} that diverge and {n-examples-without-twin} without a
+twin.
+
+webcpp's `tools/oracle/twins.py` runs the twins and compares, declared in
+`test/oracle/Jamfile` with `webcpp.twins`. It runs the twins in parallel,
+each in a process of its own:
+
+* on XState's development build, `node --conditions=development`, which the
+  oracle runs too (<<testing-oracle>>);
+* with the report of Node's test runner sent to the standard error
+  (`--test-reporter=spec --test-reporter-destination=stderr`), so that only
+  what the twin prints reaches the standard output;
+* with colour off, `NO_COLOR` set and `FORCE_COLOR` removed, whatever the
+  shell asks for;
+* for at most 60 seconds, after which the twin and every process it started
+  are killed, and the twin is reported.
+
+What the twin prints on the standard output, every carriage return removed,
+must equal the program's `<name>.expected`, or, for a twin that diverges,
+the twin's own. A difference fails the target, and `twins.py` prints the
+diff; so does a twin that exits with an error or does not end in time. So
+does a mismatch of the directories: a program with neither a twin nor a line
+in `without-twin.txt`, a program with both, a twin or a line that names no
+program, an output of no twin, or a line that is not
+`<group>/<name>: <reason>`. A `node` that is not on the `PATH`, a directory
+that is not there, or a directory of examples with no program stops it at
+once, named. The twins run alone, in a few seconds:
+
+[source,bash]
+----
+b2 libs/xstate/test/oracle//twins
+----
+
+The output of a twin that diverges is never written by hand. A new one
+starts as an empty file beside the twin, and
+`b2 libs/xstate/test/oracle//update-expected` fills it with what XState
+prints (<<testing-expected>>). That update rewrites only the outputs that
+exist, and refuses to write one equal to its program's output: it reports
+that twin, which agrees, and leaves its output file as it was, for its
+author to delete.
+
+[#testing-suites]
+==== The tests
+
+xstate's tests are under `test/`, each declared in `test/Jamfile` with one of
+webcpp's rules. Most are programs of Boost.Core's
+https://www.boost.org/doc/libs/release/libs/core/doc/html/core/lightweight_test.html[lightweight_test],
+declared with `webcpp.run` and run on every target. Each test case is a
+function, `main` calls them all and returns `boost::report_errors()`, and a
+case that cannot go on after a failed check returns; a helper, which cannot
+return from its case, calls `webcpp::test::require`, of `test/require.hpp`,
+which ends the program with the errors counted so far. So a test needs no
+exceptions to stop, and runs as it is on wasm32-wasip2.
+
+[cols="2,5",options="header"]
+|===
+| Test | What it checks
+
+| `values`
+| The error codes, state values, paths and events. Its `matchesState` rows are
+the expectations of XState's `match.test.ts`, copied one row per `expect()`.
+
+| `machine`
+| Creation, with XState's ids, types and document order stated by hand;
+lookup; and every refusal, an implementation of each kind holding an empty
+function among them.
+
+| `cursor`
+| The cursor, which XState does not have: the microstep that settles and no
+other, an event that selects no transition, a copy that resumes, a cycle that
+never settles, and a failure that settles in error, reporting what it
+resolved before the failure apart from its actions. And four rules of the
+machine core, stated by hand: a spawn whose input fails settles in error
+without the child; a `sendTo` to a systemId is returned for its caller to
+resolve; a `sendTo` to an invoke of the state being entered is bound at the
+end of that state's entry actions, spawns and initial actions, the point
+`bound_at` counts to (<<webcpp-xstate-action-bound_at,`action::bound_at`>>);
+and the clock schedules only a built-in delayed raise (<<pure-clock>>).
+
+| `actors_lifecycle`
+| What the oracle cannot see of an actor's life: created, started, sent
+events, stopped, done or failed, what a failing macrostep hands over, the
+ids the system names its actors with, and the host's stop of a child, which
+XState refuses too.
+
+| `actors_sending`
+| The events actors send each other and the system that delivers them: a
+`sendTo`, a `sendParent` and a send to the actor itself, an error sent as an
+event, and the systemIds that name actors while they run, with their
+refusals.
+
+| `actors_children`
+| The children actors invoke and spawn: a child's output and error reaching
+its parent, its stop when its state is left, the order the children of a
+start start in, and the children of a macrostep that fails.
+
+| `actors_time`
+| Time and fuel. The timers due during a tick, delayed events and cancels,
+and the fuel each microstep costs; and parking: every budget from 1 to 40
+resumed to the end doing what plenty of fuel does, for a child's start, a
+deferred send or emit, a done or an error report, a host's answer, a timer
+and a stop that reaches a grandchild; the host's calls held behind a parked
+actor; a child done while its parent is parked.
+
+| `actors_host`
+| What the host sees and answers: host actors, their requests resolved and
+rejected, a late answer to a request, and the callbacks that hand over custom
+actions, logs, snapshots and emitted events, which cannot call the system
+back.
+|===
+
+The ported cases run in two Boost.Test suites, declared with
+`webcpp.boost-test`, which read the fixture files and register one test case
+for each case, so that a failure names its case. A wasm program cannot read
+them without a directory its runtime opens for it, so these two run
+natively only:
+
+[cols="2,5",options="header"]
+|===
+| Suite | What it checks
+
+| `cases`
+| Every machine case, one test case each, against XState's record.
+
+| `actors_cases`
+| Every actor case, one test case each, against XState's record, actor by
+actor.
+|===
+
+`cases` runs a case as a caller that pays fuel runs a machine: each
+macrostep through the cursor, one microstep a call, at most 10,000 of them,
+exactly one of which must say it settled. It writes each microstep as the
+oracle writes it, the event, the transitions, the actions and the snapshot
+(value, context, status, output, error, tags sorted, children, and the
+active nodes in order), and compares every step with XState's. It also
+compares the machine's definition, `to_json`, with XState's
+`machine.toJSON()`, and where that definition holds the whole machine, it
+loads the machine back from it and runs the case again. `actors_cases` runs
+each actor case on an `actor_system` and compares, after every step, what
+each actor did with what XState's did, under the keys the oracle writes. In
+both, a case file without XState's output, or an output file that is not
+one, fails its cases rather than vanishing.
+
+Beside them, `test/Jamfile` compiles each of the {n-headers} public headers
+alone, as the only include of its translation unit, so that a header that
+leans on an include it does not make fails, naming it. `core_alone` checks
+that the machine core includes nothing of xactor or of the actor layer,
+every include guard of theirs still undefined after `<webcpp/xstate.hpp>`;
+and `user_aggregates` compiles a user's designated initializers that leave
+members out, as the user's own code, with `-Wextra` and warnings as errors.
+
+While working on one test, build and run it alone; before saying a change is
+done, run every test from scratch, and then the oracle:
+
+[source,bash]
+----
+b2 libs/xstate/test//cases
+b2 -a libs/xstate/test libs/xstate/example
+b2 -a libs/xstate/test/oracle//oracle
+----
+
+[#testing-examples]
+==== The examples
+
+Every program this page shows is a test. `b2 libs/xstate/example` builds
+each program of `example/xstate/` and `example/actors/`, declared in
+`example/Jamfile` with `webcpp.example`, runs it, and compares what it
+printed on the standard output, every carriage return removed, with the
+`<name>.expected` committed beside it, through webcpp's
+`tools/example/run_example.py`. A difference fails the build with a diff. So
+does a program that returns anything but 0, even when it printed the expected
+lines, since each program returns 1 when a check of its own fails. Every run
+compares again, whatever b2 holds up to date, so a run never passes on the
+result of an earlier one.
+
+The same programs build for wasm32-wasip2 and wasm32-wasip3, and run under
+wasmtime, through which `run_example.py` runs each (<<testing-targets>>). A
+program's output is compared with the same `<name>.expected` on every target,
+so it prints the same on all three. On wasm32-wasip2 every program is built
+without exceptions, so each example also shows that xstate does what the
+page says with exceptions off.
+
+`b2 libs/xstate/doc` builds this page from the same files, each program's
+source included by tag and its output whole, so neither can drift from the
+library. Any message of Asciidoctor's fails it, a reference to no section
+among them, and so does an output whose program is gone, a program the page
+does not show, or the output of a twin that diverges that the page does not
+show.
+
+[#testing-expected]
+==== Regenerating XState's output
+
+XState's output is committed: the oracle's under `test/fixtures/expected/`
+and `test/fixtures/actors/expected/`, and that of each twin that diverges
+beside the twin (<<testing-twins>>). After a case is added or changed, or a
+twin that diverges, `update-expected` runs both scripts on every case and
+replaces the committed output with what they write, then rewrites the output
+of every twin that diverges with what XState prints. Its diff is what XState
+does, and so what the suites and this page will hold xstate to; read it,
+then run the suites. It needs Node.
+
+[source,bash]
+----
+b2 libs/xstate/test/oracle//update-expected
+----
+
+The oracle lane runs the same scripts into its build directory, compares
+what they wrote with the committed output, file by file and byte by byte,
+through webcpp's `tools/oracle/compare.py`, and fails when the two differ;
+it also runs the twins against the outputs committed beside them. A case
+changed without its output, or an output edited by hand, fails the lane, so
+the committed expectations are always what XState 5.33.2 produces for the
+committed cases. The oracle lane is the one place xstate's tests need Node;
+`b2 libs/xstate/test` does not, and never runs npm.

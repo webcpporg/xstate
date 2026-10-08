@@ -1,0 +1,52 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#overview-reading]
+== How to read this documentation
+
+The page goes from a first program to every name in the library. After
+this introduction, each chapter takes one part, and the appendices gather
+what a reader looks up:
+
+[#quick-start-next]
+* <<state-machines>> takes a machine one concept at a time, as Stately's
+  documentation does: the core concepts, machines, states, context,
+  transitions, actions, input and output, and then the pure functions, the
+  macrostep cursor and fuel.
+* <<xstate-on-xactor>> runs machines as actors: creating them, invoking and
+  spawning children, the messages between actors, the system, time, host
+  actors and fuel.
+* <<testing>> tests machines and actors, and tells how xstate itself is
+  tested against XState.
+* <<guarantees>> lists what xstate promises whatever its caller does, each
+  promise under a number that the code and the tests cite.
+* <<reference>> lists every name xstate declares, from the Doc Comments of
+  its headers.
+* <<from-xstate-to-cpp>> shows how each of XState's JavaScript spellings is
+  written in {cpp}.
+* <<differences>> lists every place where xstate departs from XState, each
+  with its reason.
+* <<rationale>> gives the design decisions, each with its reason.
+* <<glossary>> defines the page's terms.
+
+Every program on the page is compiled and run by `b2 libs/xstate/example`,
+which compares what it prints with the output committed beside it, and the
+page shows the program's source and that output, so neither can drift from
+the library. Every program that uses xstate, and does what XState can do,
+also runs on XState, as its twin (<<overview-twins>>).
+
+The {cpp} examples write `namespace xstate = webcpp::xstate;`. Names follow
+XState's, in snake case: `createMachine` is `create_machine`,
+`getNextSnapshot` is `get_next_snapshot`, and `setup({ actions })` is
+`implementations`. An actor is named by the `actor_ref` its system returned,
+so XState's `actor.send(event)` is `system.send(actor, event)`. An event is
+`xstate::event{.type, .payload}`, XState's `+{ type, ...payload }+`.
+<<from-xstate-to-cpp>> gives each of these spellings, with its reason.
+
+xactor, which the actor layer runs on, is taught alone on
+link:{webcpp-libs}/xactor/{webcpp-page}[its own page]: its scheduler, turns,
+fuel, timers and drivers. This page names xactor where the actor layer leans
+on it, and links that page there.

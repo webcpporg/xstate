@@ -8,7 +8,7 @@
  Tests xstate's values: its error codes, state values and the paths that
  name them, as XState's matchesState and toStatePath read them, and events in
  XState's flat JSON form
- (doc: #reference-errc, #reference-state-value-hpp and #reference-event-hpp).
+ (doc: #overview-errors, #states-value, #states-matches and #transitions-events).
 
  Tip: the matchesState rows are the expectations of XState's match.test.ts,
  one per expect().

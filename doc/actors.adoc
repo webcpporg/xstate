@@ -1,0 +1,46 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#xstate-on-xactor]
+== Actors: xstate on xactor
+
+The machine core computes what a machine does and returns what it does not
+do itself: a child to invoke or spawn, a child to stop, an event for another
+actor, a timer to arm, a custom action or a log for the host
+(<<pure-actions,the actions a step returns>>). A caller that steps a
+machine with the pure functions executes those actions itself. The actor
+layer, `<webcpp/xstate/actors.hpp>`, executes them: it runs machines as
+XState's actors, so that their children run, their events reach each
+other, their done and error events reach their parents, their timers fire
+when the host brings the time, and the work only the host can do waits for
+the host's answer. The split is XState's own: its machines resolve an
+action, its actors execute it.
+
+The core includes nothing of the layer and runs no actor. It knows a
+machine's actors as data, the implementations' `actors` and the snapshot's
+`children`, and resolves each invoke and spawn into the `xstate.spawnChild`
+and `xstate.stopChild` actions it returns; the layer is the caller that
+executes them. The layer runs on xactor, webcpp's deterministic actor
+system: one scheduler on the host's thread, a mailbox for each actor, fuel
+for each execution, and timers. The core includes nothing of xactor; the
+layer's headers do. This chapter uses xactor only through the layer;
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-model[xactor's page]
+teaches it alone.
+
+<<concepts-actor-model>> explains the ideas first, in plain words, each
+with one small program, and <<actors>> takes the layer in depth. It starts
+with one actor: how it is created, watched and given its input. Then come
+the children it <<actors-invoke,invokes>> and <<actors-spawn,spawns>>, the
+<<actors-sending,events actors send each other>>,
+<<actors-system,the system>>, where an actor is found by name,
+<<actors-time,time>>, <<actors-host,host actors>>, the port's stand-in for
+XState's promises, and <<actors-fuel,fuel>>, which bounds the work of every
+call. The last two sections say how the layer runs and where it differs from
+XState.
+
+include::actors/concepts.adoc[leveloffset=+1]
+
+include::actors/actors.adoc[leveloffset=+1]

@@ -1,0 +1,769 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#transitions]
+== Events and transitions
+
+A *transition* is a change from one state to another. An *event* is what
+causes it: a message the machine receives, with a type that names what
+happened and the data that travels with it. When a machine receives an
+event, it looks in its active states for the transitions that event enables.
+If there are some, it takes them: it leaves the states they leave, runs their
+actions and enters the states they reach. If there is none, nothing changes.
+
+Transitions are deterministic: the same snapshot and the same event always
+lead to the same next snapshot and the same actions. That is what lets a
+step be computed as a plain function, tested event by event, and replayed.
+
+This section covers the events a machine receives, the transitions of a
+state's `on` and where they lead, how an event selects among them, event
+descriptors and wildcards, guards, and the two kinds of transitions no event
+names: eventless (`always`) and delayed (`after`) ones. The actions a
+transition runs are in <<actions,Actions>>; how each microstep runs, and how
+a caller pays for it, in <<pure,Pure transitions and the macrostep cursor>>.
+
+[#transitions-events]
+=== Events
+
+An event is an object with a `type`, the string that names what happened,
+and any other members, its *payload*, as an event is in XState. xstate's
+`event` holds the two apart: `type`, a `std::string`, and `payload`, a
+`boost::json::object` holding every other member. Transitions match the
+type; the payload is data for the implementations, which receive the event
+as `args.event`. The example reads an event from JSON with
+`event_from_json`, prints its two parts, and sends it to a machine:
+
+[source]
+----
+include::{examples}/xstate/transitions_events.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/transitions_events.expected[]
+----
+
+An event usually arrives as JSON, in the flat form XState's `actor.send`
+takes, `+{"type": ..., ...payload}+`. `event_from_json` reads that form and
+`to_json` writes it, its type first. An event can also be built in {cpp},
+from its two members:
+
+[source]
+----
+include::{examples}/xstate/transitions_event_json.cpp[tag=write,indent=0]
+----
+
+`event_from_json` refuses a value that is not an object, or whose `type` is
+missing or not a string, with `invalid_event`:
+
+[source]
+----
+include::{examples}/xstate/transitions_event_json.cpp[tag=read,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/transitions_event_json.expected[]
+----
+
+An event of the type `+*+` is read like any other. A machine refuses it as
+the event of a macrostep, which a caller sends or a clock releases, and takes
+it only as an event it raised itself without a delay
+(<<transitions-wildcard-event>>).
+
+Events whose type starts with `xstate.` are the machine's own: `xstate.init`
+is the event of the initial macrostep, `xstate.after.<delay>.<state id>`
+comes back from a delayed transition (<<transitions-delayed>>),
+`xstate.done.state.<state id>` is raised when a compound or parallel state
+completes (<<input-output-done-events>>), and `xstate.done.actor.<id>` and
+`xstate.error.actor.<id>` come from invoked actors (<<actors-done-error>>).
+They select transitions as any other event does, with two exceptions in
+XState that xstate does not follow yet. When `xstate.init` comes from
+outside, XState's macrostep selects no transition for it, and when
+`xstate.stop`, the event that stops an XState actor, comes from outside, it
+stops the machine. xstate selects transitions for both as for any other
+event, so an `on` entry that names one, or a `+*+` transition, takes it. A
+caller should therefore not send `xstate.init` or `xstate.stop`, nor make up
+any other of these events. A caller of the machine core does deliver two
+kinds itself: each `+xstate.after...+` event its clock releases
+(<<transitions-delayed-core>>), and the done and error events of the
+children it runs, since the core runs none. The actor layer delivers both
+for its actors.
+
+[#transitions-on]
+=== Transitions
+
+A state's `on` maps event descriptors (<<transitions-descriptors>>) to
+transitions. Each transition is written in one of three forms:
+
+[source,json]
+----
+"on": {
+    "feedback.good": "thanks",
+    "feedback.bad": {"target": "form", "actions": "track"},
+    "feedback.provide": [
+        {"guard": "sentimentGood", "target": "thanks"},
+        {"target": "form"}
+    ]
+}
+----
+
+* a string, the shorthand for `{"target": "thanks"}`;
+* an object with any of `target`, `actions`, `guard`, `reenter`,
+  `description` and `meta`;
+* a list of strings and objects, tried in order until one is enabled
+  (<<transitions-guards>>).
+
+`target` names the state or states the transition goes to
+(<<transitions-targets>>); a transition without one is *targetless*.
+`actions` lists the actions it runs when it is taken (<<actions,Actions>>),
+`guard` the condition it is taken on (<<transitions-guards>>), and `reenter`
+whether it leaves and enters its source again (<<transitions-reenter>>).
+`description` and `meta` are for readers and tools: xstate keeps them in the
+machine's definition, which `to_json` writes as XState's `toJSON()` does, and
+does nothing else with them. The root is a state too: its `on` handles an
+event in every state, unless a deeper state handles it first.
+
+Creating the machine checks every transition, so a mistake is an error
+before any event runs: a target that names no state is refused with
+`unknown_target`, a guard the implementations do not hold with
+`unknown_guard`, and an `on` key that is the empty string with
+`invalid_config`, as XState refuses it and asks for `always` instead.
+`invalid_config` also refuses a transition that declares `cond`, XState v4's
+name for `guard`, with a value JavaScript reads as true, as XState's
+development build does, and an `actions` that is null, which XState accepts
+as a list that holds null, and then throws when it takes the transition
+(<<machines-refusals>> lists them all).
+
+[#transitions-selection]
+=== Selecting a transition
+
+An event selects its transitions starting from the deepest active states:
+
+. Start at each active atomic state, a state with no children.
+. Take the first of its transitions for the event that is enabled: one
+  without a guard, or whose guard passes.
+. If it has none, look in its parent, and so on up to the root.
+. If no state up to the root has one, the event changes nothing.
+
+In a parallel state each region selects on its own, so one event can take a
+transition in each region (<<states-parallel>>). The parallel state's own
+transitions, and its ancestors', are tried only when no region selected
+one. When the transitions selected in two regions would exit a common state,
+as two that leave the parallel state would, only the first is taken, in the
+order the state value lists the regions.
+
+In the editor below, `escape` means three things: in `menu` it closes the
+menu, in `text` it closes the editor, and in `saving` it does nothing.
+
+[source]
+----
+include::{examples}/xstate/transitions_selection.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/transitions_selection.expected[]
+----
+
+In `menu`, its own `escape` is taken: the deepest state wins. In `text`, which
+has no `escape`, the parent's is taken and the editor closes. `saving`
+declares `escape` with no target and no actions: a *forbidden transition*. It
+is selected, so the search stops there and the parent's `escape` is never
+looked at, and it changes nothing: the editor cannot be closed while it
+saves. Leaving the event out of `saving` would have let the parent take it.
+
+An event that selects no transition, or only a forbidden one, changes
+nothing in its own microstep. The eventless transitions are still selected
+after it, with that event (<<transitions-eventless>>), so the macrostep
+settles at its first microstep with the snapshot unchanged unless one of
+them now passes, for example one whose guard reads the event.
+`can(machine, snapshot, event)`, XState's `snapshot.can(event)`, says
+beforehand whether an event would take a transition that has a target or
+actions (<<pure-can>>); for `escape` in `saving` it says no.
+
+[#transitions-targets]
+=== Targets
+
+A target is written relative to the state that declares the transition, its
+*source*:
+
+[cols="1,3",options="header"]
+|===
+| Target | Names
+| `"b"` | the sibling `b` of the source
+| `"b.two"` | the child `two` of the sibling `b`: a path of keys, separated by dots
+| `".other"` | the child `other` of the source; from the root, `".a"` names the top-level state `a`
+| `"#c"` | the state whose id is `c`, anywhere in the machine; `"#c.other"` continues from it as a path
+|===
+
+The root has no siblings, so a target declared on the root starts with `.`
+or `#`: `"a"` there is refused with `unknown_target`, as XState refuses it
+and suggests `".a"`.
+
+A state's id is its `id` member, or, without one, the machine's id followed
+by the state's path, joined by dots: in the machine below, `#machine.b.two`
+names the state `two`.
+
+[source]
+----
+include::{examples}/xstate/transitions_targets.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/transitions_targets.expected[]
+----
+
+`a` goes to its sibling `b`, and entering `b`, a compound state, enters its
+initial child `one`. `one` has no `next`, so the `next` of `b` is taken, to
+the state whose id is `c`, which enters `child`. `c` then goes to its own
+child `other`. `reset`, on the root, returns to `a` from anywhere, and `deep`
+names a child of a sibling, so `b` is entered at `two` instead of its initial
+child.
+
+[#transitions-multiple]
+=== Multiple targets
+
+A transition may name several targets, as a list under `target`, when each
+is in a different region of a parallel state (<<states-parallel>>): it moves
+every region it names in one microstep. The list goes under `target`; a list
+in the place of the transition is a list of transitions, of which the first
+enabled is taken.
+
+[source]
+----
+include::{examples}/xstate/transitions_parallel_targets.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/transitions_parallel_targets.expected[]
+----
+
+`set.dark.custom` moves both regions. `set.light` names one target, yet it
+also sends `theme` back to `default`. A transition leaves every active state
+inside its *domain*: its source, when every target is inside the source and
+it does not reenter, or else the nearest state that contains the source and
+every target. It enters its targets, their ancestors up to the domain and,
+of each parallel state among those ancestors or the domain, every region
+that holds no target, at its initial state. `set.light` is declared on the
+root, so its domain is the root: it leaves both regions, and entering `mode`
+again under the parallel root enters `theme` at its initial state. Stately's
+page on transitions says such a transition leaves the other region as it
+is; XState 5.33.2 resets it, and xstate does what XState does. To move one
+region and keep the others, declare the transition in that region:
+`mode.light`, in `mode`, has `mode` as its domain, and `theme` keeps
+`custom`.
+
+[#transitions-reenter]
+=== Self-transitions and reenter
+
+A transition whose targets are inside its source, the source itself
+included, does not leave the source by default: the source's exit and entry
+actions do not run, and the actors it invokes keep running. Only the states
+below the source are left and entered. With `reenter: true` the domain is
+above the source, so the source is left and entered again: its actions run,
+and its invoked actors are stopped and started again. A transition without a
+target leaves and enters no state, whatever its `reenter` says, as in XState.
+
+A *self-transition* is one that stays in its source, and there are three
+kinds:
+
+[cols="2,2,2,2",options="header"]
+|===
+| Transition | The source's children | The source's entry and exit actions | The source's invoked actors
+| targetless, no `target` | kept as they are | not run | keep running
+| targeted, the source as its `target` | left and entered at their initial states | not run | keep running
+| re-entering, a `target` and `reenter: true` | left and entered at their initial states | run | stopped and started again
+|===
+
+The machine below names an entry and an exit action for each state. None has
+an implementation, so each is returned to the caller in the order it runs
+(<<actions-custom>>), and the output shows what each transition left and
+entered. `types_of`, a helper of the program, writes the types of a list of
+actions as `[a, b]`:
+
+[source]
+----
+include::{examples}/xstate/transitions_reenter.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/transitions_reenter.expected[]
+----
+
+* `event.thatReenters` goes from `parentState` to its child
+  `otherChildState`, and re-enters: `parentState` is left and entered too.
+* `event.targetless` runs `notify` and nothing else; `otherChildState` stays.
+* `event.self` targets `parentState` itself: its child is left and its
+  initial child entered, and the entry and exit actions of `parentState`
+  itself do not run.
+* `event.normal` targets `.someChildState`, the active child: the child is
+  inside the domain, so it is left and entered again.
+* `event.selfReenters` re-enters `parentState` and everything in it.
+
+In XState v4 a re-entering transition was called external, and the default
+one internal.
+
+[#transitions-descriptors]
+=== Event descriptors
+
+The key of an `on` entry is an *event descriptor*: it says which event types
+its transitions take. Most descriptors are a type and match only that type.
+Two forms match more. A wildcard is a catch-all, for the events a state does
+not name; a partial descriptor handles a family of events named with a
+common prefix, such as every `feedback.` event, in one place:
+
+* `+*+`, the *wildcard*, matches every event type, the machine's own included;
+* a *partial descriptor*, a prefix and then `+.*+`, matches every type that
+  starts with the prefix's dot-separated tokens: `+feedback.*+` matches
+  `feedback`, `feedback.good` and `feedback.bad.rude`, and not `feedbacks`.
+
+`+*+` is a wildcard only as the whole descriptor, or as the last token after
+a dot when no earlier token is `+*+` itself. A `+*+` inside a longer token
+is a plain character: `+mou*se.*+` is a partial descriptor and matches
+`+mou*se.x+`. Any other descriptor that holds a `+*+`, such as `+mouse*+`,
+`+*.click+`, `+mouse.*.click+` or `+mouse.*.*+`, matches only an event of
+exactly that type. xstate writes no warning about any of them, where
+XState's development build writes a console warning about a descriptor that
+ends in `+.*+` and holds another `+*+`, such as `+mouse.*.*+` or
+`+mou*se.*+`, the first time a state looks up the transitions of an event
+type (<<differences-development>>).
+
+One event can match several descriptors of one state. Their transitions are
+tried in this order: those of the descriptor equal to the event's type, then
+those of each matching wildcard descriptor, the longest first, so
+`+feedback.bad.*+` before `+feedback.*+` before `+*+`. The first enabled
+transition is taken, and only when none is does the search go up to the
+parent.
+
+[source]
+----
+include::{examples}/xstate/transitions_descriptors.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/transitions_descriptors.expected[]
+----
+
+`feedback.bad` is matched by `+feedback.bad.*+`, which is longer than
+`+feedback.*+`; `feedbacks` is not the token `feedback`, so only `+*+` matches
+it. Since the wildcard matches the machine's own events too, a `+*+`
+transition in an active child state takes the `+xstate.after...+` event of its
+parent's delayed transition before the parent sees it: the deepest state is
+tried first.
+
+[#transitions-wildcard-event]
+==== An event of the type `+*+`
+
+An event may not have the type `+*+` when it comes from outside the machine.
+The macrostep that takes one settles at once with the snapshot it began
+from, its status `error` and its error `invalid_event`, which is the last
+line the example prints. XState's development build throws there,
+`An event cannot have the wildcard type ('*')`, and xstate returns the error
+as a value (<<differences-development>>).
+
+A raised event of the type `+*+` that the machine queues itself, a raise
+without a delay, is not refused: its type is the descriptor `+*+` exactly, so
+`+*+` transitions take it, and no partial descriptor matches it, as in XState.
+A delayed one comes back from the clock as a macrostep of its own and is
+refused like an event from outside, and an actor sent one, or receiving its
+own delayed one, fails with `invalid_event`, as XState's actor ends in
+error.
+
+[#transitions-guards]
+=== Guards
+
+A *guard* is a condition a transition checks before it is taken: a guarded
+transition is enabled only when its guard passes. Guards let one event lead
+to different states depending on data: the event's payload, the context, or
+the params the config gives the guard. A guard decides and changes nothing.
+
+In XState a guard is a function, inline in the config or named in
+`setup({ guards })`. A JSON config cannot hold a function, so in xstate every
+guard is a name, and `implementations.guards` maps each name to a
+`predicate`: a function of the `action_args` every implementation receives,
+the context, the event and the params, that returns a `result<bool>`. A
+guard is written as its name, or as an object with a `type`, its name, and
+`params`, a JSON value that reaches the guard as `args.params`, null when the
+config gives none; guards with the same name share one implementation, and
+their params tell one use from another. XState's params may also be a
+function of the context and the event, which JSON cannot hold: an xstate
+guard reads both from its `args`.
+
+When one event has a list of transitions, they are tried in order, and the
+first enabled one is taken; a last transition without a guard is the
+default, taken when no guard before it passes. `integer_at`, a helper of the
+program, returns the integer a JSON object holds under a key, or none:
+
+[source]
+----
+include::{examples}/xstate/transitions_guards.cpp[tags=implementations;config;run,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/transitions_guards.expected[]
+----
+
+A rating of 3 passes neither guard, so the default is taken. In `form`, an
+empty feedback does not pass `isValid`: no transition is enabled and the
+machine stays. A guard whose input is wrong, here a `submit` without
+`feedback`, returns an error rather than a guess, and the macrostep fails
+with it (<<transitions-guard-errors>>): the last line is the snapshot it
+began from, `form`, its status `error` and its error
+`implementation_failed`. XState's `transition` throws there instead,
+`+Unable to evaluate guard 'isValid' ...+`, followed by the message of the
+`TypeError` its guard raised (<<differences-failures>>).
+
+[#transitions-higher-order]
+==== Higher-order guards and stateIn
+
+XState composes guards with `and`, `or` and `not`, and tests the machine's
+state with `stateIn`. All four are functions in XState, which JSON cannot
+hold, so xstate writes each as an object whose type names it:
+
+[source,json]
+----
+{"type": "xstate.and", "guards": ["isValid", "isAuthorized"]}
+{"type": "xstate.or", "guards": ["isAuthorized", "isGuest"]}
+{"type": "xstate.not", "guards": ["isGuest"]}
+{"type": "xstate.stateIn", "stateValue": {"form": "submitting"}}
+----
+
+An operand in `guards` is a guard in any form: a name, an object with params,
+or another higher-order guard. `and` passes when every operand passes, and
+`or` when one does; like XState's, both stop at the first operand that
+decides, so an operand after it is not evaluated. `not` takes exactly one
+operand. A `not` with any other number of operands, or an `and` or `or`
+without a `guards` list, is refused with `invalid_config`.
+
+`stateIn` passes when the snapshot is in `stateValue`: a state value, matched
+as `snapshot.matches` matches it, or a string that starts with `#`, which
+passes when the state with that id is active. It tests the whole machine's
+state, not the source's, which is mostly useful in a parallel state, where
+one region depends on another. In the editor below, `save` needs the network
+region online and the role of an owner or an admin, and `edit` refuses a
+guest:
+
+[source]
+----
+include::{examples}/xstate/transitions_higher_order.cpp[tags=implementations;config;run,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/transitions_higher_order.expected[]
+----
+
+`to_json` writes these guards in the form above, so a machine loaded back
+from its definition keeps them, where XState's `machine.toJSON()` writes
+nothing in their place, since they are functions (<<differences-guards>>).
+
+[#transitions-guard-errors]
+==== When a guard cannot run
+
+* A guard name the implementations do not hold is refused when the machine
+  is created, with `unknown_guard`. XState accepts the machine and throws
+  when it first evaluates the guard; xstate refuses a name it cannot resolve
+  at creation (<<differences-refused>>).
+* A guard that returns an error fails the macrostep: it settles at once,
+  with the snapshot it began from, its status `error` and its error the one
+  the guard returned. XState's pure functions throw there, and its actor
+  keeps the snapshot from before the event, in error, as xstate's does.
+* A `stateIn` whose `#id` names no state is accepted when the machine is
+  created; evaluating it fails the macrostep with `unknown_state`, where
+  XState's `getStateNodeById` throws. A state value that names no state
+  does not pass.
+
+[#transitions-eventless]
+=== Eventless transitions
+
+An *eventless transition* is taken without an event: whenever its state is
+active and its guard passes, right after the microstep that made it so. It
+is declared under a state's `always`, in any of the forms of a transition in
+`on`. It fits a change that follows from a condition rather than from a
+trigger: the kettle below boils when its temperature, which events update,
+goes above 100, whatever event raised it.
+
+`updateTemperature` is an `assign` that copies the event's temperature into
+the context (<<context-assign>>); `turnOffLight` has no implementation, so it
+is a custom action, returned to the caller. `isBoiling` reads the context
+with `integer_at`, the helper of the quick start (<<quick-start-context>>),
+which returns the integer an object holds under a key, or none. The example
+prints, for each event, every microstep of its macrostep, with the state
+value it left and the actions it returned, written by the `types_of` of
+<<transitions-reenter>>:
+
+[source]
+----
+include::{examples}/xstate/transitions_eventless.cpp[tags=implementations;config;run,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/transitions_eventless.expected[]
+----
+
+The first update raises the temperature to 105 while the kettle is
+`lukewarm`, which has no eventless transition: one microstep. `boil` takes
+two: its own transition to `heating`, and then, since the temperature is
+already above 100, the eventless transition of `heating` to `boiling`. The
+macrostep settles in `boiling`, so `heating` is a *transient* state there:
+the machine passes through it and never rests in it. The last update is a
+targetless transition of the root. Its microstep lowers the temperature in
+the context, and the eventless transitions, selected after every event's
+microstep, now find that the guard of `boiling` passes.
+
+The rules, which are XState's:
+
+* To select the eventless transitions, the machine walks up from each active
+  atomic state and takes the first eventless transition whose guard passes.
+  Those it finds run as one microstep, before the next raised event is
+  taken.
+* It selects them after the macrostep's first microstep, the event's or the
+  initial one, and after each raised event's. After a microstep of eventless
+  transitions, it selects them again only when that microstep changed the
+  snapshot: the active states, the history, the context (an `assign` ran),
+  the children (a spawn or a stop) or the status. XState compares snapshot
+  objects; xstate states the rule. So an unguarded targetless `always` whose
+  actions change nothing runs once per macrostep and once more after each
+  raised event; one that assigns runs forever.
+* Their guards and actions receive the macrostep's event: the external one,
+  or the raised event the machine took last. Each microstep reports it as
+  `microstep.event`.
+* A transient state is never a settled snapshot: the actor layer's
+  subscribers do not see it (<<actors-watching>>), as XState's do not. The
+  cursor and `get_microsteps` report every microstep, so the machine core
+  shows it. A delayed transition with a delay of 0 does not run inside the
+  macrostep: its event comes back from the clock, so the macrostep settles in
+  its state first (<<transitions-delayed>>).
+
+[#transitions-eventless-loops]
+==== A macrostep that never settles
+
+An eventless transition that is always enabled and always changes the
+snapshot never lets its macrostep settle: two states whose `always` lead to
+each other, or an unguarded `always` that assigns. Stately advises a target
+that differs from the current state, or a guard that turns false. Stately's
+page says an unguarded, targetless `always` always loops; in XState 5.33.2,
+as in xstate, it loops only when its actions change the snapshot.
+
+xstate never stops such a macrostep on its own: the functions that run a
+macrostep to its end, `transition` and `get_next_snapshot` among them, never
+return. The cursor runs one microstep per `next()`, so its caller decides how
+many it pays for. Here it pays for five, and the two states of the cycle take
+turns:
+
+[source]
+----
+include::{examples}/xstate/transitions_eventless_cycle.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/transitions_eventless_cycle.expected[]
+----
+
+The cursor is still valid when the fuel runs out, and a later `next()`
+resumes it where it stopped (<<pure-cursor-fuel>>). What a caller may do
+then is shown with the cursor (<<pure-cursor-cycle>>).
+
+XState bounds such a macrostep only through the config's
+`options.maxIterations`: once that many microsteps have followed the event's
+own with the machine still active, the macrostep throws, even when it would
+settle there, and without the option `transition` never returns. xstate does
+not read `options`, and the fuel of the caller that drives the cursor is the
+bound (<<differences-fuel>>).
+
+[#transitions-delayed]
+=== Delayed transitions
+
+A *delayed transition* is taken when its state has been active for a given
+time. It is declared under a state's `after`, whose keys are delays and
+whose values are transitions in any of the forms of `on`. Leaving the state
+before the time has passed cancels it. Delayed transitions make timeouts and
+retries part of the machine.
+
+A delay is written as a key of `after`:
+
+* a whole number of milliseconds, such as `"5000"`;
+* the name of a delay of `implementations.delays`, a `delay_maker`: a
+  function of the `action_args` that returns the milliseconds, XState's
+  `setup({ delays })`. It is computed each time the state is entered, from
+  the context of that moment. XState's `delays` also maps a name to a
+  number; in xstate a constant named delay is a `delay_maker` that returns
+  that number.
+
+A name the implementations do not hold is refused when the machine is
+created, with `unknown_delay`; XState takes such a delay as no delay at all,
+and the transition is taken in the same macrostep (<<differences-refused>>).
+A key that is not all
+digits and starts with a digit, a sign or a dot, such as `"1.5"`, `"-1"` or
+`"1e3"`, is refused with `invalid_config`, because time in xstate is whole
+milliseconds written as digits; XState reads `"1e3"` and `"+5"` as numbers
+(<<differences-time>>). A key that starts with a space is a name to xstate,
+where XState reads `" 5"` as 5.
+
+[#transitions-delayed-core]
+==== In the machine core
+
+The machine core never reads a clock. Entering a state with `after` returns,
+for each delay, the action `xstate.raise` of the event
+`xstate.after.<delay>.<state id>`, `<delay>` being the number or the delay's
+name, with its delay in milliseconds, computed for a named one, and with
+that type as its id; leaving the state returns `xstate.cancel` of that id.
+The state's delayed transitions are transitions on that event.
+
+Keeping time out of the machine makes a step a function of the snapshot and
+the event alone, so the same events give the same steps in a test and in
+production. Time is one more input, which the caller brings when it chooses:
+a caller that keeps a snapshot between two requests keeps its clock beside
+it, and moves the time when the next request comes.
+
+In the game below, the initial macrostep returns the raise, and pushing the
+button the cancel, before `logSuccess`. `print_actions` writes the actions a
+step returns, each with its params:
+
+[source]
+----
+include::{examples}/xstate/transitions_after.cpp[tag=print,indent=0]
+----
+
+[source]
+----
+include::{examples}/xstate/transitions_after.cpp[tags=config;actions,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/transitions_after.expected[lines=1..5]
+----
+
+These are the actions, with the same params, that XState's
+`initialTransition` and `transition` return.
+
+Entering a state with several delays returns their raises in the order
+JavaScript enumerates the keys of `after`, as XState reads them: a key that
+is an array index, such as `"500"`, first, by number, then the others as
+written. So with `"1000"` written before `"500"`, the raise of 500 comes
+first.
+
+A `simulated_clock` keeps the delayed events: XState's `SimulatedClock` with
+its scheduler, as a value the caller owns. `apply` schedules each delayed
+raise and applies each cancel among the built-in actions a step returns; a
+custom action is the caller's, whatever the config named it, and `apply`
+leaves it alone. `set` and `increment` move the time, never backwards: `set`
+to an earlier time is refused with `invalid_config`, where XState's
+`SimulatedClock` throws (<<differences-core-clock>>). `pop_due` takes out the
+earliest event whose time has come, by deadline and then in the order it was
+scheduled, and the caller delivers it as a macrostep of its own, whose
+actions go to the clock before the next `pop_due`. Due events come out one at
+a time, so an event scheduled while another is delivered is ordered as XState
+orders it, and one that a delivery cancels never comes out. <<pure-clock>>
+lists the clock's members. An actor does all of this itself
+(<<transitions-delayed-actors>>).
+
+The same program goes on with two players. `execute` hands each action a
+step returns to the clock and runs the custom ones, which here print their
+name; `advance` moves the clock to a time and delivers each event that comes
+due by then:
+
+[source]
+----
+include::{examples}/xstate/transitions_after.cpp[tag=helpers,indent=0]
+----
+
+[source]
+----
+include::{examples}/xstate/transitions_after.cpp[tag=clock,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/transitions_after.expected[lines=6..-1]
+----
+
+The first player's timer comes due at 5000: `advance` delivers its event, the
+delayed transition is taken, and `logThatYouGotTimedOut` runs. The second
+player pushes at 1000; leaving `waitingForButtonPush` cancels the timer, so
+nothing comes due at 6000.
+
+[#transitions-delayed-actors]
+==== In the actor layer
+
+An actor of `actor_system` arms a timer for each built-in delayed raise its
+machine returns, and removes it for each built-in cancel; a custom action
+goes to the host's `on_action` whatever its name (<<actions-custom>>). Time
+is the host's: `clock_tick(now)` moves the system's time to `now`, in
+milliseconds from 0, and releases the timers due by then one at a time, in
+(deadline, arming) order, running the system after each, so a timer's
+transition can cancel a later timer of the same tick, as XState's
+`SimulatedClock` does. A stopped actor's timers never fire.
+`clock_tick` does not refuse a time before the last one: it sets the time
+back, and a timer armed afterwards counts from it, where the core's
+`simulated_clock` refuses to go back and XState's `SimulatedClock` throws
+(<<differences-earlier-tick>>). Pass a time that never decreases.
+
+The machine below retries with a delay that grows with each attempt, and
+gives up after the third. The delay `timeout` is computed from the context
+each time `attempting` is entered. It, the guard and the `assign` read the
+context with the kettle's `integer_at` (<<transitions-eventless>>):
+
+[source]
+----
+include::{examples}/actors/transitions_after_actor.cpp[tags=implementations;config;run,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/transitions_after_actor.expected[]
+----
+
+The timer armed at 0 is due at 1000. Its transition counts the attempt and
+re-enters `attempting`: the exit cancels the timer that fired, and the entry
+arms a new one with the delay of the new context, 2000 milliseconds, due at
+3000, so nothing happens at 2999. At 6000 `canRetry` does not pass, and the
+second transition, the default, is taken. Without `reenter: true` the
+transition would not leave `attempting`, its entry would not run again, and
+no timer would be armed after the first: Stately's example of a dynamic
+delay omits it, and so retries once.
+
+In XState an actor takes its clock from its options, a `SimulatedClock` in
+tests and the real timers otherwise. The actor layer reads no clock at all:
+`clock_tick` is how time passes, in tests and in production
+(<<actors-time>>).

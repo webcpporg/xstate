@@ -1,0 +1,1404 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[appendix]
+[#glossary]
+== Glossary
+
+An alphabetical guide to the terms this documentation uses. Each entry says
+what the term means here, what XState calls it, what it is in the code of
+xstate, and which section explains it.
+
+Most terms are XState's and keep XState's meaning; xstate adds {cpp} names for
+them. A few are xstate's own, for things XState does not have: the
+<<glossary-cursor,cursor>>, <<glossary-settled,settled>>,
+<<glossary-fuel,fuel>>, an <<glossary-execution,execution>>, a
+<<glossary-parked-actor,parked actor>> and <<glossary-xactor,xactor>>; and a
+<<glossary-host-actor,host actor>>, with its
+<<glossary-host-request,host request>>, stands where XState runs a promise.
+xactor's own terms name the parts of the actor system the actor layer
+runs on, and its page defines them: the
+link:{webcpp-libs}/xactor/{webcpp-page}#glossary-scheduler[scheduler], a
+link:{webcpp-libs}/xactor/{webcpp-page}#glossary-turn[turn], an
+link:{webcpp-libs}/xactor/{webcpp-page}#glossary-actor-logic[actor logic], a
+link:{webcpp-libs}/xactor/{webcpp-page}#glossary-mailbox[mailbox], an
+link:{webcpp-libs}/xactor/{webcpp-page}#glossary-envelope[envelope] and the
+link:{webcpp-libs}/xactor/{webcpp-page}#glossary-envelope-log[envelope log], a
+link:{webcpp-libs}/xactor/{webcpp-page}#glossary-driver[driver] and
+a link:{webcpp-libs}/xactor/{webcpp-page}#glossary-static-actor[static actor].
+The last subsections show the
+terms at work in three programs.
+
+[#glossary-terms]
+=== Terms
+
+[glossary]
+[[glossary-action]]Action::
+An effect a machine names on a state's entry or exit, or on a transition,
+and runs when it passes there. Actions are fire-and-forget: the machine
+names them and moves on. A few are built in, and the library knows what
+each means (<<glossary-built-in-action,built-in action>>); every other one
+is a custom action, which the machine hands to its caller. A microstep
+returns its actions in XState's order: the exit actions of the states it
+leaves, the actions of its transitions, then the entry actions of the
+states it enters.
++
+XState: a name, an action object `+{ type, params }+` or an inline
+function; `transition()` returns them as action objects. +
+xstate: a name or `+{"type": ..., "params": ...}+` in the config, an
+implementation in `implementations.actions`, and an `xstate::action`
+(`type`, `params`) when it is returned. An inline function cannot be JSON,
+so it becomes a named action. +
+See <<actions-where,Entry, exit and transition actions>>.
+
+[[glossary-actor]]Actor::
+A running process that receives events, sends events to other actors, and
+changes its behaviour with what it receives. Nothing else reaches its
+state: other actors only send it messages. In xstate an actor runs a
+machine (a <<glossary-machine-actor,machine actor>>) or stands for work the
+host does (a <<glossary-host-actor,host actor>>), inside an
+<<glossary-actor-system,actor system>>. The host creates a root actor and
+starts it, which runs its initial macrostep; a machine creates its children
+by invoking or spawning them.
++
+XState: an actor, from `createActor(logic)`, named by an `ActorRef`; what
+it runs is its actor logic. +
+xstate: an actor of an `xstate::actor_system`, named by an
+`xstate::actor_ref`; `create_actor` and `start` for a root;
+`machine_actor` and `host_actor` for what a child runs, by its `src`. +
+See <<concepts-actors,Actors>> in Core concepts and
+<<actors-create,Creating an actor>>.
+
+[[glossary-actor-layer]]Actor layer::
+The half of xstate that runs machines as XState's actors: the host creates
+an actor from a machine, starts it, sends it events and reads its snapshot,
+and the layer executes what the <<glossary-machine-core,machine core>>
+returns. It creates the child of a spawn, delivers the event of a send, arms
+a timer for a delayed raise or send, and hands a custom action to the host.
+It runs on <<glossary-xactor,xactor>>: each actor that runs a machine is an
+xactor actor whose logic steps the machine.
++
+XState: `createActor` and the system it creates, which XState's package
+holds beside its machines. +
+xstate: `<webcpp/xstate/actors.hpp>`, whose `xstate::actor_system` holds the
+actors. +
+See <<overview-actor-layer,The actor layer>> and
+<<xstate-on-xactor,Actors: xstate on xactor>>.
+
+[[glossary-actor-system]]Actor system::
+The actors that run together and what they share: the registry of
+systemIds, the scheduler that delivers their messages, and the host's
+listeners. The host creates actors in it, and creating one runs nothing.
+Starting an actor, sending it an event, moving the time, answering a
+request and resuming each run the system until no message is left, and
+return `out_of_fuel` when an actor is left parked; while one is parked,
+every one of these calls but resuming is held instead
+(<<glossary-parked-actor,parked actor>>).
++
+XState: the system each root actor creates, `actor.system`, with
+`system.get(systemId)`. +
+xstate: `xstate::actor_system`, built with the fuel of one execution
+(`xstate::budgets`); the roots created in one `actor_system` share one
+system, where XState makes one for each root (<<differences-system>>). +
+See <<actors-system,The system>>.
+
+[[glossary-after-transition]]After transition::
+See <<glossary-delayed-transition,delayed transition>>.
+
+[[glossary-always-transition]]Always transition::
+See <<glossary-eventless-transition,eventless transition>>.
+
+[[glossary-assign]]Assign::
+The built-in action that changes the context. Its implementation returns a
+partial object, which is merged into the context as `Object.assign` merges
+it. Once a machine has started, it is the only way its context changes. An
+assign is never returned to the caller: its effect is already in the
+snapshot.
++
+XState: `+assign({ ... })+`, which spreads whatever the context is, so a
+context `"ab"` becomes `+{"0": "a", "1": "b"}+` beside the update. +
+xstate: `xstate::assign_action`, whose `assignment`, an `xstate::assigner`,
+returns the partial update as a `result<boost::json::object>`; an assign on
+a context that is not an object fails with `implementation_failed`
+(<<differences-object-context>>). +
+See <<actions-assign,Assign>> and
+<<context-assign,Updating context with assign>>.
+
+[[glossary-atomic-state]]Atomic state::
+A state without child states, a leaf of the machine's tree, such as
+`green` in a traffic light. Each active branch of a machine ends in an
+atomic state or a final one.
++
+XState: `+type: 'atomic'+`, which a state without `states` has. +
+xstate: the same; `node_type::atomic`. +
+See <<concepts-hierarchy,Parent states>> in Core concepts and
+<<transitions-selection,Selecting a transition>>.
+
+[[glossary-built-in-action]]Built-in action::
+An action whose meaning the library knows: assign, raise, log, sendTo,
+sendParent, forwardTo, cancel, spawnChild, stopChild and emit. The library
+resolves its params when its microstep runs; every one but assign is then
+returned to the caller, or to the actor layer, which carries it out, under
+a type that starts with `xstate.`
+(<<glossary-names,the names that start with `xstate.`>>).
++
+XState: the action creators `assign`, `raise`, `sendTo` and the rest. +
+xstate: the alternatives of `xstate::action_implementation`, registered by
+name in `implementations.actions`; a returned one has `action::builtin`
+set. +
+See <<actions-built-in,Built-in and custom actions>>.
+
+[[glossary-child-actor]]Child actor::
+An actor another actor, its parent, started by invoking it in a state or
+spawning it with an action. The parent knows it by its id, may send it
+events, and hears when it is done or fails. A child stops when its parent
+stops it, when the state that invoked it is left, or when its parent is
+done or stopped.
++
+XState: `snapshot.children`, by id. +
+xstate: `snapshot::children`, a list of `(id, src)`;
+`actor_system::child_of(parent, id)` and `parent_of(child)`. +
+See <<actors-invoke,Invoking actors>>, <<actors-spawn,Spawning actors>> and
+<<actors-stop-child,Stopping a child>>.
+
+[[glossary-clock]]Clock::
+What holds delayed events until their time comes. A machine never reads a
+clock: the time is its caller's. With the machine core, a
+`simulated_clock` the caller owns holds the built-in delayed raises a step
+returned and releases each once the time the caller sets reaches it; a
+custom action is the caller's, whatever its type or params. In the actor
+layer, each delayed event is a timer of the actor that armed it, and the
+host moves the time with `clock_tick(now)`. Time counts whole
+milliseconds.
++
+XState: the `clock` option of `createActor`, `setTimeout` by default, and
+`SimulatedClock` for tests. +
+xstate: `xstate::simulated_clock` (`apply`, `schedule`, `cancel`,
+`increment`, `set`, `pop_due`); `actor_system::clock_tick(now)`. +
+See <<pure-clock,Delayed events and the simulated clock>> and
+<<actors-time,Delayed events and time>>.
+
+[[glossary-compound-state]]Compound state::
+See <<glossary-parent-and-child-states,parent and child states>>.
+
+[[glossary-config]]Config::
+The JSON that describes a machine: its states, their transitions, and the
+names of the actions, guards, delays and actors it uses. It is the object a
+person writes for XState's `createMachine`, or exports from Stately Studio.
+A config holds no function: where XState takes a function, xstate takes a
+name, and the function is registered under that name in the
+<<glossary-implementations,implementations>>.
++
+XState: the object given to `createMachine(config)`. +
+xstate: a `boost::json::value`, read by
+`create_machine(config, implementations)`, which refuses every config
+XState refuses, some earlier than XState does, with an error code and no
+machine. +
+See <<machines-config,The config>>.
+
+[[glossary-context]]Context::
+The data a machine keeps beside its finite state: a count, the fields of a
+form, what a child returned. It is a JSON value: the config's `context`,
+or `{}` when the config gives none or null, or what a context function
+makes of the input. It then changes only through
+<<glossary-assign,assign>>.
++
+XState: `snapshot.context`. A falsy context in the config, such as
+`false`, becomes `{}`, and what a context function of the input returns is
+merged into `{}`. +
+xstate: `snapshot::context`, a `boost::json::value`. A config's context
+that is not an object, null aside, is kept as written, and an assign on it
+fails with `implementation_failed`. The context function is
+`implementations.context`, a `context_maker`, which returns a
+`result<boost::json::value>`; a value that is not an object fails the
+initial macrostep with `implementation_failed`
+(<<differences-object-context>>). +
+See <<context,Context>>.
+
+[[glossary-core]]Core::
+See <<glossary-machine-core,machine core>>.
+
+[[glossary-cursor]]Cursor::
+xstate's one primitive: a value that runs a macrostep one microstep at a
+time. Each call of `next()` runs exactly one microstep and says whether it
+settled the macrostep. The caller decides how many microsteps to pay for,
+keeps the cursor between calls, and may copy it: a copy resumes exactly
+where the original stopped. Each
+<<glossary-pure-transition-function,pure transition function>> is the
+cursor run to its end.
++
+XState: none. XState runs a macrostep to its end inside `transition()` or
+`actor.send()`. +
+xstate: `xstate::macrostep`, from `begin(machine, snapshot, event)` or
+`begin_initial(machine, input)`; `next()` returns a `progress`
+(`step`, `settled`). +
+See <<pure-cursor,The macrostep cursor>>.
+
+[[glossary-custom-action]]Custom action::
+An action the implementations do not hold. The machine does nothing with
+it: it returns it to the caller, with its name and the params the config
+gave, in the order XState would run it, and the caller runs it. This is how
+a program's own effects, sending a mail or writing a row, leave a machine.
++
+XState: an action whose implementation is a function of the program, which
+a running actor calls and `transition()` returns as an action object. +
+xstate: an `xstate::action` whose `builtin` is false; in the actor layer,
+handed to the `on_action` listener. +
+See <<actions-custom,Custom actions>>.
+
+[[glossary-deferred-effect]]Deferred effect::
+What an actor of the actor layer does only once its macrostep has
+settled: the delivery or the timer of a send, the timer of a delayed
+raise, a cancel, an emit, the stop of a started child and the start of a
+new one. The actor first publishes its snapshot, then runs them in the
+order its actions deferred them; on its start, the starts of its active
+children come first, as XState's `start()` starts them before the actor's
+own initial actions.
++
+XState: the work its actions put off with `actorScope.defer`, which an
+actor runs once its snapshot is updated. +
+xstate: inside the actor layer; the host sees their outcome. +
+See <<actors-sending,Sending events between actors>> and
+<<actors-watching,Watching an actor>>.
+
+[[glossary-definition]]Definition::
+A machine written back as JSON, in the form XState's `machine.toJSON()`
+writes. It lists every state, transition and action by name, but leaves
+out the context, the eventless transitions and a history state's default
+target, and two states may share an id in it when a key holds a dot. A
+machine loaded back from it, given its context, takes the original's
+steps and writes the same definition, its version included, whenever the
+original has none of those and no entry or exit names a custom action
+`xstate.raise` or `xstate.cancel`: a definition cannot tell such an action
+from the raise and cancel an `after` adds, and the loader drops it.
++
+XState: `machine.toJSON()`, which leaves out a higher-order guard. +
+xstate: `to_json(machine)`, which writes the higher-order guards too, and
+`create_machine_from_definition(definition, implementations, context)`,
+which refuses with `invalid_config` a member of another type than XState
+writes, such as an entry that is not a list. +
+See <<machines-definition,The definition>>.
+
+[[glossary-delayed-event]]Delayed event::
+An event raised or sent with a delay, delivered when its time comes rather
+than at once. A delayed raise comes back to the machine itself; a delayed
+send goes to another actor. Either may carry an id, which a cancel names to
+drop it before it fires. The delay is a number of milliseconds or the name
+of a delay implementation.
++
+XState: `raise` and `sendTo` with `+{ delay, id }+`, `cancel(id)`, and
+`setup({ delays })`. +
+xstate: the `delay` and `id` of `raise_action` and of the send actions,
+`cancel_action`, and `implementations.delays`. The machine returns the
+action. With the machine core, a <<glossary-clock,`simulated_clock`>>
+holds a built-in delayed raise, while a delayed send is the caller's to
+deliver: the clock keeps only its id, when it has one, as XState's
+scheduler keys every delayed event by its id. In the actor layer, a timer
+of the sender holds either. +
+See <<actions-delayed,Delayed raise, ids and cancel>>.
+
+[[glossary-delayed-transition]]Delayed transition::
+A transition taken when its state has been active for a given time, unless
+the state is left first. A state's `after` adds, on entry, a delayed raise
+of the event `xstate.after.<delay>.<state id>` and, on exit, the cancel of
+it, so the timer of a state already left never fires.
++
+XState: `+after: { 1000: 'next' }+`. +
+xstate: the same `after` in the config; entering the state returns an
+`xstate.raise` with a `delay`, and leaving it an `xstate.cancel`. +
+See <<transitions-delayed,Delayed transitions>>.
+
+[[glossary-description]]Description::
+See <<glossary-meta,meta>>.
+
+[[glossary-development-build]]Development build::
+The build of XState that makes checks its production build leaves out,
+and throws where one fails; it also warns, on the standard error, about an
+event descriptor whose `+*+` is not its last token. XState's own tests run
+on it, and so does the <<glossary-oracle,oracle>> xstate's tests compare
+with. xstate makes the checks a JSON machine can meet, in every build, and
+writes no warning.
++
+XState: the build `+node --conditions=development+` selects. +
+xstate: `invalid_event` for an event of the type `+*+` a macrostep takes
+from outside, `invalid_config` for a transition with a truthy `cond`, and
+`unknown_target` for a forwardTo whose target resolves to no actor. +
+See <<differences-development,The checks of XState's development build>>.
+
+[[glossary-document-order]]Document order::
+The order of a depth-first walk of a machine's tree: the root first, and
+each node followed by all its descendants before its next sibling. Siblings
+come in the order JavaScript enumerates the keys of their parent's
+`states`: a key that is an array index, such as `"2"` or `"10"`, first, by
+number, then the others as the config writes them. Unless two nodes share
+an id, a microstep exits states in reverse document order and enters them
+in document order, the regions of a parallel state included: both
+libraries sort them by XState's `order`, which falls behind a node's place
+in document order after a node that takes an id an earlier node holds.
+JavaScript enumerates the keys of a state's `on` and `after` the same way
+as those of `states`, and XState and xstate read them so: a state whose
+`after` writes `1000` before `500` returns on entry the raise of `500`
+before that of `1000`.
++
+XState: `StateNode.order`, from `states` read with `Object.keys`. +
+xstate: the index of a node, as in `machine::node(index)`;
+`state_node::order`, XState's `order`, the number of distinct ids among
+the nodes before it. +
+See <<machines-nodes,State nodes and ids>> and
+<<actions-nested,Nested states and the root>>.
+
+[[glossary-done-event]]Done event::
+The event that says something finished. When a compound state's final
+child is entered, the machine raises `xstate.done.state.<state id>` for
+the compound state, with that child's output; when every region of a
+parallel state is final, it raises the parallel state's, with no output.
+The state's `onDone` takes it. When a child actor is done, its parent
+receives `xstate.done.actor.<child id>`, with the child's `output` and its
+`actorId`, and the invoke's `onDone` takes it.
++
+XState: the same two events. +
+xstate: the same; an `onDone` is a transition on the event's type. +
+See <<states-final-parent,A parent state is done>>,
+<<input-output-done-events,Done events>> and
+<<actors-done-error,Done and error events>>.
+
+[[glossary-emitted-event]]Emitted event::
+An event an actor emits to the listeners outside it, not to another actor.
+Emitting changes nothing in the machine.
++
+XState: `emit(event)`, heard with `actor.on(type, handler)`. +
+xstate: `emit_action`, returned as `xstate.emit`; in the actor layer,
+heard with `actor_system::on_emitted(actor, listener)`, which hears every
+type, as XState's `+actor.on('*', ...)+` does. +
+See <<actions-emit,Emitting events>> and
+<<actors-watching,Watching an actor>>.
+
+[[glossary-error-code]]Error code::
+What xstate returns where XState throws. A fallible function returns a
+`result<T>`, holding either its value or a `boost::system::error_code`: an
+`xstate::errc`, of the category `webcpp.xstate`, or xactor's
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`errc::invalid_argument`],
+of the category `webcpp.xactor`, which
+`xstate::errc` does not have. `actor_system` returns `invalid_argument`
+for a `start`, a `send`, a `stop`, a `status_of`, a `subscribe` or an
+`on_emitted` whose address names no actor, for the host's stop of a
+child, for an answer to a request no longer pending, and for a call from
+a host callback that changes the system; `create_actor` refuses a systemId
+another running actor holds with `xstate::errc::system_id_taken`. The
+const readers `snapshot_of`, `child_of`, `parent_of`, `id_of` and `get`
+refuse nothing: they answer a null pointer, none or an empty view for
+what they do not find. Nothing throws, since xstate builds without
+exceptions. A config XState would refuse is refused by `create_machine`,
+and an implementation that fails leaves the snapshot in the status
+`error`, with its error code.
++
+XState: an exception, or a snapshot whose `status` is `+'error'+`. +
+xstate: `xstate::result<T>`, the codes of `xstate::errc`, such as
+`invalid_config`, `unknown_target` and `system_id_taken`, and
+`snapshot::error`. +
+See <<overview-errors,Errors as values>>,
+<<differences-failures,Failures are values>> and <<webcpp-xstate-errc,errc>>.
+
+[[glossary-error-event]]Error event::
+The event a parent receives when a child actor fails:
+`xstate.error.actor.<child id>`, with the child's `error` and its
+`actorId`. The invoke's `onError` takes it. When no transition takes it,
+the parent fails in turn: its status `error`, its error code
+`actor_failed`, and the child's error in `snapshot::error_value`.
++
+XState: the same event; an unhandled one puts the parent's snapshot in
+the status `+'error'+`. +
+xstate: the same, with the error code `actor_failed`. +
+See <<actors-done-error,Done and error events>>.
+
+[[glossary-event]]Event::
+Something that happened, which a machine reacts to: a type, which selects
+the transitions, and a payload, which implementations read. Events come
+from the caller or another actor, from the machine itself (a raised event,
+a done event), or from a clock (a delayed event).
++
+XState: an event object, `+{ type: 'submit', ...payload }+`. +
+xstate: `xstate::event` (`type`, `payload`); `event_from_json` reads
+XState's flat form and `to_json(event)` writes it. +
+See <<transitions-events,Events>>.
+
+[[glossary-event-descriptor]]Event descriptor::
+The key of an `on`, which says the events its transitions take: an event
+type, the wildcard `+*+` for every event, or a prefix ending in `+.*+`
+(`+mouse.*+` takes `mouse.click`). A state tries the transitions of the
+exact type first, then those of the matching wildcard descriptors, the
+longest first.
++
+XState: the event descriptor, in the same three forms. +
+xstate: the same; an event of the type `+*+` sent from outside fails its
+macrostep with `invalid_event`, as XState's development build throws on
+it. +
+See <<transitions-descriptors,Event descriptors>>.
+
+[[glossary-eventless-transition]]Eventless transition::
+A transition no event triggers. After the event's own microstep, and after
+every later one, the machine takes the `always` transitions its active
+states enable, before any raised event; each guard is evaluated with the
+last event taken. Only after a microstep of eventless transitions that
+changed nothing (no active node, history, context, status or child) does
+it skip them, and take the next raised event or settle. A guard usually
+decides where an eventless transition goes, as in a choice between two
+states.
++
+XState: `always`. +
+xstate: `always`, selected as XState selects them. A cycle of them never
+settles, and only <<glossary-fuel,fuel>> bounds it. +
+See <<transitions-eventless,Eventless transitions>>.
+
+[[glossary-execution]]Execution::
+Everything one input from the host causes: the messages and the timers that
+follow from it, through any number of actors, paid from one reservoir of
+fuel, the budget's. In xactor, a delivery or a tick from the host opens one,
+and every message it causes belongs to it. In the actor layer, each host
+call that delivers something (`start`, `send`, `clock_tick`, `resolve`,
+`reject`, `resume`) opens executions of its own, each with the whole budget:
+one for each input it applies and, for `resume`, one for each parked actor
+it continues; their microsteps are paid from it too. So the budget bounds an
+execution, and one call may spend it more than once.
++
+XState: none; XState has no fuel. +
+xactor: an execution named by a `correlation_id`, whose fuel
+`fuel_of(correlation)` tells;
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-budgets[`xactor::budgets`],
+which `xstate::budgets`
+names, sizes it. +
+See <<actors-fuel,Fuel, parking and resume>>, and
+link:{webcpp-libs}/xactor/{webcpp-page}#glossary-execution[an execution]
+in xactor's glossary.
+
+[[glossary-final-state]]Final state::
+A state that, once entered, completes its parent. When a final state at
+the machine's top level is entered, the machine is done: its status becomes
+`done`, the children it has left are stopped, and, as an actor, it reports
+its output to its parent.
++
+XState: `+type: 'final'+`. +
+xstate: `"type": "final"`; `status::done` and `snapshot::output`. +
+See <<states-final,Final states>>.
+
+[[glossary-fuel]]Fuel::
+The units a caller pays a machine's work with, so that no event costs more
+than the caller allows. With the machine core, the caller pays for each
+`next()` of the cursor, and stops when it has no more, keeping the cursor
+to resume it later. In the actor layer, each execution has the budget's
+fuel: every microstep costs one unit, and so does every message an actor
+sends and every timer it arms; an actor that cannot pay parks. A cycle of
+eventless transitions never settles, and fuel is its only bound.
++
+XState: none. XState runs each macrostep to its end; the config's
+`options.maxIterations`, when set, makes a macrostep throw once that many
+microsteps have followed the event's own with the machine still active,
+even when it would settle there. xstate does not read that option. +
+xstate: the caller's own count with the core; `xstate::budgets::fuel` in
+the actor layer, with `run_outcome::out_of_fuel` and `resume()`. +
+See <<pure-cursor-fuel,Fuel>> in Pure transitions,
+<<actors-fuel,Fuel, parking and resume>>, <<differences-fuel,Fuel>> in
+Where xstate differs, and <<glossary-fuel-example,the fuel example>>.
+
+[[glossary-guarantee]]Guarantee::
+A rule a library keeps whatever its caller does, numbered: xstate's, those
+of its actor layer numbered from A1, and xactor's, on xactor's page.
+A guarantee keeps its number and its anchor, and a comment of the code or of
+a test cites it by that anchor, as `+(doc: #xstate-invariant-13)+` does; the
+build fails on a citation that names no anchor of this page.
++
+XState: none as a list; XState's tests, which xstate's cases port, pin its
+behaviour. +
+xstate: the anchors `xstate-invariant-<n>` and `xstate-invariant-a<n>`. +
+xactor: the anchors `xactor-invariant-<n>` of
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-guarantees[xactor's page]. +
+See <<guarantees,Guarantees>>.
+
+[[glossary-guard]]Guard::
+A condition that decides whether a transition is taken. Of the transitions
+an event selects in a state, the first whose guard passes is taken, and a
+transition without a guard always passes. A guard reads the context, the
+event and its params, and changes nothing. XState's higher-order guards,
+`not`, `and`, `or` and `stateIn`, are functions in XState; xstate writes
+them as JSON.
++
+XState: `+guard: 'isValid'+`, implemented in `setup({ guards })`, and
+`+not(...)+`, `+and([...])+`, `+or([...])+`, `+stateIn(...)+`. +
+xstate: `"guard": "isValid"`, implemented in `implementations.guards` as a
+`predicate`, and `+{"type": "xstate.not", "guards": [...]}+` and its
+siblings. A guard the implementations do not hold is refused at creation
+with `unknown_guard`. +
+See <<transitions-guards,Guards>>,
+<<transitions-higher-order,Higher-order guards and stateIn>> and
+<<differences-guards,Higher-order guards>> in Where xstate differs.
+
+[[glossary-history-state]]History state::
+A pseudo-state that remembers which children of its parent were active
+when the parent was left, and returns to them when a transition targets
+it. A shallow history remembers the parent's children; a deep one, every
+descendant. Until it remembers something, it goes to its own target, or
+to the parent's initial state.
++
+XState: `+type: 'history'+` with `+history: 'shallow'+` or `+'deep'+`, or,
+on a state without `type` or children, a truthy `history` alone;
+`snapshot.historyValue`. +
+xstate: the same in the config, where a `history` of `false`, `null`,
+`""` or `0` is falsy, as in JavaScript; `snapshot::history`, by the
+history state's id. +
+See <<states-history,History states>>.
+
+[[glossary-host]]Host::
+The program that runs an actor system: it creates the root actors, starts
+them, sends them events, moves the time, answers the requests of the host
+actors and stops the roots. Its callbacks hear what the actors do, and
+each runs inside an actor's turn: it may read the system, and a call from it
+that changes the system returns `invalid_argument` and changes nothing
+(<<glossary-listener,listener>>).
++
+XState: the code that calls `createActor`, `actor.start()` and
+`actor.send()`. +
+xstate: the caller of the members `create_actor`, `start`, `send`,
+`clock_tick`, `resolve`, `reject`, `resume` and `stop` of
+`actor_system`. +
+See <<actors-create,Creating an actor>> and
+<<actors-watching,Watching an actor>>.
+
+[[glossary-host-actor]]Host actor::
+An actor whose work the host does, outside the machines: a fetch, a query,
+a computation. Once started it is a pending
+<<glossary-host-request,host request>>; the host answers it, and the actor
+is done with an output or fails with an error, which its parent hears as a
+done or an error event.
++
+XState: a promise actor, `+fromPromise(...)+`. +
+xstate: `xstate::host_actor`, registered in `implementations.actors` and
+answered with `actor_system::resolve` or `reject`. +
+See <<actors-host,Host actors>> and
+<<glossary-actors-example,the actor system example>>.
+
+[[glossary-host-request]]Host request::
+A started host actor waiting for its answer: the actor, its parent, its
+id, its src and its input. A request whose actor has stopped, because its
+state was left, is no longer pending, and answering it changes nothing.
++
+XState: the call of a `fromPromise` creator, with its `input`. +
+xstate: `xstate::host_request`, listed by `actor_system::host_requests()`;
+`resolve` and `reject` refuse one no longer pending with xactor's
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`invalid_argument`].
++
+See <<actors-host,Host actors>>.
+
+[[glossary-implementations]]Implementations::
+The functions a config names, registered by name: actions, guards, delays,
+the actors an invoke or a spawn runs, the initial context, and the inputs
+and outputs a config cannot hold as values. A config is JSON and holds no
+function, so every function has a name in the config and a body here.
++
+XState: `setup({ actions, actors, guards, delays })`, and the functions
+written in the config. +
+xstate: `xstate::implementations`, given to `create_machine`: the maps
+`actions`, `actors`, `guards`, `delays`, `inputs` (by invoke id) and
+`outputs` (by state id), and `context`. +
+See <<machines-implementations,Implementations>>.
+
+[[glossary-initial-state]]Initial state::
+The child a compound state enters first, which its `initial` names. A
+machine starts with its initial macrostep: its first microstep enters the
+initial states, and what follows from them runs as in any macrostep, with
+the event `xstate.init`, which carries a non-null input as its member
+`input`.
++
+XState: `initial`; `getInitialSnapshot` and `initialTransition`. +
+xstate: `initial`; `begin_initial(machine, input)`, and
+`get_initial_snapshot` and `initial_transition`, which run it to its
+end. +
+See <<states-initial,Initial states>> and
+<<pure-cursor-begin,The initial macrostep>>.
+
+[[glossary-input]]Input::
+The data an actor starts with, given by its creator: the host for a root,
+the parent for a child. A machine reads it to make its initial context.
++
+XState: `+createActor(machine, { input })+`, an invoke's or a spawn's
+`input`, and the context function `+({ input }) => ...+`. +
+xstate: `actor_options::input` and `begin_initial(machine, input)`; an
+invoke's `input` in the config or `implementations.inputs`, by invoke id;
+`spawn_child_action::input`. +
+See <<input-output-machine-input,A machine's input>>,
+<<input-output-invoke-input,Input to an invoked actor>> and
+<<input-output-spawn-input,Input to a spawned actor>>.
+
+[[glossary-inspector]]Inspector::
+Callbacks that hear what every actor of a system does, for tools and
+logs: each actor's start, each macrostep a machine actor settles with the
+event that began it, and each event an actor emits. A macrostep that fails
+where XState's transition throws, in an implementation or while an action
+resolves (a claim of a systemId another actor holds, a target that names
+no actor), is not heard: XState inspects no snapshot then. One that an
+unhandled error event fails, with `actor_failed`, is heard, and so is one
+that a <<glossary-deferred-effect,deferred effect>> fails, with the
+snapshot the macrostep reached. Like a <<glossary-listener,listener>>, an
+inspector runs inside an actor's turn and may only read the system.
++
+XState: the `inspect` option of `createActor`, with inspection events such
+as `@xstate.actor`, `@xstate.snapshot` and `@xstate.event`. +
+xstate: `xstate::inspector` (`started`, `settled`, `emitted`), given to
+`actor_system::inspect`. +
+See <<actors-inspection,Inspection>>.
+
+[[glossary-interleaving]]Interleaving::
+The order in which the deliveries of different actors run. Each actor
+receives what one sender sends it in the order sent, and runs each
+macrostep as XState does. Across actors the order may differ from
+XState's, since xactor queues each delivery where XState delivers it to an
+idle actor at once: an actor that sends `ping` twice to `a`, then once to
+`b`, has `b` handle its event between the two that `a` handles, where
+XState runs the three in the order sent. In the same way, when an actor
+hears from two senders and one send is caused by the other's, the two may
+arrive in another order than in XState, and the callbacks of different
+actors may run in another order too.
++
+XState: none as a term; XState delivers an event to an idle actor at
+once, nested in its sender's call. +
+xstate: xactor's queues: each delivery waits in its receiver's mailbox,
+and the actors with mail take turns, one message each
+(<<glossary-xactor,xactor>>). +
+See <<differences-interleaving,Interleaving across actors>>.
+
+[[glossary-invoke]]Invoke::
+A child actor that lives as long as a state is active: entering the state
+starts it, leaving the state stops it. The state's `onDone` and `onError`
+take the child's done and error events.
++
+XState: `invoke` with `src`, `id`, `input`, `systemId`, `onDone`,
+`onError` and `onSnapshot`. +
+xstate: the same in the config, its `src` a name of
+`implementations.actors`; its `onDone`, `onError` and `onSnapshot` are
+transitions on `xstate.done.actor.<id>`, `xstate.error.actor.<id>` and
+`xstate.snapshot.<id>`, and the actor layer sends no snapshot event yet.
+Entering the state returns `xstate.spawnChild` and leaving it
+`xstate.stopChild`. An invoke without an id gets XState's
+`<index>.<state id>`. +
+See <<actors-invoke,Invoking actors>>.
+
+[[glossary-invoked-actor]]Invoked actor::
+See <<glossary-invoke,invoke>>.
+
+[[glossary-listener]]Listener::
+A callback the host gives an actor system to hear one kind of thing: the
+snapshots an actor settles in while it is active and the one it is done
+in, the events it emits, or the custom actions or the logs the actors hand
+over. A failed actor's snapshot reaches no listener: `status_of` and
+`snapshot_of` tell the failure. A listener runs inside an actor's turn. It
+may read the system, and a call from it that changes the system returns
+xactor's
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`invalid_argument`]
+and changes nothing, where XState accepts a
+send from a subscriber and handles it once the update in progress is done
+(<<differences-callbacks>>).
++
+XState: `+actor.subscribe(...)+`, whose `error` callback hears a failure,
+and `+actor.on(...)+`; a running actor runs custom actions and logs
+itself. +
+xstate: `actor_system::subscribe`, `on_emitted`, `on_action` and
+`on_log`. +
+See <<actors-watching,Watching an actor>>.
+
+[[glossary-machine]]Machine::
+A state machine: a finite set of states, the transitions between them and
+the actions they run. In xstate, the immutable tree of state nodes a
+config describes, with the implementations it names. It is created once
+and never changes, so one machine serves any number of snapshots and
+actors, and copying it is cheap.
++
+XState: a `StateMachine`, from `createMachine(config)` or
+`+setup({ ... }).createMachine(config)+`. +
+xstate: `xstate::machine`, from `create_machine(config, implementations)`,
+which returns a `result<machine>`. +
+See <<machines,Machines>>.
+
+[[glossary-machine-actor]]Machine actor::
+An actor that runs a machine: a root the host creates from a machine, or a
+child whose `src` names a machine in the implementations. It receives
+events, sends events, has children, starts from an input and ends with an
+output.
++
+XState: the actor `createActor(machine)` returns, or a child whose `src`
+names a machine in `setup({ actors })`. +
+xstate: `actor_system::create_actor(machine, options)`, and an
+`xstate::machine_actor` in `implementations.actors`. +
+See <<actors-machine-actors,Machine actors>>.
+
+[[glossary-machine-core]]Machine core::
+The half of xstate that computes what a machine does, and runs nothing: it
+creates machines, computes snapshots with XState's pure functions and the
+macrostep <<glossary-cursor,cursor>>, holds delayed events in a simulated
+clock its caller owns, and writes a machine's definition as JSON. It includes
+nothing of xactor and runs no actor. It knows XState's actors as data, and
+resolves a spawn or a stop into an action for its caller, which the
+<<glossary-actor-layer,actor layer>> executes.
++
+XState: its machines and pure functions, `transition` and the others, which
+XState's package holds beside its actors. +
+xstate: `<webcpp/xstate.hpp>`, which needs Boost.JSON, Boost.System and the
+standard library. +
+See <<overview-core,The machine core>>.
+
+[[glossary-macrostep]]Macrostep::
+Everything one event does: the microstep of the transitions the event
+selects, then every microstep that follows, an eventless transition first
+and a raised event otherwise, until the machine is stable or no longer
+active. An actor runs one macrostep at a time.
++
+XState: what `transition()` or `actor.send()` runs; `macrostep` is the
+name of its internal function, after SCXML. +
+xstate: `xstate::macrostep`, the cursor that runs one, and
+`macrostep_result` (`snapshot`, `actions`, `microsteps`), what it
+settled in. +
+See <<pure-cursor,The macrostep cursor>> and
+<<glossary-machine-example,the machine example>>.
+
+[[glossary-meta]]Meta::
+Static data a state carries for whoever reads the machine, such as the
+text a view shows in that state: any JSON, which the machine never reads.
+A `description` is a string that documents a state for the people who
+read the machine. A transition may have both too.
++
+XState: `meta` and `description`; `snapshot.getMeta()`. +
+xstate: the same in the config; `get_meta(machine, snapshot)`, the `meta`
+of every active node that has one, by node id; `state_node::meta` and
+`state_node::description`. The definition writes them, except a state's null
+`meta` and a state's `description` that is not a string, which xstate
+leaves out (<<differences-null-meta>>). +
+See <<states-meta,Meta and descriptions>>.
+
+[[glossary-microstep]]Microstep::
+One step of a macrostep: the transitions selected together, the states
+they exit and enter, and the actions those return, in one change of the
+snapshot. The first microstep of a machine enters its initial states.
++
+XState: a `[snapshot, actions]` pair of `getMicrosteps()`, and the
+inspection event `@xstate.microstep`. +
+xstate: `xstate::microstep` (`event`, `transitions`, `actions`,
+`snapshot`), from `get_microsteps` or from one `next()` of the cursor. +
+See <<pure-microsteps,Microsteps>>.
+
+[[glossary-oracle]]Oracle::
+XState itself, run on xstate's test cases: every case ported from XState's
+tests, or written where they are silent, runs on XState 5.33.2's development
+build, and what XState produces is committed as what xstate's suites must
+produce, microstep by microstep and actor by actor.
++
+XState: none. +
+xstate: `test/oracle/oracle.mjs`, which runs the machine cases, and
+`test/oracle/actors.mjs`, which runs the actor cases;
+`b2 libs/xstate/test/oracle//oracle` runs them again. +
+See <<overview-oracle,XState as the oracle>> and
+<<testing-oracle,XState as the oracle>> in Testing.
+
+[[glossary-output]]Output::
+What a final state or a machine produces when it is done. A final state's
+output travels with its done event; the machine's is its snapshot's once
+it is done, and reaches its parent in its done event.
++
+XState: `output` on a final state or on the machine; `snapshot.output`. +
+xstate: `output` in the config, or `implementations.outputs` by state id,
+the root's id for the machine's; `snapshot::output`. +
+See <<input-output-output,Output>>.
+
+[[glossary-parallel-state]]Parallel state::
+A state whose children, its regions, are all active at once, each in a
+state of its own. Its state value is an object with one key per region. It
+is done when every region is in a final state.
++
+XState: `+type: 'parallel'+`. +
+xstate: `"type": "parallel"`; the order of `snapshot::nodes`, XState's,
+decides which region's eventless transition comes first. +
+See <<states-parallel,Parallel states>>.
+
+[[glossary-params]]Params::
+The JSON value a config gives one use of an action or a guard, beside its
+name: `+{"type": "addRating", "params": {"by": 5}}+`. Uses of one
+implementation tell themselves apart by their params, which the
+implementation reads.
++
+XState: `params`, a value, or a function of the context and the event
+computed when the action runs. +
+xstate: `params` in the config, always a fixed value, since JSON holds no
+function; `action_args::params`, null when the config gives none, and
+`action::params` on a returned action. +
+See <<actions-objects,Action objects and params>>.
+
+[[glossary-parent-and-child-states]]Parent and child states::
+A state with states nested in it is their parent, a compound state. It is
+active while one of its children is, and it enters first the child its
+`initial` names. A compound state without `initial` is refused at
+creation.
++
+XState: compound states, with `states` and `initial`. +
+xstate: the same; `node_type::compound`. +
+See <<states-parent,Parent states>>.
+
+[[glossary-parked-actor]]Parked actor::
+An actor whose execution ran out of fuel in the middle of its work. It
+keeps what it has not done, its cursor among it, and does nothing until
+`resume()` gives it a new execution. The snapshot it publishes is still
+the last one it settled in. Events that reach it meanwhile wait behind its
+work. While any actor is parked, the host's `start`, `send`, `clock_tick`,
+`resolve` and `reject` are checked, held in the order made, and return
+`out_of_fuel`; `resume()` applies them once the parked actors have
+settled. `stop`, `create_actor`, `resume`, the registrations of callbacks
+and the queries run at once.
++
+XState: none. +
+xstate: a host call that leaves one parked returns
+`run_outcome::out_of_fuel`; `actor_system::resume()` continues it. +
+See <<actors-fuel,Fuel, parking and resume>> and
+<<glossary-fuel-example,the fuel example>>.
+
+[[glossary-persisted-state]]Persisted state::
+A snapshot kept outside the program between two events, in a file or a
+database, and turned back into a snapshot when the next event comes.
+xstate keeps the state value and the context: `resolve_state` completes
+the value to every node it implies, with the status `done` when the value
+puts the machine in a final state and `active` otherwise, never `error`.
+The output, the error, what history states remember and the children are
+not restored.
++
+XState: `machine.resolveState({ value, context })`, often of what
+`JSON.stringify(snapshot)` wrote; and an actor's
+`getPersistedSnapshot()`, which `createActor(machine, { snapshot })`
+restores with what its history states remember. +
+xstate: `resolve_state(machine, value, context)`, which returns a
+`result<snapshot>` and refuses a value that names no state with
+`unknown_state`. xstate has no counterpart of an actor's persisted
+snapshot: what history states remember lives only in an
+`xstate::snapshot`. +
+See <<pure-persisted,Persisted state>>.
+
+[[glossary-pure-transition-function]]Pure transition function::
+A function that computes what a machine would do, without starting an
+actor and without running any effect: the next snapshot, and the actions
+to run.
++
+XState: `transition`, `initialTransition`, `getNextSnapshot`,
+`getInitialSnapshot`, `getMicrosteps`, `getInitialMicrosteps`; when a step
+invokes or spawns, the snapshot they return holds the child as an actor,
+created and not started. +
+xstate: `transition`, `initial_transition`, `get_next_snapshot`,
+`get_initial_snapshot`, `get_microsteps`, `get_initial_microsteps`, each
+the cursor run to its end, without a bound; a snapshot holds a child as
+data, its id and its src. +
+See <<pure-transition,Computing the next state>>.
+
+[[glossary-raised-event]]Raised event::
+An event a machine sends itself. Without a delay, it goes to the
+macrostep's internal queue and is taken, in a microstep of its own, once
+no eventless transition is enabled, before the macrostep settles: no
+other event comes in between. With a delay, it is a
+<<glossary-delayed-event,delayed event>>.
++
+XState: `raise(event)`. +
+xstate: `raise_action`, returned as `xstate.raise`; the internal queue is
+part of the cursor, so a copy of the cursor has it too. +
+See <<actions-raise,Raise>>.
+
+[[glossary-region]]Region::
+One child of a parallel state, active with all its siblings. See
+<<glossary-parallel-state,parallel state>>.
+
+[[glossary-root-actor]]Root actor::
+An actor the host created, which has no parent. The host stops it, and
+its whole family with it; a child is stopped only by its parent. A root
+created without an id is named `x:<n>`, as XState names an actor by its
+session id.
++
+XState: the actor `createActor` returns, `actor.stop()` and
+`actor.sessionId`. +
+xstate: `actor_system::create_actor` and `stop(root)`; `parent_of` holds
+nothing for it, and `id_of` gives its id. +
+See <<actors-create,Creating an actor>> and <<actors-options,Options>>.
+
+[[glossary-run-to-completion]]Run to completion::
+The rule that an actor handles an event entirely, its whole macrostep,
+before it takes the next one. Events that arrive meanwhile wait, in the
+order they arrived.
++
+XState: the same rule, as SCXML states it. +
+xstate: the same for every actor, a macrostep parked for fuel included. +
+See <<concepts-messages,Messages and mailboxes>> and
+<<actors-design,How the layer runs>>.
+
+[[glossary-self-transition]]Self-transition::
+A transition that stays in its source state: one without a target, one
+whose target is the source, or one that re-enters the source, its target
+the source and `reenter: true`. Only the re-entering kind leaves the
+source, so only it runs the source's exit and entry actions and restarts
+its invoked actors. One whose target is the source leaves the source's
+children and enters them again at their initial states; one without a
+target leaves nothing.
++
+XState: the same three kinds. +
+xstate: the same; `transition_definition::target` and `reenter`. +
+See <<transitions-reenter,Self-transitions and reenter>>.
+
+[[glossary-send]]Send::
+The built-in actions that send an event to another actor: sendTo,
+sendParent, and forwardTo, which sends on the event being handled. A
+target is a string: a child's id, or `+#_+` and the id; `+#_parent+`;
+`+#_internal+`, the actor itself; or `+#system:+` and a systemId.
++
+XState: `sendTo(target, event, options)`, `sendParent(event)` and
+`forwardTo(target)`; a target may be a function, such as
+`+({ system }) => system.get(id)+`. +
+xstate: `send_to_action`, `send_parent_action` and `forward_to_action`,
+each returned as `xstate.sendTo`; a function cannot be JSON, so a systemId
+is named as `+#system:<systemId>+`. +
+See <<actions-send,Sending to other actors>> and
+<<actors-sending,Sending events between actors>>.
+
+[[glossary-settled]]Settled::
+Said of a macrostep that has nothing left to do: no eventless transition
+is enabled and no raised event is queued, or the machine is no longer
+active. The cursor says so on the microstep that settles it, and the
+snapshot that microstep leaves is the new stable one. An event that
+selects no transition changes nothing in its own microstep, and the
+macrostep settles there unless an eventless transition is then enabled,
+as one whose guard reads that event can be: the eventless transitions are
+tried after the event's own microstep, even an empty one.
++
+XState: none; XState's loop ends there. +
+xstate: `progress::settled` and `macrostep::done()`; in the actor layer,
+`run_outcome::settled` says that no actor was left parked. +
+See <<pure-cursor-next,One microstep at a time>>.
+
+[[glossary-snapshot]]Snapshot::
+Where a machine is, as a value: its state value, its context, its status,
+its output or its error, its active state nodes, what its history states
+remember, its tags and its children. A macrostep starts from one snapshot
+and settles in another; none changes in place. A snapshot can be kept,
+copied and stored.
++
+XState: a `MachineSnapshot`, from `getInitialSnapshot`, `transition` or
+`actor.getSnapshot()`. +
+xstate: `xstate::snapshot`; in the actor layer,
+`actor_system::snapshot_of(actor)`, which an actor publishes once its
+macrostep settles. +
+See <<states-snapshot,The snapshot>> and
+<<actors-snapshots,Snapshots and status>>.
+
+[[glossary-spawn]]Spawn::
+Starting a child actor with an action rather than with a state: the child
+lives until a stopChild stops it, or until its parent is done or stopped.
++
+XState: `spawnChild(src, { id, systemId, input })`, and `spawn` inside an
+`assign`. +
+xstate: `spawn_child_action` (`src`, `id`, `system_id`, `input`), returned
+as `xstate.spawnChild`; a spawn without an id keys the child under `""`,
+and xstate has no `spawn` inside an assign yet. +
+See <<actors-spawn,Spawning actors>>.
+
+[[glossary-state]]State::
+A mode a machine can be in, which decides how it reacts to events: a light
+is green, yellow or red. A machine is in one state at a time, or in one
+state of each region of its parallel states.
++
+XState: a state node of the config. +
+xstate: a key of `states` in the config, held as a
+<<glossary-state-node,state node>>. +
+See <<states-finite,Finite states>>.
+
+[[glossary-state-machine]]State machine::
+See <<glossary-machine,machine>>.
+
+[[glossary-state-node]]State node::
+One node of a machine's tree: the root, or an atomic, compound, parallel,
+final or history state, with its transitions, actions, invokes and tags.
+Its id is the config's `id`, or the machine's id and the node's path
+joined by dots (`light.green`), which a target names with a `+#+`.
++
+XState: a `StateNode`; `machine.getStateNodeById(id)`. +
+xstate: `xstate::state_node`, named by its index, its place in
+<<glossary-document-order,document order>>; `machine::node(index)` and
+`machine::node_by_id(id)`. +
+See <<machines-nodes,State nodes and ids>>.
+
+[[glossary-state-value]]State value::
+A snapshot's description of its active states, as JSON: a string when the
+machine's active state has no children (`"green"`), an object for nested
+and parallel states (`+{"red": "walk"}+`). A snapshot matches a state
+value when it is in that state, or in a state within it.
++
+XState: `snapshot.value`, `snapshot.matches(value)` and `matchesState`. +
+xstate: `snapshot::value`, a `boost::json::value`; `snapshot::matches` and
+`matches_state`. +
+See <<states-value,The state value>> and
+<<states-matches,Matching a state value>>.
+
+[[glossary-statechart]]Statechart::
+A state machine extended with hierarchy (parent and child states),
+concurrency (parallel states), history, and communication with other
+actors. XState's machines are statecharts, run by the algorithm SCXML
+defines, and so are xstate's, which port that algorithm from XState.
++
+XState: every machine. +
+xstate: every machine. +
+See <<concepts-statecharts,State machines and statecharts>>.
+
+[[glossary-status]]Status::
+Whether a machine still runs: `active`; `done`, once it is complete; or
+`error`, once a microstep failed (an implementation failed, a sendTo
+named a child that is not there, a machine whose root is itself a history
+state needed its default, an event of the type `+*+` came from outside) or
+a child's error went unhandled. In the actor layer, an actor also fails
+where XState throws while it resolves an action: a claim of a systemId
+another actor holds, a sendTo to the parent of a root. An actor of the
+actor layer also has xactor's status, which adds `stopped`.
++
+XState: `snapshot.status`: `+'active'+`, `+'done'+`, `+'error'+` or
+`+'stopped'+`. +
+xstate: `snapshot::status`, an `xstate::status`; `actor_system::status_of`,
+an
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-status[`xactor::status`].
++
+See <<states-done,When the machine is done>>,
+<<pure-cursor-failure,When an implementation fails>> and
+<<actors-snapshots,Snapshots and status>>.
+
+[[glossary-system-id]]systemId::
+A name an actor is registered under in its actor system, so that any
+actor of the system reaches it without a chain of parents. It names one
+actor at a time, from the actor's creation until it is done, fails or is
+stopped. A claim of a name another actor holds fails the claiming actor
+with `system_id_taken`, and `create_actor` refuses it.
++
+XState: `systemId` on an invoke, a spawn or `createActor`, and
+`system.get(systemId)`. +
+xstate: `systemId` on an invoke, `spawn_child_action::system_id` and
+`actor_options::system_id`; `actor_system::get(system_id)`; the target
+`+#system:<systemId>+`. +
+See <<actors-system,The system>> and
+<<glossary-actors-example,the actor system example>>.
+
+[[glossary-tag]]Tag::
+A label on a state, which a snapshot carries while that state is active.
+Testing a tag, such as `busy`, keeps working when the states that mean
+busy change; testing each of those states does not.
++
+XState: `tags`, and `snapshot.hasTag(tag)`. +
+xstate: `tags` in the config; `snapshot::tags` and
+`snapshot::has_tag(tag)`. +
+See <<states-tags,Tags>>.
+
+[[glossary-target]]Target::
+Where a transition goes: a sibling state's key, a path below the state
+starting with a dot (`.child`), or any state by its id
+(`+#light.green+`); a list of targets enters several regions. A
+transition without a target stays in its state and runs its actions. A
+target that names no state is refused at creation with `unknown_target`.
++
+XState: `target`. +
+xstate: `target`; `transition_definition::target`, the indexes of the
+nodes it names. +
+See <<transitions-targets,Targets>> and
+<<transitions-multiple,Multiple targets>>.
+
+[[glossary-timer]]Timer::
+See <<glossary-clock,clock>>.
+
+[[glossary-transition]]Transition::
+The move from a state to another that an event causes, with the actions it
+runs on the way. Transitions are deterministic: a state, an event and a
+context always lead to the same next state. A transition whose targets
+are its source or inside it does not leave the source; with
+`reenter: true` it leaves the source and enters it again, so the source's
+exit and entry actions run and its invoked actors restart. `reenter`
+changes nothing for a transition without a target, and a transition to
+another state leaves its source either way.
++
+XState: `+on: { event: 'target' }+`, or `target`, `guard`, `actions` and
+`reenter`. +
+xstate: the same in the config; `xstate::transition_definition`, which a
+microstep's `transitions` point to. +
+See <<transitions-on,Transitions>> and
+<<transitions-reenter,Self-transitions and reenter>>.
+
+[[glossary-twin]]Twin::
+The program that does on XState 5.33.2 what a program of this page does on
+xstate, and prints what it finds the same way. A twin agrees, and prints its
+program's output; or it diverges on purpose, and prints what XState does
+where xstate differs, which <<differences,Appendix B>> shows after the
+program's output. A program that shows what XState has no counterpart for has no
+twin, and says why.
++
+XState: none. +
+xstate: `test/oracle/twins/<group>/<name>.mjs`, beside a divergent
+twin's output, `<name>.expected`; webcpp's `tools/oracle/twins.py` runs them
+and compares. +
+See <<overview-twins,A twin for every example>> and
+<<testing-twins,The XState twins>>.
+
+[[glossary-undefined]]Undefined::
+JavaScript's value for what is not there, which JSON cannot hold. Where an
+XState implementation may return `undefined`, a log's value, a child's
+input or a state's output, xstate's returns a `std::optional` with none,
+and the member is left out, as XState leaves it out. The event
+`xstate.init` carries `input` only when the input is not null.
++
+XState: `undefined`. +
+xstate: none in the result of a `value_maker`, in `host_request::input`
+and in `snapshot::output`; a null pointer for the value `on_log`
+receives. +
+See <<differences-undefined,`undefined`>> in Where xstate differs and
+<<input-output-undefined,When a value is undefined>>.
+
+[[glossary-wildcard]]Wildcard::
+See <<glossary-event-descriptor,event descriptor>>.
+
+[[glossary-xactor]]xactor::
+The actor system xstate's actor layer runs on, header-only and
+single-threaded. Its scheduler holds one first-in first-out mailbox per
+actor and one first-in first-out queue of the actors that have mail: each
+turn hands one message to the actor at the front of the queue, which goes
+back to the end of the queue while its mailbox holds more. A delivery is
+queued, never nested in its sender's call, so the same inputs give the
+same run. Each execution has its fuel, and timers run on a clock the host
+moves. xactor is a library of webcpp of its own, and knows nothing of
+xstate. xstate's machine core includes nothing of xactor and runs no actor:
+it knows XState's actors as data, and resolves invokes and spawns into
+`xstate.spawnChild` and `xstate.stopChild` actions for its caller.
++
+XState: none; XState's actors run on JavaScript's event loop. +
+xactor: `webcpp::xactor`, which `<webcpp/xactor.hpp>` includes whole; the
+actor layer's headers, gathered by `<webcpp/xstate/actors.hpp>`, include
+it. +
+See link:{webcpp-libs}/xactor/{webcpp-page}[xactor's page],
+<<overview-actor-layer,The actor layer>> and
+<<actors-design,How the layer runs>>.
+
+[[glossary-xstate-original]]XState::
+Stately's JavaScript library of state machines and actors, which xstate
+ports at version 5.33.2. Where this page names XState, it means that
+version. Its npm package, `xstate`, pinned at 5.33.2 under `test/oracle/`,
+is what the <<glossary-oracle,oracle>> and the <<glossary-twin,twins>> run,
+on its development build, as XState's own tests do.
++
+See <<overview,Overview>> and <<testing-xstate,How xstate is tested>>.
+
+[[glossary-xstate]]xstate::
+The port of XState's machines and actors: a header-only {cpp}20 library
+that loads a machine from the JSON config XState's `createMachine` takes, and
+runs it through XState's pure functions or as an actor. It has two layers,
+the <<glossary-machine-core,machine core>> and the
+<<glossary-actor-layer,actor layer>>. It is one of the libraries of
+webcpp, beside xactor.
++
+XState: the library it ports. +
+xstate: `webcpp::xstate`, under `include/webcpp/xstate/`. +
+See <<overview,Overview>> and <<overview-layers,Two layers>>.
+
+[#glossary-names]
+=== Names that start with `xstate.`
+
+The library gives these names to the events it makes, to the actions it
+returns and to the higher-order guards. A config may handle the events
+like any other, and a caller reads the type and the params of each
+action.
+
+[cols="3,4,2",options="header"]
+|===
+| Name | What it is | Entry
+
+| `xstate.init`
+| The event of a machine's initial macrostep, with a non-null input as its
+member `input`.
+| <<glossary-initial-state,Initial state>>
+
+| `xstate.after.<delay>.<state id>`
+| The event a state's `after` raises with that delay.
+| <<glossary-delayed-transition,Delayed transition>>
+
+| `xstate.done.state.<state id>`
+| Raised when that compound state's final child is entered, with the
+child's output, or when every region of that parallel state is final.
+| <<glossary-done-event,Done event>>
+
+| `xstate.done.actor.<id>`
+| Sent to the parent when its child `id` is done: `output`, `actorId`.
+| <<glossary-done-event,Done event>>
+
+| `xstate.error.actor.<id>`
+| Sent to the parent when its child `id` fails: `error`, `actorId`.
+| <<glossary-error-event,Error event>>
+
+| `xstate.snapshot.<id>`
+| The event an invoke's `onSnapshot` takes. The actor layer sends none
+yet, so such a transition is taken only for an event of that type a
+caller sends.
+| <<glossary-invoke,Invoke>>
+
+| `xstate.raise`
+| A raise, returned with the params `event`, and `id` and `delay` when it
+has them.
+| <<glossary-raised-event,Raised event>>
+
+| `xstate.sendTo`
+| A sendTo, a sendParent or a forwardTo, with `targetId`, `event`, and
+`id` and `delay` when it has them.
+| <<glossary-send,Send>>
+
+| `xstate.cancel`
+| A cancel, with the `sendId` it drops.
+| <<glossary-delayed-event,Delayed event>>
+
+| `xstate.log`
+| A log, with its `value` and `label` when it has them.
+| <<glossary-built-in-action,Built-in action>>
+
+| `xstate.spawnChild`
+| A spawn, or an invoke's start, with `id`, `src`, and `input` and
+`systemId` when it has them.
+| <<glossary-spawn,Spawn>>, <<glossary-invoke,Invoke>>
+
+| `xstate.stopChild`
+| A stopChild, or an invoke's stop, with the `id` of the child.
+| <<glossary-child-actor,Child actor>>
+
+| `xstate.emit`
+| An emit, with the `event` emitted.
+| <<glossary-emitted-event,Emitted event>>
+
+| `xstate.not`, `xstate.and`, `xstate.or`, `xstate.stateIn`
+| The JSON of XState's higher-order guards, which XState writes as
+functions.
+| <<glossary-guard,Guard>>
+|===
+
+[#glossary-machine-example]
+=== The terms in a machine
+
+An order: `add` counts an item, and `checkout` goes to `checking`, whose
+eventless transitions go on to `paying` when the guard `hasItems` passes
+and back to `cart` otherwise. `paying` names a custom action, `charge`,
+and raises `paid`, which enters the final state `closed`. The program drives
+each macrostep with the cursor, one microstep per `next()`:
+
+[source]
+----
+include::{examples}/xstate/gl_machine.cpp[tag=machine,indent=0]
+----
+
+Its helpers: `items_of` reads the context's `items`, `status_name` names a
+status, and `print` writes a microstep from the `progress` that `next()`
+returned, its `step.snapshot`, `step.actions` and `settled`.
+
+[source]
+----
+include::{examples}/xstate/gl_machine.cpp[tag=helpers,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/gl_machine.expected[]
+----
+
+Each line is a microstep, numbered within its event's macrostep, with the
+state value, the context and the status it left, and the actions it
+returned.
+
+* The first `checkout` is a macrostep of two microsteps: `#1` takes the
+  event's transition to `checking`, `#2` the eventless transition back to
+  `cart`, since `hasItems` is false. Nothing follows, so `#2` settles it.
+* `add` changes the context through the assign `count`, and returns no
+  action: an assign is never handed back.
+* The second `checkout` takes three microsteps. `#2` is the eventless
+  transition to `paying`, whose entry returns the custom action `charge`,
+  for the caller to run, and `xstate.raise`, the raise of `paid`, already
+  queued. `#3` takes the raised event to `closed`, a final state: the
+  status is `done`.
+* `settled` is what the cursor reports with the last microstep of each
+  macrostep. XState has no cursor: its `getMicrosteps` returns every
+  microstep of a macrostep at once, and the program's twin marks the last
+  one, so that it prints the same lines (<<glossary-twin,twin>>).
+* `count` and `hasItems` read `items` through `items_of`: on a context
+  without an integer `items`, each fails with `implementation_failed`, and
+  the snapshot carries the error.
+
+[#glossary-actors-example]
+=== The terms in an actor system
+
+An app that invokes a host actor to fetch its user, registered under the
+systemId `fetcher`. The host finds the request, answers it, and the app's
+`onDone` keeps the output. The fetch is the host's work: a host actor, which
+waits until the host answers it, stands where XState runs a promise
+(<<glossary-host-actor,host actor>>):
+
+[source]
+----
+include::{examples}/actors/gl_actors.cpp[tag=actors,indent=0]
+----
+
+`print` reads the snapshot the app published, `snapshot_of`, and its
+`children`, the `(id, src)` of each child it has:
+
+[source]
+----
+include::{examples}/actors/gl_actors.cpp[tag=print,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/gl_actors.expected[]
+----
+
+* Starting the root actor runs its initial macrostep: the app enters
+  `loading`, whose invoke starts the child `fetch`. The child is a host
+  actor, so it becomes a host request with its id, its src and its input.
+* `system.get("fetcher")` finds the child by its systemId, from anywhere
+  in the system.
+* `resolve` answers the request: the child is done, and the app receives
+  its done event, `xstate.done.actor.fetch`, whose `output` the assign
+  `keepUser` keeps. Leaving `loading` stops the invoke, and the child,
+  done, no longer holds its systemId.
+
+[#glossary-fuel-example]
+=== Fuel
+
+XState has no fuel, so this program has no twin. The event `go` takes
+three microsteps, through two eventless transitions, and each
+<<glossary-execution,execution>> has two units of fuel. Creating the actor
+opens no execution; `start`, `send` and `resume` each open one here.
+
+[source]
+----
+include::{examples}/actors/gl_fuel.cpp[tag=fuel,indent=0]
+----
+
+`print` tells how each host call ended, from its `run_outcome`, and shows
+the snapshot the actor has published:
+
+[source]
+----
+include::{examples}/actors/gl_fuel.cpp[tag=print,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/gl_fuel.expected[]
+----
+
+The start pays for the one microstep of the initial macrostep. `send` pays
+for two of the three microsteps of `go`, then the actor parks: the call
+returns `out_of_fuel`, and the snapshot the actor publishes is still the
+one it last settled in, `"idle"`. `resume` gives it a new execution, which
+pays for the third microstep; the macrostep settles, and the actor
+publishes `"three"`.

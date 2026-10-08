@@ -1,0 +1,344 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#quick-start]
+== Quick start
+
+This section builds a first program. It creates a machine, a toggle, from the
+JSON config XState's `createMachine` takes, steps it with XState's pure
+functions, runs the same machine as an actor that receives events, and then
+grows it with a delayed transition, context and input. It follows Stately's
+https://stately.ai/docs/quick-start[quick start] step by step, with one step
+of its own, the pure functions. Each block of code comes from a whole program
+of the repository, and the output under it is what that program printed.
+
+[#quick-start-installing]
+=== Installing xstate
+
+xstate is header-only, so installing it puts directories on a program's
+include path, and nothing is built but the program
+(<<overview-requirements>> lists what the program provides). In a webcpp
+checkout they are `libs/xstate/include`, and, for the actor layer,
+`libs/xactor/include`, beside Boost 1.92's headers. From the root of the
+checkout, with the program of the next two sections,
+`libs/xstate/example/xstate/qs_toggle.cpp`, copied as `toggle.cpp`, this
+command builds it:
+
+[source,bash]
+----
+clang++ -std=c++20 -I libs/xstate/include toggle.cpp tools/boost_json.cpp -o toggle
+----
+
+`tools/boost_json.cpp` is the one translation unit that includes
+`<boost/json/src.hpp>`; without it the link misses Boost.JSON's
+definitions. A compiler that does not find Boost on its default include path
+is given Boost's `include` directory with `-isystem`, which makes Boost's
+headers system headers, so the compiler's warnings stay on the program's own
+code: for Homebrew's Boost, the one under `/opt/homebrew/opt/boost`. A
+program that uses the actor layer adds `-I libs/xactor/include`. GCC takes
+the same options.
+
+Without exceptions, the program also needs a definition of
+`boost::throw_exception`, which Boost.System and Boost.JSON name: webcpp's
+`tools/throw_exception.cpp` defines its two overloads, reports what was
+thrown on the standard error and aborts, since in such a build a throw is a
+defect, never a condition:
+
+[source,bash]
+----
+clang++ -std=c++20 -fno-exceptions -DBOOST_NO_EXCEPTIONS -I libs/xstate/include \
+    toggle.cpp tools/boost_json.cpp tools/throw_exception.cpp -o toggle
+----
+
+A program built with exceptions on needs none of `-fno-exceptions`,
+`-DBOOST_NO_EXCEPTIONS` or `throw_exception.cpp`, since Boost defines the
+function itself then.
+
+[#quick-start-b2]
+==== Building with b2
+
+In the checkout, `b2 libs/xstate/example` builds this program with every
+other program of `libs/xstate/example/`, runs each, and compares what it
+prints with the output this page shows, which is the `<name>.expected`
+beside it (<<testing>>). A b2 project uses xstate through
+`/webcpp/xstate//xstate`, which adds xstate's headers, xactor's, Boost's,
+and Boost.JSON's definitions, compiled once per variant, to whatever names
+it:
+
+[listing]
+----
+exe toggle : toggle.cpp /webcpp/xstate//xstate ;
+----
+
+[#quick-start-machine]
+=== Create a machine
+
+A machine is the logic of an actor: the states it can be in, the events each
+state accepts, and where each event leads. This one, a toggle, is in one of
+two states, `Inactive` or `Active`, and the event `toggle` moves it from one
+to the other.
+
+XState takes the config as a JavaScript object. xstate takes the same config
+as JSON, read at run time by `create_machine`: a {cpp} program has no object
+literal to write it in, and as data a config can come from a file, a request
+or Stately Studio's export. JSON cannot hold a function, so the program
+gives the machine's code in the second argument, the `implementations`: an
+action's, for one, under the name the config gives the action. This config
+needs no code, and its `implementations` are empty (<<quick-start-context>>,
+<<machines-implementations>>).
+
+The examples of this page begin with the core's header, Boost.JSON's, and an
+alias for the namespace:
+
+[source]
+----
+include::{examples}/xstate/qs_toggle.cpp[tag=includes,indent=0]
+----
+
+Then the machine:
+
+[source]
+----
+include::{examples}/xstate/qs_toggle.cpp[tag=machine,indent=0]
+----
+
+`create_machine` returns a `result<machine>`: the machine, or the error that
+refused the config, such as `invalid_config` for a compound state without
+`initial` or `unknown_target` for a target that names no state. Where XState
+throws, xstate returns an error; and some configs XState accepts, failing only
+when it runs them, xstate refuses when the machine is created
+(<<differences-refused>>). A machine never changes once created, and copying
+one is cheap: it is a handle to data its copies share. <<machines-refusals>>
+tells what refuses a config.
+
+[#quick-start-pure]
+=== Step it with pure functions
+
+Before it runs as an actor, the machine can be stepped by hand, which suits a
+caller that keeps the state itself: a request handler that loads a snapshot,
+applies an event and stores the result, or a test. A snapshot is where a
+machine is: its state value, its context and its status. XState's pure
+functions compute one snapshot from another. `initialTransition` returns the
+snapshot a machine starts in, and `transition` the snapshot an event leads to,
+each with the actions the step returned for the caller to execute. They change
+nothing and keep nothing: the caller holds the snapshot and passes it back
+with the next event. xstate has the same functions, `initial_transition` and
+`transition`, which return a `std::pair`:
+
+[source]
+----
+include::{examples}/xstate/qs_toggle.cpp[tag=pure,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/qs_toggle.expected[]
+----
+
+An event is a type and a payload, empty here. The toggle has no actions, so
+every list is empty; <<actions>> shows what they hold and who executes them.
+
+An event's macrostep is all the work it causes: one or more microsteps, each a
+set of transitions taken together, until no eventless transition is enabled
+and no raised event is queued (<<pure-microsteps>>). Each of these functions
+runs an event's macrostep to its end at once. Under them is xstate's one
+primitive, the macrostep cursor: `begin` returns a cursor whose `next()` runs
+exactly one microstep, so the caller decides how much work an event may cost,
+paying for each microstep and stopping where it wants. A machine whose
+eventless transitions never settle never returns from `transition`; only the
+cursor bounds it (<<pure-cursor>>).
+
+[#quick-start-actor]
+=== Create an actor and send events
+
+An actor is a running process: it receives events, one at a time, and each
+event may change its snapshot and make it send events of its own. A machine is
+the logic an actor runs.
+
+XState's `createActor` makes an actor from a machine. In xstate, actors live
+in an `actor_system`, which runs them on xactor, and the program names each by
+the `actor_ref` the system returns. XState makes a system for each root actor
+implicitly; xstate makes it explicit because the system owns what a host must
+decide: the fuel its actors may spend, the time, and the systemIds its actors
+share (<<actors-create>>). xactor runs the actors on one thread: each actor
+has a FIFO mailbox, the actors that have work wait in one FIFO queue, and each
+turn hands one message to its actor, so the order of deliveries depends on
+nothing but the order the messages were sent
+(link:{webcpp-libs}/xactor/{webcpp-page}#xactor-invariant-2[xactor's
+guarantee 2]). With fuel bounding each
+execution, the same inputs make the same run and no run is unbounded. The
+system's `create_actor`, `subscribe`, `start` and `send` are XState's
+`createActor`, `actor.subscribe`, `actor.start` and `actor.send`, and its
+`snapshot_of` is `actor.getSnapshot`. An actor needs the actor layer's header,
+`<webcpp/xstate/actors.hpp>`. The same toggle, as an actor:
+
+[source]
+----
+include::{examples}/actors/qs_actor.cpp[tag=actor,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/qs_actor.expected[]
+----
+
+* *A call runs the system.* `start` and `send`, like every call that delivers
+  something, run the system until nothing is left to do before they return,
+  as XState's `send` processes the event at once, unless an actor is parked:
+  then the call is held, in order, until `resume()`. Each returns a
+  `result<run_outcome>`: `settled` when no actor is left parked,
+  `out_of_fuel` when one is, or an error, such as xactor's
+link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`invalid_argument`],
+  of the category `webcpp.xactor`, for an actor the system does not know
+  (<<overview-errors>>).
+* *Fuel.* The budget the system is created with, `{.fuel = 1000}`, is the
+  fuel of each execution a call opens; a `start` or a `send` opens one. Every
+  microstep costs one unit, and so does every message an actor sends and
+  every timer it arms. When an execution runs out, the call returns
+  `out_of_fuel` and leaves the actor parked, its work kept and its snapshot
+  the last one it settled in; `resume()` continues it. XState has no fuel,
+  and an actor whose eventless transitions never settle runs forever there
+  (<<actors-fuel>>, <<differences-fuel>>). The example's `settled` takes an
+  error and `out_of_fuel` alike as a failure, and returns 1.
+* *Start.* `start` constructs the actor and runs its initial macrostep, so
+  `snapshot_of` returns `nullptr` until then. XState's `createActor` already
+  constructs it, and its `getSnapshot()` answers before `start()`
+  (<<differences-construction>>).
+* *Subscribers.* A subscriber hears each snapshot the actor settles in while
+  it is active, and the one it is done in, whether the event took a
+  transition or not, as XState's does. It runs inside the actor's turn: it
+  may read the system, with `snapshot_of` for one, but a call from it that
+  changes the system, a `send` included, returns `invalid_argument` and
+  changes nothing, where XState accepts a send from a subscriber and handles
+  it once the update in progress is done (<<actors-watching>>,
+  <<differences-callbacks>>).
+
+<<actors>> covers the rest: children, messages between actors, actors the host
+answers for, time, and what fuel guarantees.
+
+[#quick-start-delayed]
+=== Use delayed transitions
+
+A delayed transition is taken when its state has been active for a given
+time, with no event. A state lists its delayed transitions under `after`,
+keyed by the delay in milliseconds. Here `Active` goes back to `Inactive` two
+seconds after it was entered, unless a `toggle` leaves it first, which
+cancels the delay.
+
+The machine never reads a clock. Entering `Active` arms a timer, which waits
+until the host brings the time: `clock_tick(2000)` moves the system's time to
+2000 milliseconds and fires the timers due by then. XState's actors schedule
+delays with JavaScript's `setTimeout` unless they are given another clock,
+such as its `SimulatedClock`; an xstate actor has no clock but the host's
+(<<transitions-delayed-actors>>, <<actors-time>>).
+
+[source]
+----
+include::{examples}/actors/qs_delayed.cpp[tag=delayed,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/qs_delayed.expected[]
+----
+
+At 1000 milliseconds the timer is not due, and nothing happens. At 2000 it
+fires. An `after` is an event the state raises with a delay when it is
+entered, `xstate.after.2000.toggle.Active` here, and cancels when it is left;
+the delayed transition is a transition on that event, as in XState
+(<<transitions-delayed-core>>).
+
+[#quick-start-context]
+=== Handle context data
+
+Context is the data a machine carries beside its state: here, how many times
+the toggle became `Active`. A context that is data stays in the config, as
+JSON: `"context": {"count": 0}` is XState's `context: { count: 0 }`, and it is
+the context the machine starts with. An `assign` action updates it: on
+entering `Active`, `incrementCount` adds one to the count.
+
+In XState the update is a function written inline in the config, which JSON
+cannot hold. In xstate the config names the action, and the program registers
+it under that name in `implementations.actions`, as XState's
+`setup({ actions })` registers implementations by name
+(<<machines-implementations>>). An `assign_action` receives an `action_args`,
+the context, the event and the action's params, and returns the members it
+changes, which it merges into the context, as XState's `assign` does
+(<<actions-assign>>).
+
+An implementation returns a `result`. A failure stops the macrostep and
+leaves the snapshot it began from, its status `error`, where XState's function
+would throw (<<differences-failures>>).
+
+[source]
+----
+include::{examples}/actors/qs_context.cpp[tag=program,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/qs_context.expected[]
+----
+
+The action reads the count with `integer_at`, which returns none where a
+member is missing or is not an integer. Boost.JSON's accessors that check,
+such as `at` and `as_int64`, throw on a mismatch, and a throw aborts a program
+built without exceptions; `if_object`, `if_contains` and `is_int64` answer
+with a pointer or a `bool` instead, and `try_at` and `try_as_int64` with a
+`boost::system::result`:
+
+[source]
+----
+include::{examples}/actors/qs_context.cpp[tag=integer_at,indent=0]
+----
+
+<<context>> covers context one part at a time: its initial value, `assign`,
+how guards and actions read it, and how an actor holds it.
+
+[#quick-start-input]
+=== Add input
+
+Input is the data an actor is created with. Here it is the most times the
+toggle may become `Active`, `maxCount`, and the initial context is computed
+from it. A guard is a condition a transition is taken under: `countBelowMax`
+lets `toggle` activate the toggle only while the count is below that maximum.
+
+In XState both are functions written in the config. In xstate the config
+names the guard, and the program registers it under that name in
+`implementations.guards`, as it registers the action: a predicate of an
+`action_args` that returns a `result<bool>` (<<transitions-guards>>). The
+context function, which a config cannot name, goes in
+`implementations.context`: it receives the input and returns the initial
+context, a `result<boost::json::value>`, in place of the config's `context`.
+A failure it returns, or a value that is not an object, fails the actor's
+initial macrostep and leaves it in the status `error` (<<context-input>>,
+<<differences-object-context>>). The input is the `input` of the
+`actor_options` given to `create_actor`, as XState's is an option of
+`createActor`:
+
+[source]
+----
+include::{examples}/actors/qs_input.cpp[tag=program,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/qs_input.expected[]
+----
+
+The last `toggle` finds a count of 1, not below a `maxCount` of 1, so the
+guard refuses it and the snapshot stays; the subscriber hears it all the same.
+<<input-output>> covers input, and output, the data an actor is done with.

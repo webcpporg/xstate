@@ -1,0 +1,413 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#concepts]
+== Core concepts
+
+A statechart describes what one process does when something happens: the
+states it can be in, the events it reacts to, and what each event changes.
+This section explains its parts in plain words, one part at a time, each
+with the smallest program that shows it, and the sections after it take
+each part in depth. The other idea xstate rests on, the actor model, which
+describes how many such processes live together, each reaching the others
+only by events, opens the next chapter (<<concepts-actor-model>>).
+
+The examples follow a dog through its day, as Stately's introduction does.
+Each one runs its machine with two of the core's pure functions:
+`get_initial_snapshot` gives where the machine is when it starts, and
+`get_next_snapshot` where an event takes it from there.
+
+[#concepts-statecharts]
+=== State machines and statecharts
+
+A state machine models how a process goes from state to state when an
+event occurs. It lists every state the process can be in, every event it
+reacts to, and, for each state and event, where the process goes next.
+
+Writing this down makes the impossible states visible, since a state that
+is not listed cannot happen, and the unwanted moves too, since a move that
+is not listed is never taken. The same state and the same event always lead
+to the same next state, so a machine is simple to test.
+
+A statechart is a state machine extended for larger processes: a state can
+contain states (hierarchy), several states can be active at once (parallel
+states), a state can remember where it was (history), and the process
+carries data beside its state (context). XState implements statecharts, and
+xstate runs the same ones, from the same config written as JSON, with a
+name wherever XState's config would hold a function (<<overview-json>>).
+<<overview-not-ported>> lists what it does not run yet, and <<differences>>
+where it differs. As in Stately's documentation, "machine" here means a
+statechart.
+
+In xstate, a machine is the tree of state nodes its config describes,
+together with the implementations the config names, and it never changes
+once it is created. Where the machine is at one moment is a separate value,
+its snapshot (<<concepts-snapshot>>). Each event computes a new snapshot
+from the previous one, and the machine stays as it was.
+
+[#concepts-states]
+==== States
+
+A state is a mode the process is in, such as asleep or awake. Without
+parallel states (<<concepts-parallel>>), a machine is in exactly one state
+at each level at a time: a dog is asleep or awake, never both and never
+neither. There are finitely many of them, which is why such a machine is
+called a finite state machine.
+
+A config lists the states as the members of `states`, and names with
+`initial` the one the machine enters when it starts:
+
+[source]
+----
+include::{examples}/xstate/concepts_states.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/concepts_states.expected[]
+----
+
+`create_machine` reads the JSON config, the object XState's `createMachine`
+takes, with the implementations the config names, none here, so `{}`. It
+returns a `result`: the machine, or the error that refused the config and
+no machine. A config that cannot be a machine is refused at once, so the
+program checks the result before it uses the machine (<<machines-refusals>>).
+`get_initial_snapshot` returns where the machine is when it starts, its
+<<concepts-snapshot,snapshot>>, whose `value` names the current state, and
+`matches` asks whether the snapshot is in a given state.
+`get_initial_snapshot`, and `get_next_snapshot` below, are the short forms
+of `initial_transition` and `transition`, XState's `initialTransition` and
+`transition`, that return the snapshot alone (<<pure-snapshots>>).
+
+A machine whose root has states of its own, and is not parallel, names one
+initial state, and only one, or it would not know where to start:
+`create_machine` refuses such a config when it leaves `initial` out, as
+XState's `createMachine` refuses it. A parent state (<<concepts-hierarchy>>)
+names its initial child the same way, under the same rule. Two kinds of
+state need no `initial`: one without children, such as `asleep`, and a
+parallel state, the root included, which enters all its children at once
+(<<concepts-parallel>>). <<machines-creating>> says more about
+`create_machine`, <<states-initial>> about the initial state, and
+<<states-matches>> about `matches`.
+
+[#concepts-transitions]
+==== Events and transitions
+
+An event is something that happened: the dog wakes up, the dog falls
+asleep. It has a type, a string, and may carry data. A transition is a move
+from one state, its source, to another, its target, when an event of a
+given type happens. Transitions are what make a machine react: for each
+state, they say which events matter there and where each one leads. A state
+lists its transitions in `on`, by event type:
+
+[source]
+----
+include::{examples}/xstate/concepts_transitions.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/concepts_transitions.expected[]
+----
+
+`get_next_snapshot` computes the next snapshot from a snapshot and an
+event, and changes neither. The second `wakes up` arrives in `awake`, which
+has no transition for it, so the dog stays awake: when neither the current
+state nor any state that contains it has a transition for an event, the
+event changes nothing, and the snapshot stays as it was.
+
+An `xstate::event` holds the type and a JSON object, its payload. XState's
+event is one flat object, `+{ type: 'wakes up', ...payload }+`, and
+`event_from_json` reads that form. Events and transitions each have a
+section of their own, <<transitions-events>> and <<transitions-on>>.
+
+One event can cause more than one step: after its transition, the machine
+may take eventless transitions (`always`) and events it raised itself. Each
+such step is a microstep; all of them, until the machine is stable, are one
+macrostep, the unit in which a machine handles an event. `get_next_snapshot`
+runs a whole macrostep in one call, as XState does. The macrostep cursor
+under it runs one microstep per call instead, so that its caller decides
+how much work an event may cost (<<overview-core>>, <<pure-cursor>>).
+
+[#concepts-actions]
+==== Actions
+
+An action is an effect: something the machine does as it moves, such as
+notifying, logging or saving, as opposed to where it goes. The machine says
+when an effect happens; the code that performs it lives outside the states
+and transitions. Most actions are fire and forget: the machine neither
+waits for them nor reads their result. The exception is the built-in
+`assign`, whose result the machine merges into its context
+(<<concepts-context>>). A state has entry actions, run when it is entered,
+and exit actions, run when it is left; a transition has actions of its own,
+run as it is taken:
+
+[source]
+----
+include::{examples}/xstate/concepts_actions.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/concepts_actions.expected[]
+----
+
+In one move the exit actions come first, then the transition's, then the
+entry actions: `stretch`, `yawn`, `bark`. A JSON config cannot hold a
+function, so in xstate an action is a name, with optional `params`, where
+XState's config may also hold the function itself (<<differences-names>>).
+What the name does is decided outside the config. `stretch`, `yawn` and
+`bark` have no implementation: they are custom actions, and `transition`
+returns them, in order and with their params, for the caller to execute,
+as XState's pure `transition` returns every action and executes none.
+
+The built-in actions, XState's `assign`, `raise`, `sendTo` and the others,
+are registered by name in `implementations`, and xstate resolves them:
+`assign` changes the context and is never returned, a raise without a delay
+queues its event in the macrostep, and every built-in but `assign` comes
+back resolved, under XState's name (`xstate.raise`, `xstate.sendTo`,
+`xstate.spawnChild` and so on), for the actor layer or the caller to
+execute. <<actions-built-in>> lists them all, and <<actions-custom>> covers
+custom actions.
+
+[#concepts-context]
+==== Context
+
+The finite states say which mode the process is in; they cannot count, or
+hold a name. Context holds that data: a JSON object that travels with the
+state, the extended state of a statechart. Only an `assign` action changes
+it, by merging the object its implementation returns into the context, as
+JavaScript's `Object.assign` does, so every change to the data is an action
+the config names. Here each `gets treat` runs `eatTreat`, which counts the
+treat:
+
+[source]
+----
+include::{examples}/xstate/concepts_context.cpp[tag=assign,indent=0]
+----
+
+[source]
+----
+include::{examples}/xstate/concepts_context.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/concepts_context.expected[]
+----
+
+`eat_treat` computes the update: it is the function XState's `assign`
+takes. An `assign_action` holds it, registered in `implementations.actions`
+under the name the config uses, `eatTreat`, as XState's `setup` registers
+it. It receives an `action_args`: the context as it is when the action
+runs, the event, and the action's params. It returns a `result`: when it
+cannot compute the update, here when `treats` is missing or not an integer,
+it returns an error rather than throwing, and the macrostep fails, leaving
+the snapshot it began from with the status `error`.
+
+The transition on `gets treat` has no target, so the dog stays `begging` and
+only the action runs. Stately calls this a self-transition: doing something,
+not going somewhere. Without a target, the state is neither exited nor
+entered again (<<transitions-reenter>>).
+
+A config without `context`, or with `null`, starts from `{}`, as in XState.
+Any other context that is not an object, `false`, a number, a string or a
+list, is kept as written, and an `assign` on it fails with
+`implementation_failed`, where XState starts a falsy one from `{}` and
+makes any other an object at its first `assign`
+(<<differences-object-context>>). <<context-assign>> covers `assign`, and
+<<context-input>> how an input sets the first context.
+
+[#concepts-hierarchy]
+==== Parent states
+
+A parent state, or compound state, contains states of its own, its
+children, and is active while one of them is. A state without children is
+atomic. Parents exist so that what several states share is written once: a
+transition of the parent applies whichever child is active. The dog arrives
+home from `walking` or from `running`, and the transition is written once,
+on `onAWalk`, which names its initial child, entered with it:
+
+[source]
+----
+include::{examples}/xstate/concepts_hierarchy.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/concepts_hierarchy.expected[]
+----
+
+The state value of a parent state is an object that names its active child,
+`{"onAWalk":"walking"}`, nested as deep as the states are; an atomic state
+at the top is a string. `matches("onAWalk")` holds for every child of
+`onAWalk`. Sharing a transition, or an entry or exit action, through the
+parent is what keeps a large machine small. They are taken in depth in
+<<states-parent>>.
+
+[#concepts-parallel]
+==== Parallel states
+
+A parallel state has several children, its regions, all active at once.
+Each region has its own states, its own initial state and its own
+transitions, and moves independently of the others: the dog walks or runs,
+and, at the same time, wags its tail or does not. Without parallel states,
+each combination would need a state of its own.
+
+[source]
+----
+include::{examples}/xstate/concepts_parallel.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/concepts_parallel.expected[]
+----
+
+The machine is parallel at its root, `"type": "parallel"`, and its state
+value names the active child of each region. One event can move several
+regions in the same step: `sees a squirrel` makes the dog run and wag at
+once. `slow down` concerns `activity` only, and `tail` stays where it is.
+They are taken in depth in <<states-parallel>>.
+
+[#concepts-history]
+==== History states
+
+A history state remembers which child of its parent was active when the
+parent was left. A transition that targets it goes back to that child,
+where a transition that targets the parent enters the parent's initial
+child, so a process that is interrupted can resume where it was:
+
+[source]
+----
+include::{examples}/xstate/concepts_history.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/concepts_history.expected[]
+----
+
+The dog was running when it smelled something, so `carry on`, which
+targets `onAWalk.previous`, takes it back to `running`; `start over`
+targets `onAWalk` itself and enters its initial child, `walking`. A history
+state is never active: it only redirects the transitions that target it.
+What each history state remembers is part of the snapshot.
+
+A shallow history, the default, remembers the parent's active child; a deep
+one, `"history": "deep"`, every active state below the parent. Until the
+parent has been left once, the history state has nothing to remember, and
+the transition enters its default: the history state's own `target`, or
+else the parent's initial child. History states are taken in depth in
+<<states-history>>.
+
+[#concepts-final]
+==== Final states
+
+A final state is where a process ends. When a machine enters a final state
+at its top level, it is done: its status becomes `done`, and it produces
+its output, the `output` of its config. A machine that is done has finished
+its work, and whoever runs it can stop sending it events and read the
+result:
+
+[source]
+----
+include::{examples}/xstate/concepts_final.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/concepts_final.expected[]
+----
+
+`status_name`, a function of the program, spells the status. A snapshot's
+status is `active` while the machine runs, `done` once it has reached a
+final state at its top level, and `error` once it has failed, for example
+when an implementation returned an error or a child's error found no
+transition (<<differences-failures>>). The output here is a fixed JSON
+value; one computed from the context and the event is registered by name,
+the root's id, in `implementations.outputs`
+(<<input-output-final-state-output>>).
+
+A final state inside a parent state completes that parent instead: the
+machine raises the event `xstate.done.state.<id>`, `<id>` being the
+parent's, which the parent's `onDone` transition takes. The parent stays
+active until a transition leaves it. A parallel state is complete once
+every region is in a final state. Final states are taken in depth in
+<<states-final-parent>>, <<states-final-parallel>> and <<states-done>>.
+
+[#concepts-snapshot]
+==== The snapshot
+
+A snapshot is where a machine is at one moment, with everything needed to
+compute what it does next. In xstate it is a plain value,
+`xstate::snapshot`, which the program keeps, copies or stores, and hands
+back with the next event. The machine never changes; each event yields a
+new snapshot.
+
+[cols="1,4",options="header"]
+|===
+| Member | What it holds
+
+| `value` | the state value, a string or an object of the active states
+| `context` | the context
+| `status` | `active`, `done` or `error`
+| `output` | the output, once the machine is done
+| `error`, `error_value` | why the machine failed
+| `tags` | the tags of the active states, each once
+| `nodes` | the active state nodes, by their place in the machine, in XState's order
+| `history` | what each history state remembers
+| `children` | the child actors, each as its id and its `src`
+|===
+
+The dog leaves home, and the program reads the snapshot it is in:
+
+[source]
+----
+include::{examples}/xstate/concepts_snapshot.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/xstate/concepts_snapshot.expected[]
+----
+
+A tag names a group of states, so code can ask about the group, with
+`has_tag`, without naming each state in it (<<states-tags>>). `can` asks
+whether an event would take a transition that does something, one with a
+target or an action, before sending it (<<pure-can>>); it returns a
+`result`, since a guard it evaluates may fail.
+
+A snapshot names its active states by their place in the machine, so it is
+read with the machine that computed it. The order of `nodes` is not
+cosmetic: it decides which eventless transition a parallel state takes
+first. To persist a snapshot, keep its value and context, and rebuild it
+with `resolve_state`, which restores those two, and from the value the
+active states and their tags, but nothing else: the status comes from the
+value, `done` or `active`, never `error`, and the output, the error, what
+history states remember and the children are not restored
+(<<pure-persisted>>). XState's snapshot has one more status, `stopped`; in
+xstate, whether an actor was stopped is the actor's status, kept apart from
+its snapshot (<<concepts-actors>>). <<states>> takes each member in turn
+(<<states-snapshot>>).

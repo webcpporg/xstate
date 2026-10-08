@@ -1,0 +1,250 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#concepts-actor-model]
+== The actor model
+
+The actor model is a model of concurrent computation whose building block
+is the actor: an independent, live object that reaches others only by
+messages.
+
+* An actor has its own state, which only it changes, in response to a
+  message it receives.
+* It talks to other actors only by sending them messages. In XState, and
+  in xstate, the messages are events.
+* It handles one message at a time, from its mailbox, the queue of the
+  messages it has received.
+* It shares its state only by sending events, or by publishing snapshots to
+  whoever subscribed to them.
+* It can create actors, its children.
+
+These rules let each actor be understood on its own. Nothing else changes
+its state, and what it does depends only on the messages it receives, in
+the order it receives them, so a program of many processes becomes a set
+of small ones that talk, each of which can be tested by the events it takes
+and sends.
+
+A statechart describes the logic of one actor; the actor model describes
+how many of them live together. When XState runs a machine, the machine
+becomes an actor; xstate's actor layer does the same. This section takes
+the model's ideas one at a time, each with the smallest program that shows
+it, and the section after it, <<actors>>, takes each in depth.
+
+[#concepts-actors]
+=== Actors
+
+An actor runs its logic, what XState calls actor logic: here a machine. A
+`host_actor`, whose work the host does, is the other kind of logic xstate
+knows (<<concepts-spawning>>). A machine actor holds the current snapshot,
+takes one event at a time, and moves its snapshot on with each. Nothing
+outside it changes its state; the host sends it events and reads, or
+subscribes to, its snapshots. Here the dog that wakes up and falls asleep
+(<<concepts-transitions>>) runs as an actor, and a listener prints each
+snapshot it settles in:
+
+[source]
+----
+include::{examples}/actors/concepts_actor.cpp[tag=settled]
+----
+
+[source]
+----
+include::{examples}/actors/concepts_actor.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/concepts_actor.expected[]
+----
+
+`actor_system` is XState's `createActor` and the actor's system in one.
+`create_actor` makes an actor of a machine, `start` runs its initial
+macrostep, `send` delivers an event, and `stop` ends a root actor with all
+its children. `subscribe` hands a listener each snapshot the actor settles
+in while it is active, and the one it is done in. A failed actor's snapshot
+is not handed over, as XState hands a failure to an observer's `error`
+rather than to its `next`; `status_of` says when an actor has failed. Each
+call that delivers runs the system until nothing is left to do before it
+returns, as XState's `send` processes its event at once, and says whether
+everything settled or an actor ran out of fuel (<<overview-actor-layer>>).
+The program's `settled` checks that a call returned no error and left no
+actor parked; the examples below use it too. An actor's status, `active`,
+`done`, `error` or `stopped`, comes from `status_of`, where XState writes it
+in the snapshot.
+
+A listener runs inside the actor's turn. It may read the system, with
+`snapshot_of` for example, but a call from it that changes the system, a
+`send` among them, returns `invalid_argument` and changes nothing; XState
+accepts a send from a subscriber and handles it after the update in
+progress (<<differences-callbacks>>).
+
+[#concepts-messages]
+=== Messages and mailboxes
+
+Actors talk by sending messages; to a machine actor, a message is an event.
+Each actor has a mailbox, where messages wait in the order they arrived,
+and it takes the next one only when it has finished with the one before. A
+machine actor has finished with an event when its macrostep has settled,
+so one event never interrupts another: this is XState's run to completion.
+So no event ever finds an actor halfway through another: each starts from
+the snapshot the one before settled in.
+
+A machine sends an event with a `send_to_action`, XState's `sendTo`, naming
+its target by id: here the owner names the child it invokes, `dog`. The
+example registers the dog's machine as an actor, a `machine_actor` in
+`implementations.actors`, which is XState's `setup({ actors })`, invokes it
+from the owner, and finds it with `child_of`; <<concepts-spawning>>, next,
+explains all three. The owner's `throw` sends the dog `fetch`, and the dog
+counts the fetches in its context:
+
+[source]
+----
+include::{examples}/actors/concepts_mailbox.cpp[tag=implementations]
+----
+
+[source]
+----
+include::{examples}/actors/concepts_mailbox.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/concepts_mailbox.expected[]
+----
+
+The owner sends two `fetch` events in one macrostep. They leave once that
+macrostep has settled, and the dog takes them one at a time, each a
+macrostep of its own, in the order they were sent.
+
+xactor's scheduler gives each actor a FIFO mailbox and keeps one FIFO queue
+of the actors that have messages waiting. Sending a message only puts it in
+its target's mailbox; one turn at a time, on one thread, the scheduler hands
+the actor at the front of the queue its next message, and puts the actor
+back at the end of the queue while it has more. So a delivery is queued,
+never nested in the sender's call, a run depends on nothing but the order in
+which messages were queued, and the same input always gives the same run
+(
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-invariant-1[xactor's guarantees 1]
+and
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-invariant-2[2]).
+An actor receives what one sender sends it in the order sent. Between actors
+the order can differ from XState's, which delivers an event to an idle actor
+at once, nested in the sender's call: a subscriber of the owner here would
+hear the owner's snapshot before the dog's two, where XState's hears it
+after them (<<differences-interleaving>>).
+
+[#concepts-spawning]
+=== Spawning
+
+An actor can create actors, its children, to hand work to: a request the
+machine waits on, a process with states of its own, one helper for each
+item of a list. A machine does it in two ways. A state's `invoke` starts a
+child when the state is entered and stops it when the state is left. A
+`spawn_child_action`, XState's `spawnChild`, starts one that lives until a
+`stop_child_action`, XState's `stopChild`, stops it, it ends, or its parent
+is done or stopped; a parent that fails leaves it running, as in XState.
+Either way the parent knows the child by an id and sends it events. A child
+that is done or fails tells its parent with an event:
+`xstate.done.actor.<id>`, with its output, or `xstate.error.actor.<id>`,
+with its error. An invoke takes these with its `onDone` and `onError`; a
+spawned child's are taken under `on`. A child that is stopped sends no
+event.
+
+Here the owner invokes its dog while it walks, and goes home when the dog
+has fetched its stick:
+
+[source]
+----
+include::{examples}/actors/concepts_spawning.cpp[tag=example,indent=0]
+----
+
+`print`, a helper of the program, writes who an actor is, its state value,
+its status, and its output when it has one. It prints:
+
+[listing]
+----
+include::{examples}/actors/concepts_spawning.expected[]
+----
+
+An invoke names its child by `src`, which the implementations register,
+as XState's `setup({ actors })` does: a `machine_actor` for a machine, or a
+`host_actor` for work done outside the machines, which XState writes as a
+promise. `child_of` finds a child by its parent and its id. When the dog
+reaches its final state it is done, with its output; the owner receives
+`xstate.done.actor.dog`, and its `onDone` takes it `home`. XState also
+takes inline logic as a `src`; JSON cannot hold it, so xstate takes a name
+only (<<differences-src>>).
+
+The same owner can spawn the same dog instead: an entry action spawns it,
+and the owner takes its done event under `on`, since `onDone` belongs to an
+invoke. The dog's machine is the one above:
+
+[source]
+----
+include::{examples}/actors/concepts_spawn_child.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/concepts_spawn_child.expected[]
+----
+
+`adopt` is a built-in action registered by name, as `throw` is in
+<<concepts-messages>>; it names the child's `src` and its id.
+<<actors-invoke>>, <<actors-spawn>> and <<actors-host>> take each in
+depth.
+
+[#concepts-system]
+=== The system
+
+A system is the set of actors that live together: a root actor, with its
+children and theirs. An actor can be registered in the system under a name,
+its `systemId`, and any actor of the system can then reach it by that name
+alone, without holding a reference to it or knowing where it sits in the
+family. A name is for actors that need each other but are not parent and
+child: two siblings, or a service that actors in every branch of the family
+call.
+
+A machine names a registered actor with the target `+#system:<systemId>+`.
+XState writes that target as a function of the system,
+`+({ system }) => system.get('vet')+`, which a JSON config cannot hold
+(<<differences-targets>>). The host finds a registered actor with `get`,
+XState's `system.get`. Here the owner invokes a vet and a dog walker, and
+the walker calls the vet when the dog limps:
+
+[source]
+----
+include::{examples}/actors/concepts_system.cpp[tag=implementations]
+----
+
+[source]
+----
+include::{examples}/actors/concepts_system.cpp[tag=example,indent=0]
+----
+
+It prints:
+
+[listing]
+----
+include::{examples}/actors/concepts_system.expected[]
+----
+
+The walker and the vet are siblings: neither holds the other, and the
+walker reaches the vet by its `systemId` alone. A `systemId` names one actor
+at a time: a second claim fails the actor that makes it, with
+`system_id_taken`, and the host's `create_actor` refuses a name already
+held. The roots one `actor_system` creates share one system, where XState
+gives each root its own, because an `actor_system` owns one xactor
+scheduler with its registry and xstate keeps no global state; a program
+that wants XState's arrangement gives each root an `actor_system` of its
+own (<<differences-system>>). Its rules follow in
+<<actors-system,the system's own section>>.

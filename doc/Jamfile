@@ -6,4 +6,5 @@
 
 import webcpp ;
 
+webcpp.doc xstate : xstate.adoc ;
 webcpp.reference xstate ;

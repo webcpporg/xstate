@@ -1,0 +1,384 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#guarantees]
+== Guarantees
+
+What xstate promises whatever its caller does: the rules its results keep,
+which the sections above teach and the tests check. A guarantee keeps its
+number, and the anchor named after it, so a comment of the code or of a test
+cites it by that anchor: `+(doc: #xstate-invariant-13)+` sends its reader to
+the thirteenth guarantee, and `+(doc: #xstate-invariant-a3)+` to the third
+of the actor layer. `b2 libs/xstate/doc`, which builds this page, fails on a
+citation that names no anchor of it (<<testing-xstate>>). What xactor
+promises, which the actor layer builds on, is on
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-guarantees[xactor's page].
+
+[#xstate-guarantees]
+=== The machine core
+
+. [[xstate-invariant-1]]A machine is created once from its config and never
+changes. A config's `states`, `on` and `after` are read in the order
+JavaScript enumerates an object's keys, as XState reads them: a key that is
+an array index, such as `"0"` or `"500"`, first, by number, then the rest as
+written. That order is the document order of the states, the order of a
+state's transitions and the order of the raises its `after` schedules.
+Creating a machine refuses each of these, with an error and no machine;
+<<webcpp-xstate-create_machine,`create_machine`>> gives the code of each, and
+<<machines-refusals>> shows them:
+* a config that is not an object, or a member of the wrong type, such as an
+invoke's `id` or `systemId` that is not a string;
+* a compound state without `initial`;
+* an `initial` or a target that names no state, but for a history at the
+root, which XState accepts and so does xstate
+(<<xstate-invariant-23,guarantee 23>>);
+* an `on` key of `""`;
+* a transition that declares a truthy `cond`, renamed `guard` in XState v5,
+whose development build refuses it;
+* a guard, or a named delay of an `after` key, that the implementations do
+not hold, where a raise's or a send's named delay that they do not hold is
+no delay, as in XState;
+* an `after` key that starts with a digit, `.`, `-` or `{plus}` and is not a
+whole number of milliseconds, such as `"1.5"` or `"5abc"`
+(<<differences-time>>);
+* a node whose default entry leads back to it, such as a history whose
+default target is an ancestor whose initial chain reaches the history
+again;
+* an invoke whose `src` is not a string (<<differences-src>>), and an actor
+the implementations do not hold (<<xstate-invariant-22,guarantee 22>>);
+* an `entry`, `exit` or `actions` that is null, which XState's `toArray`
+reads as a list that holds null and throws on when it runs it;
+* a history's `target` that is neither a string nor a list of strings, the
+root's included: XState reads a null one the same way and throws on it
+where it needs the default, and takes any other as it is
+(<<differences-refused>>);
+* a `tags` that holds anything but strings, null included;
+* implementations of which one holds an empty function (an assigner, an
+event, a value or an id maker, a guard, a delay or the context), which
+calling would abort without exceptions, where an optional one left out holds
+none; and an entry of `implementations::inputs` or
+`implementations::outputs` that names what it may not
+(<<xstate-invariant-24,guarantee 24>>).
+. [[xstate-invariant-2]]An action the implementations do not hold is a
+custom action. It is returned to the caller as `+{type, params}+`, in the
+order XState returns it, and the core does nothing else with it.
+. [[xstate-invariant-3]]`assign` changes the context, merging the partial
+update its implementation returns as `Object.assign` does, and is never
+returned as an action. `raise`, `log`, `cancel`, `sendParent` and the
+actions of <<xstate-invariant-21,guarantee 21>> are returned with their
+resolved params, `sendParent` as XState's `xstate.sendTo` to `+#_parent+`.
+. [[xstate-invariant-4]]A `raise` without a numeric delay goes to the
+macrostep's internal queue; one with a delay is only returned, for the
+caller's clock.
+. [[xstate-invariant-5]]A state with `after` raises
+`xstate.after.<delay>.<id>`, with that id and delay, on entry, and cancels
+it on exit, as XState does.
+. [[xstate-invariant-6]]One call of <<webcpp-xstate-macrostep-next,`next()`>> runs
+exactly one microstep. The first runs the external event's microstep, or,
+for the initial macrostep, the initial one; each later call runs one
+iteration of XState's macrostep loop.
+. [[xstate-invariant-7]]`progress::settled` is true on the microstep after
+which XState's macrostep loop would stop, and on no other: when no eventless
+transition is enabled and no raised event is queued, or the status is not
+`active`. An external event that selects no transition settles on the first
+`next()`, with the snapshot unchanged, unless an eventless transition is
+enabled after it, as a guard that reads the event can make it, or the event
+is an actor's error event, which <<xstate-invariant-20,guarantee 20>>
+settles in error. An external event of the type `+*+` is refused: the first
+`next()` fails the macrostep with `invalid_event`, as XState's development
+build refuses it, while an event of that type the machine raises takes the
+wildcard transitions.
+. [[xstate-invariant-8]]The core never stops a macrostep: an `always` cycle
+never settles, and the caller's fuel is the only bound. A cursor is a value,
+and a copy resumes exactly where the original stopped.
+. [[xstate-invariant-9]]Eventless transitions are selected after the first
+microstep of a macrostep, the initial one or the external event's, and after
+every microstep of a raised event, whatever it changed. After a microstep of
+eventless transitions they are selected again only when it changed the
+snapshot: the active nodes, the history, the context (an `assign` ran), the
+children (a spawn or a stop resolved, <<xstate-invariant-18,guarantee 18>>)
+or the status. This is XState's comparison of snapshots by identity, stated
+as a rule: its loop selects them again when the microstep returned another
+snapshot than the one it began from.
+. [[xstate-invariant-10]]The active nodes are an insertion-ordered set: kept
+nodes keep their place, exited nodes leave it, and entered nodes are
+appended in document order. A microstep that ends with the same active nodes
+and history keeps the order it had, as XState returns its snapshot
+unchanged; any other microstep that leaves the machine done lists them by
+descending `order` instead, each after its descendants, as XState sorts its
+array of active nodes in place when the machine is done. That order decides
+which eventless transition a parallel region takes first. A state value's
+keys are in the order JavaScript enumerates them, as XState's value is an
+object: array indices first, by number, then the rest in the order of the
+nodes.
+. [[xstate-invariant-11]]An implementation's failure sets the snapshot's
+`status` to `error`, with its error code, and settles the macrostep. The
+failing microstep reports no actions, as XState's pure functions throw, and
+neither does the macrostep's result for it; its
+`progress::resolved_before_failure` holds the actions it resolved before the
+failure, which a running actor of XState has run in part
+(<<xstate-invariant-a9,guarantee A9>>).
+. [[xstate-invariant-12]]Every result equals XState's for the same machine
+and events: each microstep's event, transitions, actions and snapshot
+(value, context, status, output, tags, active nodes in order), as the oracle
+records them in `test/fixtures/expected/` (<<testing-oracle>>).
+. [[xstate-invariant-13]]<<webcpp-xstate-simulated_clock,`simulated_clock`>>
+releases due events by (deadline, scheduling order), one at a time, and
+cannot be set back in time.
+. [[xstate-invariant-14]]`to_json` (<<machines-definition>>) writes
+XState's definition of the machine, key for key, plus the higher-order
+guards XState cannot write. XState's definition leaves out the context, the
+eventless transitions and a history state's default target, and two states
+may share an id when a key holds a dot. A machine created from a
+definition, given its context, takes the original's steps and writes the
+same definition, its version included, whenever none of those is in the
+original and no entry or exit names a custom action `xstate.raise` or
+`xstate.cancel`, which a definition cannot tell from the raise and the
+cancel an `after` adds. A definition XState would not write, one with a
+member of another type than XState writes, such as an entry or an exit that
+is not a list, is `invalid_config`.
+. [[xstate-invariant-15]]xstate throws no exception of its own: every
+operation that can fail returns a `result`, and the library compiles and
+runs without exceptions, as its wasip2 build does. It holds no global or
+static mutable state, and it never reads a clock, a file or a network.
+. [[xstate-invariant-16]]A machine starts with an input, null when none. The
+event `xstate.init` carries a non-null input as its member `input`. When
+`implementations::context` is set, the initial context is what it returns
+for the input, in place of the config's `context`; a failure, or a value
+that is not an object, fails the initial macrostep on its first `next()`,
+with the snapshot before it (XState's `_getPreInitialState`).
+. [[xstate-invariant-17]]A state's `invoke`, one object or a list, names a
+child actor by its string `src`, with an optional `id`, by default
+`<index>.<state id>` (XState's `createInvokeId`), `input` and `systemId`. Its
+`onDone`, `onError` and `onSnapshot` are transitions on
+`xstate.done.actor.<id>`, `xstate.error.actor.<id>` and
+`xstate.snapshot.<id>`. A node's transitions are kept in XState's `Map`
+order: `on`, `onDone`, each invoke's three, `after`; a descriptor given
+twice keeps its first place and its last transitions, except under `after`,
+whose transitions append.
+. [[xstate-invariant-18]]Entering a state returns, after its entry actions
+and before its initial actions, one `xstate.spawnChild` per invoke, its
+params `+{id, src, input?, systemId?}+`, and adds the child to the
+snapshot's `children`; exiting it returns, after its exit actions, one
+`xstate.stopChild` per invoke, its params `+{id}+`, and removes the child,
+with no params when the child is no longer there. Both change the snapshot,
+as <<xstate-invariant-9,guarantee 9>> counts change. The core runs no child:
+its caller does. `children` lists `(id, src)` in the order JavaScript
+enumerates XState's children object: ids that are array indices first, by
+number, then the others in spawning order.
+. [[xstate-invariant-19]]A macrostep whose snapshot is not active when it
+settles, done or still in the error it began from, returns, after every
+microstep's actions, one `xstate.stopChild` per child left, in
+`macrostep_result::actions` and in no microstep; the snapshot keeps its
+children (XState's `stopChildren`, whose snapshot XState drops). A
+macrostep that <<xstate-invariant-20,guarantee 20>> settles, or one that
+fails, returns none.
+. [[xstate-invariant-20]]An external event whose type starts with
+`xstate.error.actor` and that selects no transition settles in one
+microstep, with an empty list of transitions and no action: the snapshot the
+macrostep began from, its status `error`, its error `actor_failed` and its
+`error_value` the event's member `error`, when it has one. Its children
+stay, and no `xstate.stopChild` is returned (XState's `macrostep`).
+. [[xstate-invariant-21]]The actions that name other actors are registered
+by name and returned with XState's params: `spawn_child_action` as
+`xstate.spawnChild` `+{id, src, input?, systemId?}+`, adding the child;
+`stop_child_action` as `xstate.stopChild`, as in
+<<xstate-invariant-18,guarantee 18>>; `send_to_action` and
+`forward_to_action`, which sends the microstep's event, as `xstate.sendTo`
+`+{targetId, event, id?, delay?}+`; `emit_action` as `xstate.emit`
+`+{event}+`. A sendTo's target is `+#_parent+`, `+#_internal+`,
+`+#system:<systemId>+`, `+#_<id>+` or `<id>`; a child it names must be in
+the snapshot's children when the action resolves, or, named `<id>` by an
+entry or initial action, be an invoke of the state being entered (XState's
+`deferredActorIds`); otherwise the microstep fails with `unknown_target`. A
+sendTo naming an invoke of the state being entered by its bare id carries
+<<webcpp-xstate-action-bound_at,`action::bound_at`>>: how many of its microstep's
+actions come before the point where XState binds it to the child that id
+names, the end of that state's entry actions, spawns and initial actions
+(XState's `retryResolveSendTo`); any other action has none.
+. [[xstate-invariant-22]]Every actor a machine names, an invoke's `src` or
+the `src` of a `spawn_child_action` the config names as an action, is an
+entry of `implementations::actors`; creating the machine refuses any other
+with `unknown_actor`. A registered `spawn_child_action` the config never
+names is not checked, as XState's `setup` accepts it.
+. [[xstate-invariant-23]]A history at the root has no parent to resolve its
+default against. When its `target` is absent, a string or a list of strings,
+the machine is created, as XState creates it, and a microstep that needs the
+default, the initial one or one that enters the root or reaches it through
+another history's default, fails with `unknown_target`, where XState's
+`resolveHistoryDefaultTransition` throws. A target that is an empty list
+names nothing, and the root enters nothing below it, as in XState. Creating
+the machine refuses a target of any other type
+(<<xstate-invariant-1,guarantee 1>>).
+. [[xstate-invariant-24]]A value an implementation computes, the value a log
+logs, an invoke's input (`implementations::inputs`, by the invoke's id), a
+spawn's input or a final state's output (`implementations::outputs`, by the
+state's id, the root's id for the machine's), may be none, JavaScript's
+`undefined`: the member is left out, as XState leaves it out, so the log has
+no value, the child no input and the snapshot no output. An input is
+computed when its state is entered, after the state's entry actions; a
+final state's output from the context and the event that entered it, and
+the machine's from the done event of the final state that completed it, as
+XState's `getMachineOutput` computes it. Creating the machine refuses, with
+`invalid_config`, an input that names no invoke or an output that names
+neither a final state nor the root, and one of either that the config also
+fixes.
+
+[#xstate-actor-guarantees]
+=== The actor layer
+
+The actor layer's guarantees are numbered from A1, so that a citation tells
+them from the machine core's.
+
+[[xstate-invariant-a1]]A1:: Every host call that delivers (`start`, `send`,
+`clock_tick`, `resolve`, `reject`, `resume`) opens executions of its own,
+each with the budget's fuel, and runs the system until no message is left;
+it returns `out_of_fuel` when an actor is left parked, `settled` otherwise.
+While an actor is parked, `start`, `send`, `clock_tick`, `resolve` and
+`reject` are checked and then held, in the order made, and return
+`out_of_fuel`; `resume()`, once the parked actors have settled, applies them
+in that order, each run to its end before the next, as XState runs each of
+its host's calls to its end. An answer whose request is no longer pending
+when it is applied is dropped, as XState ignores a promise that settles
+after its actor stopped. `stop` is never held: it is how the host ends an
+actor that would never settle.
+[[xstate-invariant-a2]]A2:: An actor runs one macrostep at a time. An event
+that arrives while a macrostep has not settled, or before the actor has
+started, waits; the waiting events run afterwards in the order they
+arrived, each its own macrostep (XState's run to completion).
+[[xstate-invariant-a3]]A3:: Fuel: every microstep costs one unit of the
+execution's fuel, paid before it runs, and so does every message an actor
+sends (an event, a child's construction and its reply, a child's start, a
+stop) and every timer it arms. When the execution cannot pay, the actor
+parks with what it has not done; `resume()` gives each parked actor a new
+execution and continues it there. A parked actor never runs a microstep or
+an effect it has not paid for, nor one twice, and does nothing until its
+resume, so it stays parked only while something is left to do.
+[[xstate-invariant-a4]]A4:: Construction and start, after XState's
+`createActor` and `start()`: an actor's construction runs its initial
+macrostep, resolving its actions (<<xstate-invariant-a5,A5>>); its start
+then hands over the custom actions and logs that macrostep returned and
+runs what it deferred (<<xstate-invariant-a6,A6>>), the starts of its active
+children first, as XState's `start()` starts the snapshot's active children
+and then runs the actor's initial actions. A child born done or failed
+starts where its spawn put it. A child is constructed when its parent
+resolves its spawnChild, and started when the parent's macrostep has
+settled; the root is constructed and started by the host's `start`. A
+construction that fails drops what it would have handed over and deferred;
+the start then fails the actor (<<xstate-invariant-a9,A9>>).
+[[xstate-invariant-a5]]A5:: Resolution: as each microstep is computed, the
+actor resolves its actions in order, as XState's `resolveActionsAndContext`
+does, then the stopChild actions the macrostep returns after its microsteps
+(<<xstate-invariant-19,guarantee 19>>):
+* a custom action reaches `on_action`, and `xstate.log` `on_log`;
+* `xstate.spawnChild` claims its systemId, if any, and creates the child
+`implementations::actors` names for its src, a machine actor or a host
+actor, with its input. A machine child is constructed at once
+(<<xstate-invariant-a4,A4>>), and the actor waits until it is, so the
+children of its initial macrostep exist and their systemIds are registered
+when the next action resolves, as XState's `createActor` constructs a child
+inside `resolveSpawn`. Its start is deferred;
+* `xstate.stopChild` releases the systemIds the child and its descendants
+hold, and the actor forgets the child. A child this macrostep created, which
+has not started, is stopped at once and never starts; the stop of a started
+child is deferred. In the initial macrostep all of it is deferred, as XState
+runs every initial action on `start()`;
+* `xstate.sendTo` resolves its target now: a child by id or `+#_<id>+`, the
+parent (`+#_parent+`), the actor itself (`+#_internal+`), or the actor
+registered under a systemId (`+#system:<id>+`, the actor itself when none
+is, but for a forwardTo, which fails the actor with `unknown_target` there,
+as XState's development build throws). One that carries `bound_at`
+(<<xstate-invariant-21,guarantee 21>>) is bound to the child its id names
+once that many of the microstep's actions are resolved, as XState's
+`retryResolveSendTo` binds it, and fails the actor when it is delivered if
+no child had that id then. Its delivery, or its timer, is deferred;
+* a delayed raise, `xstate.cancel` and `xstate.emit` are deferred.
+[[xstate-invariant-a6]]A6:: Deferred effects: when its macrostep has settled
+and every action is resolved, the actor publishes its snapshot
+(`snapshot_of`) and runs what the resolution deferred, in order: deliveries
+and timers, cancels, emits, the stops of started children, the starts of
+created ones. A started child asked to stop receives the request behind
+everything already sent it, so it finishes the macrostep it runs and the
+events that arrived before, ignores what arrives after, asks each of its own
+children to stop the same way, and stops, running no exit action; a child
+that has already ended ignores it, and its children keep running, as in
+XState. The actor then notifies its subscribers when its snapshot is active
+or done (an empty listener is none, as an empty callback is), releases its
+systemId if it is done or failed, as XState's `_stopProcedure` does even
+when the report waits for fuel, and reports to its parent:
+`xstate.done.actor.<id>` `+{output, actorId}+` when done,
+`xstate.error.actor.<id>` `+{error, actorId}+` when failed, the error being
+the actor's `error_value` (a child's error climbs unchanged) or the name of
+its error code.
+[[xstate-invariant-a7]]A7:: A delayed raise or sendTo arms a timer owned by
+its sender, under its id when it has one. A timer armed under an id is the
+one a cancel of that id finds until another is armed under it or any timer
+of that id fires; an earlier one under the same id still fires, as XState's
+scheduler keeps its timeout and its `timerMap` names the latest.
+`clock_tick(now)` releases the timers due by `now` one at a time, in
+(deadline, arming) order, and runs after each, all in one execution, so a
+timer's handling can cancel a later one of the same tick, or take its id
+over, as XState's `SimulatedClock` fires them; one armed meanwhile and due
+by `now` is released in the same call. When an actor parks, the rest of the
+tick is held first in line (<<xstate-invariant-a1,A1>>), so no timer fires
+for a parked actor. A delayed sendTo is forwarded by its sender when the
+timer fires, in the order the timers fire; a retired actor's timers never
+fire.
+[[xstate-invariant-a8]]A8:: A `systemId` names one actor from its creation
+until the actor is done, failed or stopped, or until a stopChild releases it
+or one of its ancestors (<<xstate-invariant-a5,A5>>): `get` finds it, and a
+claim of it fails the claiming actor (<<xstate-invariant-a9,A9>>). A done
+or failed actor releases it at once, even while its report waits for fuel
+(<<xstate-invariant-a6,A6>>), and a child whose construction leaves it done
+or failed releases its own then, as XState's constructor does. When its
+parent starts it, the start fails the parent with `system_id_taken` if a
+child the parent's macrostep created, or one descended from it, holds the
+name then, as XState's `start()` claims it again and throws; it is a
+deferred effect that fails (<<xstate-invariant-a9,A9>>). XState runs each
+start and each send of the macrostep's deferred effects nested, before the
+next, so a sibling that ends during its own start has released the name by
+then, and an actor a deferred send reached may have claimed it; here those
+run later, in turns of their own, so the check sees the names as the
+macrostep's own children hold them, and the outcome can differ
+(<<differences-interleaving>>).
+[[xstate-invariant-a9]]A9:: What XState throws for while resolving, a claim
+of a systemId that is held and a sendTo to the parent of a root, fails the
+actor there: no later action of the macrostep is handed over or resolved,
+nothing it deferred runs, the children it created are stopped, and the
+snapshot is the one the macrostep began from, its status `error` and its
+error `system_id_taken` or `unknown_target`. What was handed over before
+stays handed over; the started children it asked to stop are the actor's
+again, as the snapshot it falls back to lists them. A microstep that fails,
+by an implementation or a history at the root, first has the actions it
+resolved before the failure resolved as any, as a running actor of XState
+has run them: custom actions and logs are handed over, and a spawn's claim
+of a held systemId fails first; then the resolution ends the same way, with
+the snapshot of <<xstate-invariant-11,guarantee 11>>. An initial macrostep
+hands over none of them, as XState runs those on `start()`. A deferred
+effect that fails fails the actor with the snapshot its macrostep reached,
+which an inspector hears as XState's update inspects it, and the children
+the macrostep created that have not started are stopped; a start's active
+children have.
+[[xstate-invariant-a10]]A10:: A host actor is created when its spawnChild
+resolves and, once started, is a pending
+<<webcpp-xstate-host_request,`host_request`>>; `resolve` and `reject` end it,
+done or failed, and its parent receives its done or error event. A request
+whose actor has ended is no longer pending, and `resolve` or `reject` of it
+is `invalid_argument` and changes nothing.
+[[xstate-invariant-a11]]A11:: A failed actor's children keep running, as in
+XState; a done actor's were stopped by the stopChild its last macrostep
+returned. `stop` stops a root actor and its family from the host, at once;
+for a child it is `invalid_argument` and changes nothing, as XState's
+`actor.stop()` refuses a child.
+[[xstate-invariant-a12]]A12:: The host's callbacks, a `subscribe` or
+`on_emitted` listener, the `on_action` and `on_log` callbacks and the
+inspector, run inside an actor's turn. A call from one of them that changes
+the system is `invalid_argument` and changes nothing; the `const` ones,
+which read it, are free. `subscribe` and `on_emitted` add a listener of one
+actor, called in the order added, and refuse an address that names no actor
+with `invalid_argument`, as `start` and `send` do; `on_action`, `on_log` and
+`inspect` hold one callback for the whole system, which a later call
+replaces; an empty callback is none.
