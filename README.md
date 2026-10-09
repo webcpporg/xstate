@@ -19,7 +19,8 @@ needs Boost's headers and Boost.JSON and nothing else.
 `<webcpp/xstate/actors.hpp>` adds the actor layer, which needs xactor too.
 Every name is in the namespace `webcpp::xstate`. xstate throws nothing and
 reports every error as a value, so its headers compile without exceptions,
-which the lint checks; it runs natively, on wasm32-wasip2 and on
+which the lint checks by compiling every public header, and every test and
+example, without them; it runs natively, on wasm32-wasip2 and on
 wasm32-wasip3, with exceptions, and whether a program uses them is its own
 choice.
 

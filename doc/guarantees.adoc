@@ -142,9 +142,9 @@ member of another type than XState writes, such as an entry or an exit that
 is not a list, is `invalid_config`.
 . [[xstate-invariant-15]]xstate throws no exception of its own: every
 operation that can fail returns a `result`, and the library compiles without
-exceptions, which the lint checks for every public header. It holds no
-global or
-static mutable state, and it never reads a clock, a file or a network.
+exceptions, which the lint checks for every public header and for every test
+and example, which instantiate its templates. It holds no global or static
+mutable state, and it never reads a clock, a file or a network.
 . [[xstate-invariant-16]]A machine starts with an input, null when none. The
 event `xstate.init` carries a non-null input as its member `input`. When
 `implementations::context` is set, the initial context is what it returns
