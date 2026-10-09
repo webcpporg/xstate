@@ -179,7 +179,8 @@ xstate throws no exception and catches none
   `result`, so every way out of it is one its caller sees
   (<<rationale-errors>>).
 
-The lint keeps it so: it compiles every public header without exceptions
+The lint keeps it so: it compiles every public header, and every test and
+example, which instantiate its templates, without exceptions
 (<<testing-targets>>), while every program, built for wasm32-wasip2 as for
 every target, is built with them. Where Boost's own code would throw, a
 build without exceptions calls `boost::throw_exception`, which the program
@@ -313,17 +314,15 @@ library of webcpp is, so that people who know these tools can review it:
   `/webcpp/xstate//xstate` (<<quick-start-b2>>).
 * *Boost.Core's lightweight_test runs the tests,* a header of its own, so
   that a test runs as it is on every target, and in a user's build without
-  exceptions; Boost.Test runs the {n-boost-test-suites}
-  suites that register a
-  test case for each ported case, natively, in its header-only form, so the
-  build compiles no Boost library (<<testing-suites>>).
-* *Every target is tested.* The tests and the examples run natively and
-  for wasm32-wasip2 and wasm32-wasip3, each with exceptions, and the lint
-  compiles every public header without them, so that a library that works
-  without them is a checked fact rather than a claim. Every public header
-  also compiles on its own, and
-  the machine core is checked to include nothing of xactor
-  (<<testing-xstate>>).
+  exceptions; Boost.Test runs the {n-boost-test-suites} suites that register
+  a test case for each ported case, natively, in its header-only form, so
+  the build compiles no Boost library (<<testing-suites>>).
+* *Every target is tested.* The tests and the examples run natively and for
+  wasm32-wasip2 and wasm32-wasip3, each with exceptions, and the lint
+  compiles every public header, and every test and example, without them, so
+  that a library that works without them is a checked fact rather than a
+  claim. Every public header also compiles on its own, and the machine core
+  is checked to include nothing of xactor (<<testing-xstate>>).
 * *Every program of this page is a test.* `b2 libs/xstate/example` builds
   each one, runs it and compares what it printed with the output committed
   beside it, on every target, and the page includes that source and that

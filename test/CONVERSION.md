@@ -42,9 +42,11 @@ without RTTI, when the conversion was made:
 
 That variant no longer exists: webcpp builds no variant without exceptions and none without
 RTTI (owner decision, 2026-10-08). "Without exceptions" is now checked by the lint, which
-compiles every public header with `exception-handling=off`; `cases` and `actors_cases`, native
-only, are built once, with exceptions, their framework included. The records below that name a
-`-noexcept` variant, or both variants, are of the conversion, and stay as they were made.
+compiles every public header, and every test and example, with `exception-handling=off`;
+`cases` and `actors_cases`, native only, are built once, with exceptions, their framework
+included, and the lint compiles their own sources without them too, the framework keeping its
+exceptions. The records below that name a `-noexcept` variant, or both variants, are of the
+conversion, and stay as they were made.
 
 The fixtures' directory reaches `cases` and `actors_cases` as the define
 `WEBCPP_TEST_XSTATE_FIXTURES`, with

@@ -570,11 +570,10 @@ The {n-examples} examples, each built, run, and its output compared with the
 one committed beside it (<<testing-examples>>).
 
 `b2 libs/xstate/test libs/xstate/example toolset=clang-wasip2 testing.launcher=wasmtime`::
-The same for wasm32-wasip2: {n-tests-wasip2} tests, the
-Boost.Test suites being native only, and the {n-examples-wasip2} examples,
-each run by wasmtime (<<testing-targets>>). `toolset=clang-wasip3` does the
-same for wasm32-wasip3: {n-tests-wasip3} tests and
-{n-examples-wasip3} examples.
+The same for wasm32-wasip2: {n-tests-wasip2} tests, the Boost.Test suites
+being native only, and the {n-examples-wasip2} examples, each run by
+wasmtime (<<testing-targets>>). `toolset=clang-wasip3` does the same for
+wasm32-wasip3: {n-tests-wasip3} tests and {n-examples-wasip3} examples.
 
 `b2 libs/xstate/test/oracle//oracle`::
 The oracle lane: XState 5.33.2 runs every case, and what it records must be
@@ -619,7 +618,9 @@ alone:
 |===
 
 That xstate works without exceptions is checked by the lint, which compiles
-every public header with `exception-handling=off`.
+every public header, and every test and example, which instantiate its
+templates, with `exception-handling=off`; a template that none of them
+instantiates is not checked.
 
 The WASI toolsets are b2's `clang`, which a `user-config.jam` registers
 against wasi-sdk, as

@@ -393,7 +393,8 @@ XState's actor keeps the error of an implementation that threw.
 
 There are two reasons for this. A caller reaches a value only through its
 `result`, so a failure cannot pass unseen. And xstate builds where exceptions
-are off: its headers compile without them, which the lint checks
+are off: its headers compile without them, which the lint checks by compiling
+every public header, and every test and example, without them
 (<<introduction-header-only>>).
 
 The actor layer refuses the calls it cannot take with xactor's
@@ -537,12 +538,12 @@ builds all four for machines (<<xstate-on-xactor>>).
 * *Without exceptions, a definition of `boost::throw_exception`.* xstate
   throws nothing: it is built and tested with exceptions on, on every
   target, and its headers compile without them. Whether a program uses them
-  is its own choice. Without
-  them, Boost's code still names `boost::throw_exception`, and the program
-  defines it: webcpp's `tools/throw_exception.cpp` does it with a report on
-  the standard error and an abort, since in such a build a throw is a
-  defect, never a condition. A program built with exceptions needs nothing
-  here, since Boost defines the function then.
+  is its own choice. Without them, Boost's code still names
+  `boost::throw_exception`, and the program defines it: webcpp's
+  `tools/throw_exception.cpp` does it with a report on the standard error
+  and an abort, since in such a build a throw is a defect, never a
+  condition. A program built with exceptions needs nothing here, since Boost
+  defines the function then.
 * *Nothing else:* no threads, and no global or static mutable state. A
   machine never reads a clock, a file or the network: the same machine and
   the same events give the same run.
