@@ -23,6 +23,8 @@
 #ifndef WEBCPP_XSTATE_ACTORS_HPP
 #define WEBCPP_XSTATE_ACTORS_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xstate.hpp>
 #include <webcpp/xstate/actors/actor_system.hpp>
 #include <webcpp/xstate/actors/fuel.hpp>

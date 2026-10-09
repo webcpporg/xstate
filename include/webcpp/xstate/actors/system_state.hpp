@@ -21,6 +21,8 @@
 #ifndef WEBCPP_XSTATE_ACTORS_SYSTEM_STATE_HPP
 #define WEBCPP_XSTATE_ACTORS_SYSTEM_STATE_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xstate/actions.hpp>
 #include <webcpp/xstate/actors/message.hpp>
 #include <webcpp/xstate/event.hpp>

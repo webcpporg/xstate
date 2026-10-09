@@ -12,6 +12,8 @@
 #ifndef WEBCPP_XSTATE_EVENT_HPP
 #define WEBCPP_XSTATE_EVENT_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xstate/errors.hpp>
 
 #include <boost/json.hpp>

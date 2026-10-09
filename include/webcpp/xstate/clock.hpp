@@ -19,6 +19,8 @@
 #ifndef WEBCPP_XSTATE_CLOCK_HPP
 #define WEBCPP_XSTATE_CLOCK_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xstate/actions.hpp>
 #include <webcpp/xstate/errors.hpp>
 #include <webcpp/xstate/event.hpp>

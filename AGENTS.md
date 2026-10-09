@@ -31,6 +31,10 @@ holds only what is specific to xstate.
   headers compile without exceptions, which the lint checks by compiling every
   public header, and every test and example, without them. Whether a program
   uses exceptions is its user's choice, on every target.
+- **`config.hpp` comes first.** Every public header includes
+  `<webcpp/xstate/config.hpp>` first, which defines
+  `WEBCPP_XSTATE_NO_EXCEPTIONS` without exceptions or when a developer does; a
+  header raises only through `boost::throw_exception` (the lint's bare throw).
 - **How the oracle drives XState.** Under `test/oracle/`, Node runs XState's
   development build, `node --conditions=development`, which makes the checks
   XState's own tests rely on; `development.mjs` refuses any other build.

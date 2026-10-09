@@ -18,6 +18,8 @@
 #ifndef WEBCPP_XSTATE_ACTORS_HOST_LOGIC_HPP
 #define WEBCPP_XSTATE_ACTORS_HOST_LOGIC_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xactor.hpp>
 #include <webcpp/xstate/actors/fuel.hpp>
 #include <webcpp/xstate/actors/message.hpp>

@@ -13,6 +13,8 @@
 #ifndef WEBCPP_XSTATE_GUARDS_HPP
 #define WEBCPP_XSTATE_GUARDS_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xstate/errors.hpp>
 #include <webcpp/xstate/event.hpp>
 #include <webcpp/xstate/machine.hpp>

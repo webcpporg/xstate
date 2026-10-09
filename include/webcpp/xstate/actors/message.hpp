@@ -18,6 +18,8 @@
 #ifndef WEBCPP_XSTATE_ACTORS_MESSAGE_HPP
 #define WEBCPP_XSTATE_ACTORS_MESSAGE_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xactor/ids.hpp>
 #include <webcpp/xstate/event.hpp>
 

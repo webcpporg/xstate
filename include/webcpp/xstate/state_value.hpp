@@ -19,6 +19,8 @@
 #ifndef WEBCPP_XSTATE_STATE_VALUE_HPP
 #define WEBCPP_XSTATE_STATE_VALUE_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <boost/json.hpp>
 
 #include <span>

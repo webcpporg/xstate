@@ -13,6 +13,13 @@ webcpp.targets native wasip2 wasip3 ;
 
 webcpp.headers-alone xstate : ../include ;
 
+# config.hpp defines WEBCPP_XSTATE_NO_EXCEPTIONS exactly when the build has
+# no exceptions, and keeps it when a developer defines it in a build that
+# has them.
+webcpp.compile config : config_test.cpp ;
+webcpp.compile config_developer_defined : config_test.cpp
+  : <define>WEBCPP_XSTATE_NO_EXCEPTIONS <define>WEBCPP_TEST_XSTATE_DEVELOPER_DEFINED ;
+
 # The machine core includes nothing of xactor or of the actor layer.
 webcpp.compile core_alone : core_alone.cpp ;
 
