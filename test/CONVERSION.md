@@ -41,11 +41,10 @@ without RTTI, when the conversion was made:
   exceptions on in both variants.
 
 That variant no longer exists: webcpp builds no variant without exceptions and none without
-RTTI (owner decision, 2026-10-08). "Without exceptions" is now checked on wasip2 only, where
-`values`, `machine`, `cursor` and the five actor programs are built with `BOOST_NO_EXCEPTIONS`
-and link `tools/throw_exception.cpp`; `cases` and `actors_cases`, native only, are built once,
-with exceptions, their framework included. The records below that name a `-noexcept` variant,
-or both variants, are of the conversion, and stay as they were made.
+RTTI (owner decision, 2026-10-08). "Without exceptions" is now checked by the lint, which
+compiles every public header with `exception-handling=off`; `cases` and `actors_cases`, native
+only, are built once, with exceptions, their framework included. The records below that name a
+`-noexcept` variant, or both variants, are of the conversion, and stay as they were made.
 
 The fixtures' directory reaches `cases` and `actors_cases` as the define
 `WEBCPP_TEST_XSTATE_FIXTURES`, with
@@ -124,7 +123,7 @@ any of the five, about 71% of the old `actors_test.cpp`, and does not take it.
 | Old | What replaces it |
 | --- | --- |
 | The 23 hand-written `test/headers/alone_stately_xstate*.cpp`, each a header compiled alone | The 23 tests `alone-xstate-*` of `webcpp.headers-alone xstate : ../include ;`, one per public header, generated from the headers themselves. The other 10 `alone_*.cpp` of that directory were xactor's, and moved with xactor. |
-| `test/toolchain_test.cpp`, the build's promise: C++20, and, in the variant without exceptions, Boost.Config seeing neither exceptions nor RTTI | The checks of `tools/test/webcpp_jam_test.py`: `test_every_program_sees_cxx20_and_only_wasip2_is_without_exceptions` (C++20 on every program, and, through Boost.Config, no exceptions on wasip2 alone of the targets a program declares), `test_no_variant_is_built_without_rtti` (no compile line turns RTTI off, on any target or with a user's `exception-handling=off`), `test_a_users_build_without_exceptions_links_the_handler` (a user's `exception-handling=off` compiles every program without exceptions and links the handler of `tools/throw_exception.cpp`) and `test_boost_test_passes_natively` (a Boost.Test suite's framework is compiled with exceptions whatever the build asks for, and a user's `exception-handling=off` reaches the suite's own sources alone). C++20 is the Jamroot's `<cxxstd>20`, on every program's command line. `STATELY_TEST_NO_EXCEPTIONS`, which only `toolchain_test.cpp` and the old Jamfiles used, is not carried. |
+| `test/toolchain_test.cpp`, the build's promise: C++20, and, in the variant without exceptions, Boost.Config seeing neither exceptions nor RTTI | The checks of `tools/test/webcpp_jam_test.py`: `test_every_program_sees_cxx20_and_exceptions_on_every_target` (C++20 on every program, and, through Boost.Config, exceptions on every target a program declares, and none in a user's build without them), `test_no_variant_is_built_without_rtti` (no compile line turns RTTI off, on any target or with a user's `exception-handling=off`), `test_a_users_build_without_exceptions_links_the_handler` (a user's `exception-handling=off` compiles every program without exceptions and links the handler of `tools/throw_exception.cpp`) and `test_boost_test_passes_natively` (a Boost.Test suite's framework is compiled with exceptions whatever the build asks for, and a user's `exception-handling=off` reaches the suite's own sources alone). C++20 is the Jamroot's `<cxxstd>20`, on every program's command line. `STATELY_TEST_NO_EXCEPTIONS`, which only `toolchain_test.cpp` and the old Jamfiles used, is not carried. |
 | `test/failing/`, a suite that must fail in both variants | The case `test_boost_test_failure_is_red_and_named` of `tools/test/webcpp_jam_test.py`, which runs a failing Boost.Test suite through `webcpp.boost-test`, built with exceptions and with a user's `exception-handling=off`, and sees it fail each time, its case and checks named. |
 | `test/runner.cpp`, Boost.Test's framework of each suite | `tools/boost_test_runner.cpp`, which `webcpp.boost-test` compiles for each suite. |
 
@@ -505,7 +504,7 @@ No count differs, in any case or helper. These are the other differences:
 - **The old `-noexcept` variant** reported each failed required check twice: the check, then the
   `SIGABRT` that ended the case, since Boost.Test's `execution_aborted` cannot leave code built
   without exceptions. The new one reported it once, while it existed; a lightweight_test program
-  built without exceptions, as on wasip2, still does.
+  built without exceptions, as a user may build one, still does.
 
 ## Planted defects
 

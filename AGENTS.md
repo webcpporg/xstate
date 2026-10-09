@@ -27,9 +27,9 @@ holds only what is specific to xstate.
   whose errors are of the category `webcpp.xstate`, except where the actor layer
   refuses a call as xactor would, with xactor's own errors, of the category
   `webcpp.xactor` (`actor_system`'s `invalid_argument`). The values of `errc`
-  are fixed and never reused. xstate throws nothing of its own, so it builds
-  and passes its tests without exceptions on wasip2. Everywhere else, whether
-  a program uses exceptions is its user's choice.
+  are fixed and never reused. xstate throws nothing of its own, so its headers
+  compile without exceptions, which the lint checks. Whether a program uses
+  exceptions is its user's choice, on every target.
 - **How the oracle drives XState.** Under `test/oracle/`, Node runs XState's
   development build, `node --conditions=development`, which makes the checks
   XState's own tests rely on; `development.mjs` refuses any other build.

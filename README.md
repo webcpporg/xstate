@@ -18,9 +18,10 @@ The library has two layers. `<webcpp/xstate.hpp>` is the machine core, which
 needs Boost's headers and Boost.JSON and nothing else.
 `<webcpp/xstate/actors.hpp>` adds the actor layer, which needs xactor too.
 Every name is in the namespace `webcpp::xstate`. xstate throws nothing and
-reports every error as a value, so it builds and passes its tests without
-exceptions on wasm32-wasip2; it runs natively, on wasm32-wasip2 and on
-wasm32-wasip3.
+reports every error as a value, so its headers compile without exceptions,
+which the lint checks; it runs natively, on wasm32-wasip2 and on
+wasm32-wasip3, with exceptions, and whether a program uses them is its own
+choice.
 
 ## A minimal example
 

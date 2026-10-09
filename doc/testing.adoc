@@ -570,10 +570,10 @@ The {n-examples} examples, each built, run, and its output compared with the
 one committed beside it (<<testing-examples>>).
 
 `b2 libs/xstate/test libs/xstate/example toolset=clang-wasip2 testing.launcher=wasmtime`::
-The same for wasm32-wasip2, without exceptions: {n-tests-wasip2} tests, the
+The same for wasm32-wasip2: {n-tests-wasip2} tests, the
 Boost.Test suites being native only, and the {n-examples-wasip2} examples,
 each run by wasmtime (<<testing-targets>>). `toolset=clang-wasip3` does the
-same for wasm32-wasip3, with exceptions: {n-tests-wasip3} tests and
+same for wasm32-wasip3: {n-tests-wasip3} tests and
 {n-examples-wasip3} examples.
 
 `b2 libs/xstate/test/oracle//oracle`::
@@ -605,19 +605,21 @@ alone:
 | native
 | Any toolset not listed below. As the build makes it: with exceptions,
   unless its user asks for `exception-handling=off`, which links webcpp's
-  `tools/throw_exception.cpp`, as on wasip2. The {n-boost-test-suites}
-  Boost.Test suites are built for this target alone.
+  `tools/throw_exception.cpp`. The {n-boost-test-suites} Boost.Test suites
+  are built for this target alone.
 
 | wasip2
 | The toolset `clang-wasip2`, the Clang of wasi-sdk for wasm32-wasip2, run by
-  wasmtime. Without exceptions, which some WebAssembly hosts lack: with
-  `BOOST_NO_EXCEPTIONS` and `tools/throw_exception.cpp`. This is the build
-  that proves xstate works without exceptions.
+  wasmtime. With exceptions, as WebAssembly's exception handling, as on
+  wasip3.
 
 | wasip3
 | The toolset `clang-wasip3`, for wasm32-wasip3, run by wasmtime. With
   exceptions, as WebAssembly's exception handling.
 |===
+
+That xstate works without exceptions is checked by the lint, which compiles
+every public header with `exception-handling=off`.
 
 The WASI toolsets are b2's `clang`, which a `user-config.jam` registers
 against wasi-sdk, as
@@ -881,7 +883,7 @@ function, `main` calls them all and returns `boost::report_errors()`, and a
 case that cannot go on after a failed check returns; a helper, which cannot
 return from its case, calls `webcpp::test::require`, of `test/require.hpp`,
 which ends the program with the errors counted so far. So a test needs no
-exceptions to stop, and runs as it is on wasm32-wasip2.
+exceptions to stop, and runs as it is in a user's build without them.
 
 [cols="2,5",options="header"]
 |===
@@ -1007,9 +1009,8 @@ result of an earlier one.
 The same programs build for wasm32-wasip2 and wasm32-wasip3, and run under
 wasmtime, through which `run_example.py` runs each (<<testing-targets>>). A
 program's output is compared with the same `<name>.expected` on every target,
-so it prints the same on every target. On wasm32-wasip2 every program is built
-without exceptions, so each example also shows that xstate does what the
-page says with exceptions off.
+so it prints the same on every target, each of which builds it with
+exceptions.
 
 `b2 libs/xstate/doc` builds this page from the same files, each program's
 source included by tag and its output whole, so neither can drift from the

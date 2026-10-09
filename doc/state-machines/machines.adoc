@@ -405,8 +405,8 @@ passed every check, and a mistake in a config shows when the config is
 loaded, not when an event first reaches it.
 
 The error is a value, not an exception. xstate throws no exception of its
-own, and builds with exceptions turned off, as this page's examples are
-built for wasm32-wasip2; where XState throws, xstate returns an error.
+own, and builds with exceptions turned off, which the lint checks; where
+XState throws, xstate returns an error.
 `result<T>` is
 `boost::system::result<T, boost::system::error_code>`; its error is a code
 of the category `webcpp.xstate`, one of the values of `errc`, and

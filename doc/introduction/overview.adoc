@@ -139,11 +139,9 @@ The reason is portability. The same headers build the same way wherever a
 of their own to port to each target and no binary to match to each
 compiler. Every program of this documentation is built and run natively,
 with GCC, Clang and MSVC, and for wasm32-wasip2 and wasm32-wasip3 with the
-Clang of wasi-sdk, under wasmtime. On wasm32-wasip2 webcpp builds every
-program without exceptions, since some WebAssembly hosts lack exception
-handling: xstate throws nothing, and builds and passes its tests there
-without them (<<overview-errors>>). Elsewhere, whether a program uses
-exceptions is its own choice.
+Clang of wasi-sdk, under wasmtime, with exceptions on every target: whether
+a program uses them is its own choice. xstate throws nothing, and its
+headers compile without them (<<overview-errors>>).
 
 The dependencies follow the same rule. Boost.System, which gives xstate its
 `result` and its error codes, is header-only, and so are xactor and
@@ -395,8 +393,8 @@ XState's actor keeps the error of an implementation that threw.
 
 There are two reasons for this. A caller reaches a value only through its
 `result`, so a failure cannot pass unseen. And xstate builds where exceptions
-are off: on wasm32-wasip2, where webcpp builds every program without them,
-xstate's tests and examples pass (<<introduction-header-only>>).
+are off: its headers compile without them, which the lint checks
+(<<introduction-header-only>>).
 
 The actor layer refuses the calls it cannot take with xactor's
 link:{webcpp-libs}/xactor/{webcpp-page}#webcpp-xactor-errc-invalid_argument[`webcpp::xactor::errc::invalid_argument`],
@@ -537,8 +535,9 @@ builds all four for machines (<<xstate-on-xactor>>).
   and `<boost/json/src.hpp>` defines, so exactly one translation unit of the
   program includes that header; webcpp's is `tools/boost_json.cpp`.
 * *Without exceptions, a definition of `boost::throw_exception`.* xstate
-  throws nothing, and it is built and tested with exceptions on and, on
-  wasm32-wasip2, off. Whether a program uses them is its own choice. Without
+  throws nothing: it is built and tested with exceptions on, on every
+  target, and its headers compile without them. Whether a program uses them
+  is its own choice. Without
   them, Boost's code still names `boost::throw_exception`, and the program
   defines it: webcpp's `tools/throw_exception.cpp` does it with a report on
   the standard error and an abort, since in such a build a throw is a
