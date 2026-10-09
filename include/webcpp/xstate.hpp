@@ -22,6 +22,8 @@
 #ifndef WEBCPP_XSTATE_HPP
 #define WEBCPP_XSTATE_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xstate/actions.hpp>
 #include <webcpp/xstate/clock.hpp>
 #include <webcpp/xstate/definition.hpp>

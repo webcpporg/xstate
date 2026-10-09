@@ -16,6 +16,8 @@
 #ifndef WEBCPP_XSTATE_ACTORS_FUEL_HPP
 #define WEBCPP_XSTATE_ACTORS_FUEL_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xactor/errors.hpp>
 #include <webcpp/xstate/errors.hpp>
 

@@ -17,6 +17,8 @@
 #ifndef WEBCPP_XSTATE_STATE_NODE_HPP
 #define WEBCPP_XSTATE_STATE_NODE_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xstate/implementations.hpp>
 
 #include <boost/json.hpp>

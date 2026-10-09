@@ -25,6 +25,8 @@
 #ifndef WEBCPP_XSTATE_FUNCTIONS_HPP
 #define WEBCPP_XSTATE_FUNCTIONS_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xstate/actions.hpp>
 #include <webcpp/xstate/event.hpp>
 #include <webcpp/xstate/machine.hpp>

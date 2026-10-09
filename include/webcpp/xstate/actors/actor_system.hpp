@@ -26,6 +26,8 @@
 #ifndef WEBCPP_XSTATE_ACTORS_ACTOR_SYSTEM_HPP
 #define WEBCPP_XSTATE_ACTORS_ACTOR_SYSTEM_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xactor.hpp>
 #include <webcpp/xstate.hpp>
 #include <webcpp/xstate/actors/host_logic.hpp>

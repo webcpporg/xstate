@@ -22,6 +22,8 @@
 #ifndef WEBCPP_XSTATE_ACTORS_MACHINE_LOGIC_HPP
 #define WEBCPP_XSTATE_ACTORS_MACHINE_LOGIC_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xactor.hpp>
 #include <webcpp/xstate.hpp>
 #include <webcpp/xstate/actors/fuel.hpp>

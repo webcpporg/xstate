@@ -18,6 +18,8 @@
 #ifndef WEBCPP_XSTATE_IMPLEMENTATIONS_HPP
 #define WEBCPP_XSTATE_IMPLEMENTATIONS_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xstate/errors.hpp>
 #include <webcpp/xstate/event.hpp>
 

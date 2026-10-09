@@ -31,6 +31,9 @@
 #ifdef WEBCPP_XACTOR_BUDGETS_HPP
 #error "the machine core includes <webcpp/xactor/budgets.hpp>"
 #endif
+#ifdef WEBCPP_XACTOR_CONFIG_HPP
+#error "the machine core includes <webcpp/xactor/config.hpp>"
+#endif
 #ifdef WEBCPP_XACTOR_DRIVERS_HPP
 #error "the machine core includes <webcpp/xactor/drivers.hpp>"
 #endif

@@ -16,6 +16,8 @@
 #ifndef WEBCPP_XSTATE_ERRORS_HPP
 #define WEBCPP_XSTATE_ERRORS_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <boost/system/error_category.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/system/result.hpp>

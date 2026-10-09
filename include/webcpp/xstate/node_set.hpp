@@ -17,6 +17,8 @@
 #ifndef WEBCPP_XSTATE_NODE_SET_HPP
 #define WEBCPP_XSTATE_NODE_SET_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <algorithm>
 #include <cstddef>
 #include <vector>

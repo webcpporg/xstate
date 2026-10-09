@@ -15,6 +15,8 @@
 #ifndef WEBCPP_XSTATE_SNAPSHOT_HPP
 #define WEBCPP_XSTATE_SNAPSHOT_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xstate/errors.hpp>
 #include <webcpp/xstate/machine.hpp>
 #include <webcpp/xstate/node_set.hpp>

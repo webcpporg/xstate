@@ -20,6 +20,8 @@
 #ifndef WEBCPP_XSTATE_DEFINITION_HPP
 #define WEBCPP_XSTATE_DEFINITION_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xstate/errors.hpp>
 #include <webcpp/xstate/implementations.hpp>
 #include <webcpp/xstate/machine.hpp>

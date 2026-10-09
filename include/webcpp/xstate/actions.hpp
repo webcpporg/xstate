@@ -19,6 +19,8 @@
 #ifndef WEBCPP_XSTATE_ACTIONS_HPP
 #define WEBCPP_XSTATE_ACTIONS_HPP
 
+#include <webcpp/xstate/config.hpp>
+
 #include <webcpp/xstate/errors.hpp>
 #include <webcpp/xstate/event.hpp>
 #include <webcpp/xstate/implementations.hpp>
