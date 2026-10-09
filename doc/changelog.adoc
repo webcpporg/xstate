@@ -16,7 +16,8 @@ of every version are on webcpp's index page.
 === Unreleased
 
 // tag::unreleased[]
-* Changed wasip2 to build with exceptions, as native and wasip3 already did.
+* Changed the guarantee without exceptions to compiling only, which the lint
+checks.
 * Added the `WEBCPP_XSTATE_NO_EXCEPTIONS` configuration macro, defined
 automatically or by the developer.
 * Added a changelog, the page's last appendix, with each version's changes.
