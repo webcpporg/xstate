@@ -170,23 +170,21 @@ xstate throws no exception and catches none
 (link:{webcpp-libs}/xactor/{webcpp-page}#xactor-invariant-20[xactor's guarantee 20]).
 
 * *Programs turn them off.* Many builds disable exceptions: embedded and
-  real-time programs, games, and WebAssembly, some of whose hosts lack
-  exception handling, which is why webcpp builds every program for
-  wasm32-wasip2 without them. A header-only library is compiled with the
-  program's flags (<<rationale-header-only>>), so it must work under the
-  strictest of them; one that needed exceptions would make every program
-  that uses it turn them on. Whether a program uses them stays its own
-  choice.
+  real-time programs, games, and WebAssembly for a host that lacks
+  exception handling. A header-only library is compiled with the program's
+  flags (<<rationale-header-only>>), so it must work under the strictest of
+  them; one that needed exceptions would make every program that uses it
+  turn them on. Whether a program uses them stays its own choice.
 * *No hidden exit.* A call that throws nothing returns through its
   `result`, so every way out of it is one its caller sees
   (<<rationale-errors>>).
 
-The build keeps it so. Every lightweight_test program and every example is
-built for wasm32-wasip2 without exceptions, and run under wasmtime
-(<<testing-targets>>). Where Boost's own code would throw, a build without
-exceptions calls `boost::throw_exception`, which the program defines. In
-such a build that call is a defect, never a condition, and webcpp's
-definition reports it and aborts (<<overview-requirements>>).
+The lint keeps it so: it compiles every public header without exceptions
+(<<testing-targets>>), while every program, built for wasm32-wasip2 as for
+every target, is built with them. Where Boost's own code would throw, a
+build without exceptions calls `boost::throw_exception`, which the program
+defines. In such a build that call is a defect, never a condition, and
+webcpp's definition reports it and aborts (<<overview-requirements>>).
 
 [#rationale-cursor-fuel]
 === The macrostep cursor and fuel
@@ -314,15 +312,16 @@ library of webcpp is, so that people who know these tools can review it:
   from the root of a webcpp checkout, and a b2 project uses xstate through
   `/webcpp/xstate//xstate` (<<quick-start-b2>>).
 * *Boost.Core's lightweight_test runs the tests,* a header of its own, so
-  that a test runs as it is on every target, without exceptions on
-  wasm32-wasip2 among them; Boost.Test runs the {n-boost-test-suites}
+  that a test runs as it is on every target, and in a user's build without
+  exceptions; Boost.Test runs the {n-boost-test-suites}
   suites that register a
   test case for each ported case, natively, in its header-only form, so the
   build compiles no Boost library (<<testing-suites>>).
 * *Every target is tested.* The tests and the examples run natively and
-  for wasm32-wasip2 and wasm32-wasip3; wasm32-wasip2 builds them without
-  exceptions, so that a library that works without them is a tested fact
-  rather than a claim. Every public header also compiles on its own, and
+  for wasm32-wasip2 and wasm32-wasip3, each with exceptions, and the lint
+  compiles every public header without them, so that a library that works
+  without them is a checked fact rather than a claim. Every public header
+  also compiles on its own, and
   the machine core is checked to include nothing of xactor
   (<<testing-xstate>>).
 * *Every program of this page is a test.* `b2 libs/xstate/example` builds

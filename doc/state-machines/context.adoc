@@ -410,8 +410,8 @@ snapshot's `status` (<<context-snapshot>>).
 
 Read members with `if_object` and `if_contains`, which return a null pointer
 when the value is not an object or the member is missing. `at` throws on a
-missing member, and in a build without exceptions, as this page's examples
-are on wasm32-wasip2, the throw aborts the program.
+missing member, and in a build without exceptions the throw aborts the
+program.
 
 [#context-cheatsheet]
 === Context cheatsheet
