@@ -57,3 +57,5 @@ include::appendices/differences.adoc[]
 include::appendices/rationale.adoc[]
 
 include::appendices/glossary.adoc[]
+
+include::changelog.adoc[]
