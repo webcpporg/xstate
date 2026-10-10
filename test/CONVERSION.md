@@ -40,8 +40,10 @@ without RTTI, when the conversion was made:
   for the suite's own sources, and compiled the framework, `tools/boost_test_runner.cpp`, with
   exceptions on in both variants.
 
-That variant no longer exists: webcpp builds no variant without exceptions and none without
-RTTI (owner decision, 2026-10-08). "Without exceptions" is now checked by the lint, which
+That whole-suite variant no longer exists, and none without RTTI (owner decision, 2026-10-08;
+since 2026-10-10 every library supports a build without exceptions, and a library tests what
+behaves otherwise without them in tests of its own that declare `<exception-handling>off`).
+"Without exceptions" is now checked by the lint, which
 compiles every public header, and every test and example, with `exception-handling=off`;
 `cases` and `actors_cases`, native only, are built once, with exceptions, their framework
 included, and the lint compiles their own sources without them too, the framework keeping its
