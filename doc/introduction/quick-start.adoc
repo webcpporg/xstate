@@ -21,15 +21,16 @@ of the repository, and the output under it is what that program printed.
 xstate is header-only, so installing it puts directories on a program's
 include path, and nothing is built but the program
 (<<overview-requirements>> lists what the program provides). In a webcpp
-checkout they are `libs/xstate/include`, and, for the actor layer,
-`libs/xactor/include`, beside Boost 1.92's headers. From the root of the
-checkout, with the program of the next two sections,
-`libs/xstate/example/xstate/qs_toggle.cpp`, copied as `toggle.cpp`, this
-command builds it:
+checkout they are `libs/xstate/include`, webcpp's configuration,
+`libs/config/include`, and, for the actor layer, `libs/xactor/include`,
+beside Boost 1.92's headers. From the root of the checkout, with the program
+of the next two sections, `libs/xstate/example/xstate/qs_toggle.cpp`, copied
+as `toggle.cpp`, this command builds it:
 
 [source,bash]
 ----
-clang++ -std=c++20 -I libs/xstate/include toggle.cpp tools/boost_json.cpp -o toggle
+clang++ -std=c++20 -I libs/xstate/include -I libs/config/include toggle.cpp \
+    tools/boost_json.cpp -o toggle
 ----
 
 `tools/boost_json.cpp` is the one translation unit that includes
@@ -50,7 +51,8 @@ defect, never a condition:
 [source,bash]
 ----
 clang++ -std=c++20 -fno-exceptions -DBOOST_NO_EXCEPTIONS -I libs/xstate/include \
-    toggle.cpp tools/boost_json.cpp tools/throw_exception.cpp -o toggle
+    -I libs/config/include toggle.cpp tools/boost_json.cpp tools/throw_exception.cpp \
+    -o toggle
 ----
 
 A program built with exceptions on needs none of `-fno-exceptions`,

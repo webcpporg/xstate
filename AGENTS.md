@@ -32,9 +32,13 @@ holds only what is specific to xstate.
   public header, and every test and example, without them. Whether a program
   uses exceptions is its user's choice, on every target.
 - **`config.hpp` comes first.** Every public header includes
-  `<webcpp/xstate/config.hpp>` first, which defines
-  `WEBCPP_XSTATE_NO_EXCEPTIONS` without exceptions or when a developer does; a
-  header raises only through `boost::throw_exception` (the lint's bare throw).
+  `<webcpp/xstate/config.hpp>` first, which includes `<webcpp/config.hpp>`
+  first and defines `WEBCPP_XSTATE_NO_EXCEPTIONS` when webcpp has no exceptions
+  (`WEBCPP_HAS_EXCEPTIONS` is not defined: the compiler has none, or the
+  program defined `WEBCPP_NO_EXCEPTIONS`) or when a program defines it for
+  xstate alone; the tests `config`, `config_developer_defined` and
+  `config_all_off` check the three ways. A header raises only through
+  `boost::throw_exception` (the lint's bare throw).
 - **How the oracle drives XState.** Under `test/oracle/`, Node runs XState's
   development build, `node --conditions=development`, which makes the checks
   XState's own tests rely on; `development.mjs` refuses any other build.

@@ -6,8 +6,8 @@
 #
 # xstate, a header-only port of XState's state machines and actors. A
 # program uses it through /webcpp/xstate//xstate, which adds its headers,
-# xactor's, Boost's, and Boost.JSON's definitions, which a machine's config
-# is read with.
+# xactor's, Boost's, webcpp's configuration, and Boost.JSON's definitions,
+# which a machine's config is read with.
 
 project /webcpp/xstate ;
 
@@ -16,5 +16,6 @@ alias xstate
     <include>include
     <library>/webcpp/xactor//xactor
     <library>/boost//headers
+    <library>/webcpp/config//config
     <library>/webcpp//boost_json
   ;

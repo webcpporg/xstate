@@ -528,6 +528,8 @@ builds all four for machines (<<xstate-on-xactor>>).
   `libs/xactor/include` in a webcpp checkout. The machine core needs only
   xstate's; the actor layer needs xactor's too. Nothing of xstate is
   compiled on its own (<<introduction-header-only>>).
+* *webcpp's configuration*, `libs/config/include` in a webcpp checkout,
+  which xstate's and xactor's headers include first.
 * *Boost 1.92.0's headers.* Every value a machine holds, its config, its
   context, an event's payload, an action's `params`, is a Boost.JSON value;
   results and error codes are Boost.System's. Outside a WASI build, xactor

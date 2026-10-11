@@ -13,15 +13,16 @@
 #ifndef WEBCPP_XSTATE_CONFIG_HPP
 #define WEBCPP_XSTATE_CONFIG_HPP
 
-#include <boost/config.hpp>
+#include <webcpp/config.hpp>
 
 // MrDocs parses xstate as a build with exceptions does, where the macro is not
 // defined: this definition, undone at once, is the one the reference lists, and
 // the parse goes on with every API that throws in it.
 #ifdef __MRDOCS__
 /**
- Defined when xstate is built without exceptions: automatically when the
- compiler has none (`BOOST_NO_EXCEPTIONS`), or by the developer to disable them
+ Defined when xstate is built without exceptions: when webcpp has none (the
+ compiler has none, or the developer defined `WEBCPP_NO_EXCEPTIONS` for every
+ webcpp library), or when the developer defines it alone, to disable xstate's
  in a build that has them.
 
  xstate raises no exception of its own: where XState throws, it returns an
@@ -36,7 +37,7 @@
 #undef WEBCPP_XSTATE_NO_EXCEPTIONS
 #endif
 
-#if defined(BOOST_NO_EXCEPTIONS) && !defined(WEBCPP_XSTATE_NO_EXCEPTIONS)
+#if !defined(WEBCPP_HAS_EXCEPTIONS) && !defined(WEBCPP_XSTATE_NO_EXCEPTIONS)
 #define WEBCPP_XSTATE_NO_EXCEPTIONS
 #endif
 

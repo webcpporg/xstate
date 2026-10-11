@@ -21,4 +21,8 @@ checks.
 * Added the `WEBCPP_XSTATE_NO_EXCEPTIONS` configuration macro, defined
 automatically or by the developer.
 * Added a changelog, the page's last appendix, with each version's changes.
+* Changed `config.hpp` to include `<webcpp/config.hpp>`, webcpp's
+configuration, which the build adds.
+* Added `WEBCPP_NO_EXCEPTIONS`, which disables xstate's exceptions with
+every webcpp library's.
 // end::unreleased[]
