@@ -125,7 +125,7 @@ Software License alone.
 ## Documentation
 
 xstate's page, with its API reference, is published at
-<https://webcpporg.github.io/webcpp/libs/xstate/>; `b2 libs/xstate/doc`
+<https://webcpporg.github.io/libs/xstate/>; `b2 libs/xstate/doc`
 builds it into `doc/html/index.html`.
 
 ## License

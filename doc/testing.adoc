@@ -654,7 +654,7 @@ b2 -a --dump-tests --out-xml=<lane>.xml toolset=<toolset> libs/xstate/test libs/
 ----
 
 webcpp's `tools/report/report.py` merges the files of every lane into the
-test matrix, published at https://webcpporg.github.io/webcpp/report/, where
+test matrix, published at https://webcpporg.github.io/report/, where
 each cell says whether a program passed in a lane, or how it failed. Beside
 the lanes, `tools/lint/lint.sh` runs clang-format and clang-tidy from
 wasi-sdk, with rules of webcpp's own: the licence notice every source file
