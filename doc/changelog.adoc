@@ -16,6 +16,12 @@ of every version are on webcpp's index page.
 === Unreleased
 
 // tag::unreleased[]
+// end::unreleased[]
+
+[#xstate-changelog-0-1-0]
+=== webcpp 0.1.0
+
+// tag::0.1.0[]
 * Changed the guarantee without exceptions to compiling only, which the lint
 checks.
 * Added the `WEBCPP_XSTATE_NO_EXCEPTIONS` configuration macro, defined
@@ -25,4 +31,4 @@ automatically or by the developer.
 configuration, which the build adds.
 * Added `WEBCPP_NO_EXCEPTIONS`, which disables xstate's exceptions with
 every webcpp library's.
-// end::unreleased[]
+// end::0.1.0[]
